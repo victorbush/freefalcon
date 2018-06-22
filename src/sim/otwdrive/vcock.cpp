@@ -1453,9 +1453,9 @@ void OTWDriverClass::VCock_HeadCalc(void)
         //ATARIBABY start new dynamic head movement more like old DID EF2000 days :-)
         if (g_b3dDynamicPilotHead)
         {
-            float actualtilt;
-            float actualrollrate;
-            float actualpan;
+            float actualtilt = 0;
+            float actualrollrate = 0;
+            float actualpan = 0;
             //ATARIBABY disabled now - fwd/back lean cause normals problems and i not know solution yet
             //float actualaccel;
 

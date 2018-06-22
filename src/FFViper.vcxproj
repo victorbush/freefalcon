@@ -140,7 +140,7 @@
       <ProgramDataBaseFileName>../build/x86/debug_win32/ffviper/FFViper.pdb</ProgramDataBaseFileName>
       <XMLDocumentationFileName>../build/x86/debug_win32/ffviper/doc.xml</XMLDocumentationFileName>
       <AdditionalIncludeDirectories>./;falclib/include;codelib/include;vu2/include;sim/include;campaign/include;ui/include;graphics/include;amd/inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
