@@ -6357,8 +6357,14 @@ void CockpitManager::SetTurbulence(void)
     PitTurbulence.x = PitTurbulence.x * DisplayOptions.DispWidth;
     // Being 2D Pit with no depth, differently from 3D Pith, shaking may be too much violent
     // so, we r going to apply a Square mantaining to shake values sign to it and then multiply by 2
-    PitTurbulence.y = (float)((int)(PitTurbulence.y * 2.0f / sqrtf(PitTurbulence.y)));
-    PitTurbulence.x = (float)((int)(PitTurbulence.x * 2.0f / sqrtf(PitTurbulence.x)));
+	if (PitTurbulence.y)
+	{
+		PitTurbulence.y = (float)((int)(PitTurbulence.y * 2.0f / sqrtf(PitTurbulence.y)));
+	}
+	if (PitTurbulence.x)
+	{
+		PitTurbulence.x = (float)((int)(PitTurbulence.x * 2.0f / sqrtf(PitTurbulence.x)));
+	}
 }
 
 
@@ -6376,7 +6382,9 @@ void CockpitManager::AddTurbulence(TwoDVertex *pVtx)
 void CockpitManager::AddTurbulenceVp(ViewportBounds *Vp)
 {
     AircraftClass *playerAC = SimDriver.GetPlayerAircraft();
-    Tpoint Turbulence = playerAC->GetTurbulence();
+    //Tpoint Turbulence = playerAC->GetTurbulence();
+	this->SetTurbulence();
+
     // to avoid shift of viewports coming from decimals, use it only if integer offsets available
     float OffsetX = PitTurbulence.x * 2.0f / DisplayOptions.DispWidth;
     float OffsetY = -PitTurbulence.y * 2.0f / DisplayOptions.DispHeight;
