@@ -172,7 +172,7 @@
     <ClCompile Include="filemem.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="math.cpp" />
-    <ClCompile Include="radix.cpp" />
+    <ClCompile Include="radix.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../include/alloc.h" />

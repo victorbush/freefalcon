@@ -29,7 +29,7 @@
     <ClCompile Include="math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="radix.cpp">
+    <ClCompile Include="radix.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
