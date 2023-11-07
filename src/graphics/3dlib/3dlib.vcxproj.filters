@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ALLOC.C">
+    <ClCompile Include="alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="context.cpp">
@@ -29,7 +29,7 @@
     <ClCompile Include="math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RADIX.C">
+    <ClCompile Include="radix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

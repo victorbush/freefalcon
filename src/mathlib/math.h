@@ -77,34 +77,34 @@ template< class T > T Lerp(T& A, T& B, float Alpha)
 
 #if _MSC_VER >= 1300
 
-static inline float RsqrtSSE(float x)
-{
-    static int big = 0x7F7FFFFF;
-
-    __asm
-    {
-        rsqrtss xmm0, x
-        minss xmm0, [big]
-        mulss xmm0, x
-        movss x, xmm0
-    }
-
-    return x;
-}
-
-static inline float SqrtSSE(float x)
-{
-    __asm
-    {
-        sqrtss xmm0, x
-        movss x, xmm0
-    }
-
-    return x;
-}
-
-#define sqrt SqrtSSE
-#define sqrtf SqrtSSE
+//static inline float RsqrtSSE(float x) noexcept
+//{
+//    static int big = 0x7F7FFFFF;
+//
+//    __asm
+//    {
+//        rsqrtss xmm0, x
+//        minss xmm0, [big]
+//        mulss xmm0, x
+//        movss x, xmm0
+//    }
+//
+//    return x;
+//}
+//
+//static inline float SqrtSSE(float x) noexcept
+//{
+//    __asm
+//    {
+//        sqrtss xmm0, x
+//        movss x, xmm0
+//    }
+//
+//    return x;
+//}
+//
+//#define sqrt SqrtSSE
+//#define sqrtf SqrtSSE
 
 #else //_MSC_VER >= 1300
 

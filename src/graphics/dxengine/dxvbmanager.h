@@ -241,7 +241,7 @@ public:
     void Encrypt(DWORD *);
     void Decrypt(DWORD *);
     bool CheckDataID(DWORD ID);
-    (BYTE*) GetModelRoot(DWORD ID)
+    BYTE* GetModelRoot(DWORD ID)
     {
         return ((BYTE*)pVBuffers[ID].Root);
     }

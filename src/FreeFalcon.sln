@@ -1,5 +1,7 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BSPLib", "graphics\bsplib\BSPLib.vcxproj", "{A9AF41A2-348D-40FC-A7AD-601A944E1D2F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bomb", "sim\bomb\Bomb.vcxproj", "{916C9938-FB28-4452-92B7-FF27DF0F858F}"
@@ -198,11 +200,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Airframe", "sim\airframe\Airframe.vcxproj", "{3042720A-4B53-4B35-A354-031A0D79C226}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXEngine", "graphics\dxengine\DXEngine.vcxproj", "{59BECA8E-1370-4D6E-BCA7-C6948601471A}"
-EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Installer", "installer\Installer.wixproj", "{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{AB8D7652-9229-4626-9D63-87F8D546C79D} = {AB8D7652-9229-4626-9D63-87F8D546C79D}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -874,19 +871,12 @@ Global
 		{59BECA8E-1370-4D6E-BCA7-C6948601471A}.Release|Win32.ActiveCfg = Release|Win32
 		{59BECA8E-1370-4D6E-BCA7-C6948601471A}.Release|Win32.Build.0 = Release|Win32
 		{59BECA8E-1370-4D6E-BCA7-C6948601471A}.Release|x86.ActiveCfg = Release|Win32
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Debug|Win32.ActiveCfg = Debug|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Debug|x86.ActiveCfg = Debug|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Debug|x86.Build.0 = Debug|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Release|Mixed Platforms.Build.0 = Release|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Release|Win32.ActiveCfg = Release|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Release|x86.ActiveCfg = Release|x86
-		{89B4A6BA-5E99-48A8-8D73-7FF1669834A9}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {63B46C48-42A0-4D42-967C-2432299F00C7}
 	EndGlobalSection
 	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
 		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
