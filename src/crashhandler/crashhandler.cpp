@@ -10,6 +10,7 @@ CONDITIONAL COMPILATION :
 #include "pch.h"
 #include "BugslayerUtil.h"
 #include "CrashHandler.h"
+#include "minidump.h"
 
 // The project internal header file.
 #include "Internal.h"
