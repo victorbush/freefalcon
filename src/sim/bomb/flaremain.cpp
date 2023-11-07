@@ -126,7 +126,7 @@ void FlareClass::Start(vector* pos, vector* rate, float cD)
 
 void FlareClass::CreateGfx()
 {
-    // dont call base class since it create wrong gfx for some reason
+    // dont call base class since it create wrong gfx for some reason!!!!!
     InitTrail();
     ExtraGraphics();
 }
@@ -183,7 +183,7 @@ void FlareClass::ExtraGraphics()
 
     // I-Hawk - Removed, Not used anymore
     /*
-    if( not g_bDisableMissleEngGlow) // MLR 2003-11-15 disable that shit-o star effect
+    if(!g_bDisableMissleEngGlow) // MLR 2003-11-15 disable that shit-o star effect
     {
      OTWDriver.InsertObject(trailGlow);
      OTWDriver.InsertObject(trailSphere);
@@ -266,11 +266,11 @@ void FlareClass::InitTrail(void)
      trailSphere = NULL;
     */
 
-    flags or_eq IsFlare;
+    flags |= IsFlare;
     displayIndex = GetClassID(DOMAIN_AIR, CLASS_SFX, TYPE_FLARE,
                               STYPE_FLARE1, SPTYPE_ANY, VU_ANY, VU_ANY, VU_ANY);
 
-    if ( not drawPointer or drawPointer == (DrawableObject*)0xbaadf00d) // FRB
+    if (!drawPointer || drawPointer == (DrawableObject*)0xbaadf00d) // FRB
     {
         drawPointer = NULL;
     }

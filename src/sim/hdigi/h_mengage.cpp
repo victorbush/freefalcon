@@ -26,7 +26,7 @@ void HeliBrain::MissileEngageCheck(void)
     /*-------*/
     /* entry */
     /*-------*/
-    if (curMode not_eq MissileEngageMode and curMissile)
+    if (curMode != MissileEngageMode && curMissile)
     {
         //   MonoPrint( "HELO BRAIN ENTERING Missile Engange 1\n" );
         AddMode(MissileEngageMode);
@@ -46,14 +46,14 @@ void HeliBrain::MissileEngage(void)
     float xDot, yDot, zDot;
     float tof, rMax;
 
-    if ( not targetPtr or not curMissile)
+    if (!targetPtr || !curMissile)
     {
         //   MonoPrint( "HELO BRAIN Exiting Missile Engange 3\n" );
         return;
     }
 
     // Set up for missile engage
-    if (curMode not_eq lastMode)
+    if (curMode != lastMode)
     {
         FireControlComputer::FCCSubMode newSubMode;
 

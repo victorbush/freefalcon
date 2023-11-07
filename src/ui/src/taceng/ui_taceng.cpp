@@ -90,12 +90,12 @@ void LoadTacEngSelectWindows()
     C_Button *tac_train = NULL;
     long ID;
 
-    if ( not PlannerLoaded)
+    if (!PlannerLoaded)
         LoadPlannerWindows();
 
     LoadCommonWindows();
 
-    if ( not TACSelLoaded)
+    if (!TACSelLoaded)
     {
         if (_LOAD_ART_RESOURCES_)
             gMainParser->LoadImageList("ts_res.lst");

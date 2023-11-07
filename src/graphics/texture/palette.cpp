@@ -5,7 +5,6 @@
 
  Provide a class to manage MPR palettes.
 \***************************************************************************/
-#include <cISO646>
 #include "stdafx.h"
 #include "TOD.h"
 #include "Palette.h"
@@ -105,10 +104,10 @@ void Palette::Setup24(BYTE *data24)
 \***************************************************************************/
 void Palette::UpdateMPR(DWORD *pal)
 {
-    ShiAssert(rc not_eq NULL);
+    ShiAssert(rc != NULL);
     ShiAssert(pal);
 
-    if ( not rc) // JB 010615 CTD
+    if (!rc) // JB 010615 CTD
         return;
 
     // OW FIXME Error checking
@@ -149,7 +148,7 @@ int Palette::Release(void)
     {
         if (palHandle)
         {
-            ShiAssert(rc not_eq NULL);
+            ShiAssert(rc != NULL);
 
             delete palHandle;
             palHandle = NULL;
@@ -187,9 +186,9 @@ void Palette::LightTexturePalette(Tcolor *light)
     while (to < stop)
     {
         *to  = (FloatToInt32(*(from)   * r)) // Red
-               bitor (FloatToInt32(*(from + 1) * g) << 8) // Green
-               bitor (FloatToInt32(*(from + 2) * b) << 16) // Blue
-               bitor ((*(from + 3)) << 24); // Alpha
+               | (FloatToInt32(*(from + 1) * g) << 8) // Green
+               | (FloatToInt32(*(from + 2) * b) << 16) // Blue
+               | ((*(from + 3)) << 24); // Alpha
         from += 4;
         to ++;
     }
@@ -235,9 +234,9 @@ void Palette::LightTexturePaletteRange(Tcolor *light, int palStart, int palEnd)
     while (to < stop)
     {
         *to++  = (FloatToInt32(*(from)   * r)) // Red
-                 bitor (FloatToInt32(*(from + 1) * g) << 8) // Green
-                 bitor (FloatToInt32(*(from + 2) * b) << 16) // Blue
-                 bitor ((*(from + 3)) << 24); // Alpha
+                 | (FloatToInt32(*(from + 1) * g) << 8) // Green
+                 | (FloatToInt32(*(from + 2) * b) << 16) // Blue
+                 | ((*(from + 3)) << 24); // Alpha
         from += 4;
     }
 
@@ -292,9 +291,9 @@ void Palette::LightTexturePaletteBuilding(Tcolor *light)
     while (to < stop)
     {
         *to  = (FloatToInt32(*(from)   * r)) // Red
-               bitor (FloatToInt32(*(from + 1) * g) << 8) // Green
-               bitor (FloatToInt32(*(from + 2) * b) << 16) // Blue
-               bitor ((*(from + 3)) << 24); // Alpha
+               | (FloatToInt32(*(from + 1) * g) << 8) // Green
+               | (FloatToInt32(*(from + 2) * b) << 16) // Blue
+               | ((*(from + 3)) << 24); // Alpha
         from += 4;
         to ++;
     }
@@ -307,9 +306,9 @@ void Palette::LightTexturePaletteBuilding(Tcolor *light)
         while (to < stop)
         {
             *to  = (FloatToInt32(*(from)   * r)) // Red
-                   bitor (FloatToInt32(*(from + 1) * g) << 8) // Green
-                   bitor (FloatToInt32(*(from + 2) * b) << 16) // Blue
-                   bitor ((*(from + 3)) << 24); // Alpha
+                   | (FloatToInt32(*(from + 1) * g) << 8) // Green
+                   | (FloatToInt32(*(from + 2) * b) << 16) // Blue
+                   | ((*(from + 3)) << 24); // Alpha
             from += 4;
             to ++;
         }
@@ -398,9 +397,9 @@ void Palette::LightTexturePaletteReflection(Tcolor *light)
     while (to < stop)
     {
         *to  = (FloatToInt32(*(from)   * r)) // Red
-               bitor (FloatToInt32(*(from + 1) * g) << 8) // Green
-               bitor (FloatToInt32(*(from + 2) * b) << 16) // Blue
-               bitor (0x26000000); // Alpha
+               | (FloatToInt32(*(from + 1) * g) << 8) // Green
+               | (FloatToInt32(*(from + 2) * b) << 16) // Blue
+               | (0x26000000); // Alpha
         from += 4;
         to ++;
     }
@@ -421,7 +420,7 @@ PaletteHandle::PaletteHandle(IDirectDraw7 *pDD, UInt16 PalBitsPerEntry, UInt16 P
 {
     DWORD dwFlags = DDPCAPS_8BIT;
 
-    if (PalNumEntries == 0x100) dwFlags or_eq DDPCAPS_ALLOW256;
+    if (PalNumEntries == 0x100) dwFlags |= DDPCAPS_ALLOW256;
 
     DWORD pal[256];
     ZeroMemory(pal, sizeof(DWORD) * PalNumEntries);
@@ -475,11 +474,11 @@ PaletteHandle::~PaletteHandle()
 
 void PaletteHandle::Load(UInt16 info, UInt16 PalBitsPerEntry, UInt16 index, UInt16 entries, UInt8 *PalBuffer)
 {
-    ShiAssert(m_pIDDP and entries <= m_nNumEntries);
+    ShiAssert(m_pIDDP && entries <= m_nNumEntries);
 
-    if ( not m_pIDDP or not m_pPalData) return;
+    if (!m_pIDDP || !m_pPalData) return;
 
-    if ((DWORD *) PalBuffer not_eq m_pPalData)
+    if ((DWORD *) PalBuffer != m_pPalData)
         memcpy(m_pPalData, PalBuffer, sizeof(DWORD) * entries);
 
     // Convert palette
@@ -506,13 +505,13 @@ void PaletteHandle::AttachToTexture(TextureHandle *pTex)
 {
     ShiAssert(pTex);
 
-    if ( not pTex) return;
+    if (!pTex) return;
 
     std::vector<TextureHandle *>::iterator it = GetAttachedTextureIndex(pTex);
 
     ShiAssert(it == m_arrAttachedTextures.end()); // do not attach twice
 
-    if (it not_eq m_arrAttachedTextures.end())
+    if (it != m_arrAttachedTextures.end())
         return;
 
     m_arrAttachedTextures.push_back(pTex);
@@ -527,10 +526,10 @@ void PaletteHandle::DetachFromTexture(TextureHandle *pTex)
 {
     ShiAssert(pTex);
 
-    if ( not pTex) return;
+    if (!pTex) return;
 
     std::vector<TextureHandle *>::iterator it = GetAttachedTextureIndex(pTex);
-    ShiAssert(it not_eq m_arrAttachedTextures.end()); // do not detach twice
+    ShiAssert(it != m_arrAttachedTextures.end()); // do not detach twice
 
     if (it == m_arrAttachedTextures.end())
         return;
@@ -547,7 +546,7 @@ std::vector<TextureHandle *>::iterator PaletteHandle::GetAttachedTextureIndex(Te
 {
     std::vector<TextureHandle *>::iterator it;
 
-    for (it = m_arrAttachedTextures.begin(); it not_eq m_arrAttachedTextures.end(); it++)
+    for (it = m_arrAttachedTextures.begin(); it != m_arrAttachedTextures.end(); it++)
         if (*it == pTex) return it;
 
     return m_arrAttachedTextures.end();

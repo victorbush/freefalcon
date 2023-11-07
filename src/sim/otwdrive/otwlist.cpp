@@ -53,7 +53,7 @@ void OTWDriverClass::AddSfxRequest(SfxClass *sfxptr)
 {
     sfxRequest *tmpRequest;
 
-    if ( not IsActive())
+    if (!IsActive())
     {
         return;
     }
@@ -150,7 +150,7 @@ void OTWDriverClass::DoSfxActiveList(void)
         sfxptr = *sfxptrptr;
 
         // exec the request
-        if ( not sfxptr->sfx->Exec())
+        if (!sfxptr->sfx->Exec())
         {
             // effect finished
             // skip to the next effect and remove from chain
@@ -259,7 +259,7 @@ void OTWDriverClass::InsertObject(DrawableObject *dObj)
 
     ShiAssert(dObj); // Could tolerate this by returning, but I don't think it happens.
 
-    if (viewPoint and viewPoint->IsReady())
+    if (viewPoint && viewPoint->IsReady())
     {
         viewPoint->InsertObject(dObj);
     }
@@ -268,18 +268,18 @@ void OTWDriverClass::InsertObject(DrawableObject *dObj)
 void OTWDriverClass::RemoveObject(DrawableObject *dObj, int deleteObject)
 {
     //JAM 19Feb04 - Let's add a meaningful warning here instead of causing a CTD.
-    if (GetCurrentThreadId() not_eq gSimThreadID)
+    if (GetCurrentThreadId() != gSimThreadID)
     {
         ShiWarning("RemoveObject being called outside of the sim thread");
     }
 
-    //if (g_bNeedSimThreadToRemoveObject and GetCurrentThreadId() not_eq gSimThreadID)
+    //if (g_bNeedSimThreadToRemoveObject && GetCurrentThreadId() != gSimThreadID)
     // return;
     //JAM
 
     //if (dObj) // JB 010221 CTD
     // sfr: @todo remove JB check
-    if (dObj and not F4IsBadCodePtr((FARPROC) dObj))  // JB 010221 CTD
+    if (dObj && !F4IsBadCodePtr((FARPROC) dObj))  // JB 010221 CTD
     {
 #if NEW_DRAWABLE_DESTRUCTION
 
@@ -290,14 +290,14 @@ void OTWDriverClass::RemoveObject(DrawableObject *dObj, int deleteObject)
 
 #else
 
-        if (dObj->InDisplayList() and viewPoint)
+        if (dObj->InDisplayList() && viewPoint)
         {
             viewPoint->RemoveObject(dObj);
         }
 
 #endif
 
-        if (deleteObject and not F4IsBadWritePtr(dObj, sizeof(DrawableObject)))  // JB 010221 CTD
+        if (deleteObject && !F4IsBadWritePtr(dObj, sizeof(DrawableObject)))  // JB 010221 CTD
         {
             delete dObj;
         }
@@ -364,7 +364,7 @@ void OTWDriverClass::AddToLitList(DrawableBSP* bsp)
     for (newEntry = litObjectRoot; newEntry; newEntry = newEntry->next)
     {
         // Make sure we don't already have this object being managed
-        ShiAssert(newEntry->drawPointer not_eq bsp);
+        ShiAssert(newEntry->drawPointer != bsp);
     }
 
 #endif
@@ -430,7 +430,7 @@ void OTWDriverClass::AddToNearList(DrawableObject* drawPtr, float depth)
     for (newEntry = nearObjectRoot; newEntry; newEntry = newEntry->next)
     {
         // Make sure we don't already have this object being managed
-        ShiAssert(newEntry->drawPointer not_eq drawPtr);
+        ShiAssert(newEntry->drawPointer != drawPtr);
     }
 
 #endif

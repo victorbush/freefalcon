@@ -9,7 +9,6 @@
 #ifndef _DRAWOBJ_H_
 #define _DRAWOBJ_H_
 
-#include <cISO646>
 #include <math.h>
 #include "grTypes.h"
 
@@ -85,7 +84,7 @@ public:
 
     BOOL InDisplayList(void)
     {
-        return (parentList not_eq NULL);
+        return (parentList != NULL);
     };
 
 

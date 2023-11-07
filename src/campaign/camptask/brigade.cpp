@@ -105,7 +105,7 @@ MEM_POOL BrigadeClass::pool;
 // Brigade class Functions
 // ============================================
 
-// KCK: ALL BRIGADE CONSTRUCTION SHOULD USE THIS FUNCTION
+// KCK: ALL BRIGADE CONSTRUCTION SHOULD USE THIS FUNCTION!
 BrigadeClass* NewBrigade(int type)
 {
     BrigadeClass *new_brigade;
@@ -147,7 +147,7 @@ BrigadeClass::BrigadeClass(VU_BYTE **stream, long *rem) : GroundUnitClass(stream
 #ifdef DEBUG
 
     for (int i = 0; i < elements; i++)
-        element[i].num_ and_eq 0x0000ffff;
+        element[i].num_ &= 0x0000ffff;
 
 #endif
     c_element = 0;
@@ -178,7 +178,7 @@ int BrigadeClass::SaveSize(void)
     {
         e = GetUnitElement(i);
 
-        if ( not e)
+        if (!e)
             RemoveChild(element[i]);
     }
 
@@ -231,15 +231,15 @@ int BrigadeClass::MoveUnit(CampaignTime time)
     // Check if we have a valid objective
     o = GetUnitObjective();
 
-    if ( not o or not TeamInfo[GetTeam()]->gtm->IsValidObjective(GetOrders(), o))
+    if (!o || !TeamInfo[GetTeam()]->gtm->IsValidObjective(GetOrders(), o))
     {
-        if (o and (GetOrders() == GORD_CAPTURE or GetOrders() == GORD_ASSAULT or GetOrders() == GORD_AIRBORNE))
+        if (o && (GetOrders() == GORD_CAPTURE || GetOrders() == GORD_ASSAULT || GetOrders() == GORD_AIRBORNE))
             SetUnitOrders(GORD_SECURE, o->Id());
         else
         {
             o = FindRetreatPath(this, 3, FIND_SECONDARYONLY);
 
-            if ( not o)
+            if (!o)
             {
                 // We've been cut off - surrender?
                 CheckForSurrender();
@@ -259,13 +259,13 @@ int BrigadeClass::MoveUnit(CampaignTime time)
     {
         te++;
 
-        if ( not e->Assigned())
+        if (!e->Assigned())
             toorder++;
 
         e = GetNextUnitElement();
     }
 
-    if ( not te)
+    if (!te)
     {
         KillUnit();
         return 0;
@@ -279,11 +279,11 @@ int BrigadeClass::MoveUnit(CampaignTime time)
     }
 
     // Check to make sure our orders are still valid.
-    // if ( not CheckTactic(GetUnitTactic()))
+    // if (!CheckTactic(GetUnitTactic()))
     ChooseTactic();
 
-    // Upon new orders, reset our element's ordered flags and collect list of possible positions
-    if (Ordered() or toorder)
+    // Upon new orders, reset our element's ordered flags && collect list of possible positions
+    if (Ordered() || toorder)
     {
         Objective o;
 
@@ -301,12 +301,12 @@ int BrigadeClass::MoveUnit(CampaignTime time)
 
         while (e)
         {
-            if ( not e->Broken() and not e->Engaged() and e->Assigned() and e->GetUnitCurrentRole() not_eq GRO_ATTACK)
+            if (!e->Broken() && !e->Engaged() && e->Assigned() && e->GetUnitCurrentRole() != GRO_ATTACK)
             {
                 e->SetAssigned(0);
                 toorder++;
             }
-            else if (e->Assigned() and not OnValidObjective(e, e->GetUnitCurrentRole(), nearlist))
+            else if (e->Assigned() && !OnValidObjective(e, e->GetUnitCurrentRole(), nearlist))
             {
                 e->SetAssigned(0);
                 toorder++;
@@ -323,7 +323,7 @@ int BrigadeClass::MoveUnit(CampaignTime time)
 
             while (e)
             {
-                if ( not e->Assigned())
+                if (!e->Assigned())
                     OrderElement(e, nearlist);
 
                 e = GetNextUnitElement();
@@ -334,7 +334,7 @@ int BrigadeClass::MoveUnit(CampaignTime time)
             {
                 e = GetUnitElement(en);
 
-                if (e and not e->Assigned())
+                if (e && !e->Assigned())
                     toorder++;
             }
         }
@@ -370,11 +370,11 @@ int BrigadeClass::MoveUnit(CampaignTime time)
         SetBroken(1);
 
     // Check if we're still valid to perform our orders
-    if ( not me)
+    if (!me)
     {
         if (role == GRO_ATTACK)
             SetOrders(GORD_DEFEND); // Switch to defense orders
-        else if (GetOrders() not_eq GORD_RESERVE)
+        else if (GetOrders() != GORD_RESERVE)
             SetUnitObjective(FalconNullId); // We'll pick a reserve location next time through
     }
 
@@ -395,11 +395,11 @@ int BrigadeClass::ChooseTactic(void)
     haveWeaps = -1;
     tid = GTACTIC_BRIG_SECURE;
 
-    while (tid < FirstGroundTactic + GroundTactics and not priority)
+    while (tid < FirstGroundTactic + GroundTactics && !priority)
     {
         priority = CheckTactic(tid);
 
-        if ( not priority)
+        if (!priority)
             tid++;
     }
 
@@ -409,7 +409,7 @@ int BrigadeClass::ChooseTactic(void)
         Objective o;
         o = GetUnitObjective();
 
-        if ( not o or not o->IsSecondary())
+        if (!o || !o->IsSecondary())
         {
             // Find a retreat path
             o = FindRetreatPath(this, 3, FIND_SECONDARYONLY);
@@ -426,7 +426,7 @@ int BrigadeClass::ChooseTactic(void)
         }
     }
 
-    if (GetUnitTactic() not_eq tid)
+    if (GetUnitTactic() != tid)
         SetOrdered(1);
 
     SetUnitTactic(tid);
@@ -453,7 +453,7 @@ int BrigadeClass::CheckTactic(int tid)
 
         e = GetTarget();
 
-        if (Engaged() and not e)
+        if (Engaged() && !e)
             SetEngaged(0);
 
         if (GetUnitSupply() > 20)
@@ -465,7 +465,7 @@ int BrigadeClass::CheckTactic(int tid)
         o = GetUnitObjective();
         ourObjOwner = 0;
 
-        if (o and o->GetTeam() == GetTeam())
+        if (o && o->GetTeam() == GetTeam())
             ourObjOwner = 1;
 
         if (o)
@@ -476,42 +476,42 @@ int BrigadeClass::CheckTactic(int tid)
         ourObjDist = FloatToInt32(Distance(x, y, dx, dy));
     }
 
-    if ( not CheckUnitType(tid, GetDomain(), GetType()))
+    if (!CheckUnitType(tid, GetDomain(), GetType()))
         return 0;
 
-    if ( not CheckTeam(tid, GetTeam()))
+    if (!CheckTeam(tid, GetTeam()))
         return 0;
 
-    if ( not CheckEngaged(tid, Engaged()))
+    if (!CheckEngaged(tid, Engaged()))
         return 0;
 
-    if ( not CheckCombat(tid, Combat()))
+    if (!CheckCombat(tid, Combat()))
         return 0;
 
-    if ( not CheckLosses(tid, Losses()))
+    if (!CheckLosses(tid, Losses()))
         return 0;
 
-    if ( not CheckRetreating(tid, Retreating()))
+    if (!CheckRetreating(tid, Retreating()))
         return 0;
 
-    if ( not CheckAction(tid, GetUnitOrders()))
+    if (!CheckAction(tid, GetUnitOrders()))
         return 0;
 
-    if ( not CheckOwned(tid, ourObjOwner))
+    if (!CheckOwned(tid, ourObjOwner))
         return 0;
 
-    if (TeamInfo[GetTeam()]->GetGroundAction()->actionType not_eq GACTION_OFFENSIVE and not CheckRole(tid, 0))
+    if (TeamInfo[GetTeam()]->GetGroundAction()->actionType != GACTION_OFFENSIVE && !CheckRole(tid, 0))
         return 0;
 
-    if ( not CheckRange(tid, ourObjDist))
+    if (!CheckRange(tid, ourObjDist))
         return 0;
 
-    // if ( not CheckDistToFront(tid,ourFrontDist))
+    // if (!CheckDistToFront(tid,ourFrontDist))
     // return 0;
-    if ( not CheckStatus(tid, Broken()))
+    if (!CheckStatus(tid, Broken()))
         return 0;
 
-    // if ( not CheckOdds(tid,odds))
+    // if (!CheckOdds(tid,odds))
     // return 0;
     return GetTacticPriority(tid);
 }
@@ -565,13 +565,13 @@ void BrigadeClass::SetUnitOrders(int neworders, VU_ID oid)
 
 #endif
 
-    if ( not o)
+    if (!o)
         return;
 
     o->GetLocation(&dx, &dy);
     GetLocation(&x, &y);
 
-    if ((x not_eq dx or y not_eq dy) and GetMovementType() not_eq NoMove)
+    if ((x != dx || y != dy) && GetMovementType() != NoMove)
     {
         SetMoving(1);
         SetUnitDestination(dx, dy);
@@ -579,7 +579,7 @@ void BrigadeClass::SetUnitOrders(int neworders, VU_ID oid)
 
     SetTempDest(0);
 
-    if (neworders == GetOrders() and oid == GetUnitObjectiveID())
+    if (neworders == GetOrders() && oid == GetUnitObjectiveID())
         return;
 
     DisposeWayPoints();
@@ -662,7 +662,7 @@ int BrigadeClass::GetUnitSpeed() const
 
     e = (Battalion)GetFirstUnitElement();
 
-    if ( not e)
+    if (!e)
         return GetCruiseSpeed();
 
     while (e)
@@ -723,7 +723,7 @@ int OnValidObjective(Unit e, int role, F4PFList nearlist)
     VuListIterator vuit(nearlist);
     Objective bo = GetFirstObjective(&vuit);
 
-    while (bo and bo->Id() not_eq e->GetUnitObjectiveID())
+    while (bo && bo->Id() != e->GetUnitObjectiveID())
         bo = GetNextObjective(&vuit);
 
     if (bo)
@@ -752,13 +752,13 @@ int GetNewRole(Unit e, Unit brig)
         role = GRO_RESERVE;
 
     // Swap special roles
-    if (role == GRO_AIRBORNE or role == GRO_ASSAULT)
+    if (role == GRO_AIRBORNE || role == GRO_ASSAULT)
         role = brole;
 
     // Modify assignment role by normal role
-    if (role == GRO_ATTACK and brole not_eq GRO_ATTACK)
+    if (role == GRO_ATTACK && brole != GRO_ATTACK)
         role = brole;
-    else if (role == GRO_DEFENSE and brole == GRO_ATTACK)
+    else if (role == GRO_DEFENSE && brole == GRO_ATTACK)
         role = GRO_ATTACK;
 
     return role;
@@ -803,7 +803,7 @@ int BrigadeClass::OrderElement(Unit e, F4PFList nearlist)
     }
 
     // If we didn't find a location, then look for a reserve location
-    if ( not bo)
+    if (!bo)
     {
         neworders = GORD_RESERVE;
         bo = FindBestPosition(e, this, GRO_RESERVE, nearlist);
@@ -868,7 +868,7 @@ Unit BrigadeClass::GetPrevUnitElement(Unit e)
 
 Unit BrigadeClass::GetUnitElement(int en)
 {
-    if (en < elements and element[c_element])
+    if (en < elements && element[c_element])
         return (Unit)vuDatabase->Find(element[en]);
 
     return NULL;
@@ -886,7 +886,7 @@ void BrigadeClass::AddUnitChild(Unit e)
 {
     int i = 0;
 
-    while (element[i] and i < MAX_UNIT_CHILDREN)
+    while (element[i] && i < MAX_UNIT_CHILDREN)
         i++;
 
     if (i < MAX_UNIT_CHILDREN)
@@ -943,7 +943,7 @@ int GetPriority(Unit e)
 {
     int ep;
 
-    if ( not e)
+    if (!e)
         return 0;
 
     ep = OrderPriority[e->GetUnitOrders()] + OrderPriority[GetGroundOrders(e->GetUnitNormalRole())];
@@ -968,7 +968,7 @@ void BrigadeClass::ReorganizeUnit(void)
         {
             ne = GetUnitElement(j);
 
-            if (ne and e and GetPriority(ne) > GetPriority(e))
+            if (ne && e && GetPriority(ne) > GetPriority(e))
             {
                 element[i] = ne->Id();
                 element[j] = e->Id();
@@ -999,7 +999,7 @@ void BrigadeClass::ReorganizeUnit (void)
 
  memset(pos,0,sizeof(Unit)*GPOS_SUPPORT3+1);
  e = GetFirstUnitElement();
- if ( not e)
+ if (!e)
  {
  // Dang, we're dead.
  SetDead(1);
@@ -1016,10 +1016,10 @@ void BrigadeClass::ReorganizeUnit (void)
  for (i=0,ce=0; i<=GPOS_SUPPORT3; i++)
  {
  e = NULL;
- if (i >= GPOS_RECON1 and i <= GPOS_RECON3)
+ if (i >= GPOS_RECON1 && i <= GPOS_RECON3)
  {
  e = BestElement(this, Foot, GRO_RECON);
- if (e and (e->GetUnitClassData())->Scores[GRO_RECON] < 5)
+ if (e && (e->GetUnitClassData())->Scores[GRO_RECON] < 5)
  {
  e->SetAssigned(0);
  e = NULL;
@@ -1027,7 +1027,7 @@ void BrigadeClass::ReorganizeUnit (void)
  if (e)
  ce++;
  }
- else if (i >= GPOS_COMBAT1 and i <= GPOS_COMBAT3)
+ else if (i >= GPOS_COMBAT1 && i <= GPOS_COMBAT3)
  {
  switch (GetUnitOrders())
  {
@@ -1041,23 +1041,23 @@ void BrigadeClass::ReorganizeUnit (void)
  if (e)
  ce++;
  }
- else if (i >= GPOS_RESERVE1 and i <= GPOS_RESERVE3)
+ else if (i >= GPOS_RESERVE1 && i <= GPOS_RESERVE3)
  {
  e = BestElement(this, NoMove, GRO_RESERVE);
  }
  else if (i >= GPOS_SUPPORT1)
  {
  e = BestElement(this, Air, GRO_AIRDEFENSE);
- if ( not e)
+ if (!e)
  {
  e = BestElement(this, Foot, GRO_FIRESUPPORT);
- if ( not e)
+ if (!e)
  e = BestElement(this, Foot, GRO_ENGINEER);
  }
- if ( not e)
+ if (!e)
  {
  e = GetFirstUnitElement();
- while (e and e->Assigned())
+ while (e && e->Assigned())
  e = GetNextUnitElement();
  }
  }
@@ -1067,7 +1067,7 @@ void BrigadeClass::ReorganizeUnit (void)
  }
 #ifdef 0
  // if we don't have any reserve units, but have recon or combat elements, assign one to reserve
- for (i=GPOS_COMBAT3; ce > 1 and i>GPOS_RECON1 and not pos[GPOS_RESERVE1]; i--)
+ for (i=GPOS_COMBAT3; ce > 1 && i>GPOS_RECON1 && !pos[GPOS_RESERVE1]; i--)
  {
  if (pos[i])
  {
@@ -1079,7 +1079,7 @@ void BrigadeClass::ReorganizeUnit (void)
  }
 #endif
  // Check if we're broken (ie, no combat elements) (support only units?)
- if ( not ce)
+ if (!ce)
  SetBroken(1);
 
  // Clear out current child entries
@@ -1093,7 +1093,7 @@ void BrigadeClass::ReorganizeUnit (void)
  ((Battalion)pos[i])->SetUnitElement(ce);
  te = pos[i];
 #ifdef ROBIN_GDEBUG
- if (i == GPOS_COMBAT1 or i == GPOS_RESERVE1 or i == GPOS_SUPPORT1)
+ if (i == GPOS_COMBAT1 || i == GPOS_RESERVE1 || i == GPOS_SUPPORT1)
  MonoPrint("| ");
  MonoPrint("%d  ",pos[i]->GetCampID());
 #endif
@@ -1101,7 +1101,7 @@ void BrigadeClass::ReorganizeUnit (void)
  }
  }
  // Special case: Only one subunit- assign it the 'zero' position
- if (te and ce==1)
+ if (te && ce==1)
  te->SetUnitPosition(0);
 #ifdef ROBIN_GDEBUG
  MonoPrint("\n");
@@ -1126,28 +1126,28 @@ void BrigadeClass::ReorganizeEngagedUnit (void)
  while(pos[i])
  i++;
  pos[i] = e;
- if (i <= GPOS_COMBAT3 and not e->Broken() and not e->Retreating())
+ if (i <= GPOS_COMBAT3 && !e->Broken() && !e->Retreating())
  ce++;
- if (i <= GPOS_COMBAT3 and (e->Broken() or e->Retreating()))
+ if (i <= GPOS_COMBAT3 && (e->Broken() || e->Retreating()))
  be++;
  e = GetNextUnitElement();
  }
- if ( not ce)
+ if (!ce)
  {
  SetBroken(1);
  return;
  }
- if ( not be)
+ if (!be)
  return; // Nothing to do
 
  // Move Broken units to reserve
  for (i=0; i<=GPOS_COMBAT3; i++)
  {
- if (pos[i] and pos[i]->Broken())
+ if (pos[i] && pos[i]->Broken())
  {
- for (j=GPOS_RESERVE1,f=0; j<=GPOS_RESERVE3 and not f; j++)
+ for (j=GPOS_RESERVE1,f=0; j<=GPOS_RESERVE3 && !f; j++)
  {
- if ( not pos[j])
+ if (!pos[j])
  {
  pos[j] = pos[i];
  pos[i] = (Unit)-1;
@@ -1159,9 +1159,9 @@ void BrigadeClass::ReorganizeEngagedUnit (void)
  // Move Unbroken reserves to empty positions
  for (i=GPOS_RESERVE1; i<=GPOS_RESERVE3; i++)
  {
- if (pos[i] and not pos[i]->Broken() and not pos[i]->Retreating())
+ if (pos[i] && !pos[i]->Broken() && !pos[i]->Retreating())
  {
- for (j=GPOS_RECON1,f=0; j<=GPOS_COMBAT3 and not f; j++)
+ for (j=GPOS_RECON1,f=0; j<=GPOS_COMBAT3 && !f; j++)
  {
  if ((int)pos[j] == -1)
  {
@@ -1177,7 +1177,7 @@ void BrigadeClass::ReorganizeEngagedUnit (void)
  memset(element,0,sizeof(VU_ID)*MAX_UNIT_CHILDREN);
  for (i=1,ce=0; i<GPOS_SUPPORT3; i++)
  {
- if (pos[i] and (int)pos[i] not_eq -1)
+ if (pos[i] && (int)pos[i] != -1)
  {
  element[ce] = pos[i]->Id();
  ((Battalion)pos[i])->SetUnitElement(ce);
@@ -1219,20 +1219,20 @@ int BrigadeClass::UpdateParentStatistics(void)
 
         // nx += x;
         // ny += y;
-        if ( not nx and not ny)
+        if (!nx && !ny)
             e->GetLocation(&nx, &ny);
 
         te++;
         e = GetNextUnitElement();
     }
 
-    if ( not te)
+    if (!te)
     {
         KillUnit();
         return 0;
     }
 
-    if ( not engaged)
+    if (!engaged)
     {
         SetEngaged(0);
         SetTarget(NULL);
@@ -1245,7 +1245,7 @@ int BrigadeClass::UpdateParentStatistics(void)
     // x = nx / te;
     // y = ny / te;
     // SetLocation(x,y);
-    ShiAssert(nx and ny);
+    ShiAssert(nx && ny);
     // Set our position to our first element
     SetLocation(nx, ny);
     return te;
@@ -1319,7 +1319,7 @@ int BrigadeClass::RallyUnit(int minutes)
         if (e->RallyUnit(minutes))
             rallied = 0;
 
-        if (role not_eq GRO_FIRESUPPORT and e->GetUnitNormalRole() not_eq GRO_FIRESUPPORT)
+        if (role != GRO_FIRESUPPORT && e->GetUnitNormalRole() != GRO_FIRESUPPORT)
             gotnon = 1;
 
         e = GetNextUnitElement();
@@ -1329,7 +1329,7 @@ int BrigadeClass::RallyUnit(int minutes)
     // battalions into another brigade type (ie: Artillery, if that's all that's left). This
     // Will allow the artillery to then do something usefull rather than sitting on reserve
     // missions
-    if ( not gotnon and role not_eq GRO_FIRESUPPORT)
+    if (!gotnon && role != GRO_FIRESUPPORT)
     {
         e = GetFirstUnitElement();
 

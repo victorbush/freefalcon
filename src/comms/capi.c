@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -35,7 +34,7 @@ static int init_cs = FALSE;
 static CRITICAL_SECTION cs;
 void enter_cs(void)
 {
-    if ( not init_cs)
+    if (!init_cs)
     {
         InitializeCriticalSection(&cs);
         init_cs = TRUE;
@@ -73,9 +72,9 @@ int ComAPISend(com_API_handle c, int msgsize, int type)
     enter_cs();
 
     // sfr: another hack by JB...
-    isBad = F4IsBadReadPtrC(c, sizeof(ComAPI)) or F4IsBadCodePtrC((FARPROC)(*c->send_func));
+    isBad = F4IsBadReadPtrC(c, sizeof(ComAPI)) || F4IsBadCodePtrC((FARPROC)(*c->send_func));
 
-    if (c and not isBad)
+    if (c && !isBad)
     {
         if (info_callback)
         {
@@ -99,7 +98,7 @@ int ComAPISendDummy(com_API_handle c, unsigned long ip, unsigned short port)
     int rc = 0;
     enter_cs();
 
-    if (c not_eq NULL)
+    if (c != NULL)
     {
         if (c->send_dummy_func)
         {
@@ -163,9 +162,9 @@ int ComAPIGet(com_API_handle c)
     enter_cs();
 
     // sfr: another hack by JB...
-    isBad = c and (F4IsBadReadPtrC(c, sizeof(ComAPI)) or F4IsBadCodePtrC((FARPROC)(*c->recv_func)));
+    isBad = c && (F4IsBadReadPtrC(c, sizeof(ComAPI)) || F4IsBadCodePtrC((FARPROC)(*c->recv_func)));
 
-    if (c and not isBad) // JB 010404 CTD
+    if (c && !isBad) // JB 010404 CTD
     {
         size = (*c->recv_func)(c);
 
@@ -244,9 +243,9 @@ char *ComAPIRecvBufferGet(com_API_handle c)
     enter_cs();
 
     // sfr: another hack by JB...
-    isBad = c and (F4IsBadReadPtrC(c, sizeof(ComAPI)) or F4IsBadCodePtrC((FARPROC)(*c->recv_buf_func)));
+    isBad = c && (F4IsBadReadPtrC(c, sizeof(ComAPI)) || F4IsBadCodePtrC((FARPROC)(*c->recv_buf_func)));
 
-    if (c and not isBad)
+    if (c && !isBad)
     {
         ret_val = (*c->recv_buf_func)(c);
     }
@@ -449,13 +448,13 @@ int com_API_initialize_communications(void)
     WSADATA wsaData;
     int ret = 1;
 
-    if ( not windows_sockets_connections)
+    if (!windows_sockets_connections)
     {
         ret = initialize_windows_sockets(&wsaData);
         windows_sockets_connections--;
 
         /* if No more connections then WSACleanup() */
-        if ( not windows_sockets_connections)
+        if (!windows_sockets_connections)
         {
             CAPI_WSACleanup();
         }
@@ -534,16 +533,16 @@ int com_API_private_IP(unsigned long ip)
     // ip is composed
     // XXX.YYY.ZZZ.WWW
     unsigned long x, y, z, w; //use long to avoid warning
-    x = (ip bitand 0xFF000000) >> 24;
-    y = (ip bitand 0x00FF0000) >> 16;
-    z = (ip bitand 0x0000FF00) >> 8;
-    w = (ip bitand 0x000000FF);
+    x = (ip & 0xFF000000) >> 24;
+    y = (ip & 0x00FF0000) >> 16;
+    z = (ip & 0x0000FF00) >> 8;
+    w = (ip & 0x000000FF);
 
     if (
-        ((x == 127) and (y == 0) and (z == 0) and (w == 1)) or // localhost
-        (x == 10) or // class A reserved
-        ((x == 172) and ((y >= 16) and (y < 31))) or  // class B reserver
-        ((x == 192) and (y == 168) and ((z >= 0) and (z < 255))) // class C reserved
+        ((x == 127) && (y == 0) && (z == 0) && (w == 1)) || // localhost
+        (x == 10) || // class A reserved
+        ((x == 172) && ((y >= 16) && (y < 31))) ||  // class B reserver
+        ((x == 192) && (y == 168) && ((z >= 0) && (z < 255))) // class C reserved
     )
     {
         return 1;
@@ -558,7 +557,7 @@ long ComAPIGetIP(const char *address)
 {
     struct hostent *h = CAPI_gethostbyname(address);
 
-    if ((h == NULL) or (h->h_addr_list == NULL))
+    if ((h == NULL) || (h->h_addr_list == NULL))
     {
         return 0;
     }

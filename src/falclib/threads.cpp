@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <string>
 #include <vector>
 
@@ -43,7 +42,7 @@ F4THREADHANDLE F4CreateThread(threadf_t tf, void *args, int createSuspended, tpr
     }
 
     // create the thread
-    if ( not (F4Thread[i].handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tf, args, 0, &F4Thread[i].id)))
+    if (!(F4Thread[i].handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)tf, args, 0, &F4Thread[i].id)))
     {
         return F4T_RET_ERROR;
     }
@@ -81,7 +80,7 @@ F4THREADHANDLE F4CreateThread(threadf_t tf, void *args, int createSuspended, tpr
 
 void F4JoinThread(F4THREADHANDLE t)
 {
-    if (t < 0 or t >= F4T_MAX_THREADS or not F4Thread[t].inUse)
+    if (t < 0 || t >= F4T_MAX_THREADS || !F4Thread[t].inUse)
     {
         return;
     }
@@ -110,7 +109,7 @@ F4CSECTIONHANDLE* F4CreateCriticalSection(const char *name)
     F4CSECTIONHANDLE* theSection;
     theSection = new F4CSECTIONHANDLE;
 
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
         //if (theSection){
         memset(&(theSection->criticalSection), 0, sizeof(CRITICAL_SECTION));
@@ -127,7 +126,7 @@ F4CSECTIONHANDLE* F4CreateCriticalSection(const char *name)
 
 void F4DestroyCriticalSection(F4CSECTIONHANDLE* theSection)
 {
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
         //if (theSection){
         DeleteCriticalSection(&(theSection->criticalSection));
@@ -140,7 +139,7 @@ void F4DestroyCriticalSection(F4CSECTIONHANDLE* theSection)
 #include <stdio.h>
 void F4EnterCriticalSection(F4CSECTIONHANDLE* theSection)
 {
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
         //if (theSection){
         DWORD now = GetTickCount();
@@ -163,10 +162,10 @@ BOOL F4TryEnterCriticalSection(F4CSECTIONHANDLE* theSection)
 {
     HANDLE tid = (HANDLE)GetCurrentThreadId();
 
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
         //if (theSection){
-        if ((int)theSection->owningThread < 0 or theSection->owningThread == tid)
+        if ((int)theSection->owningThread < 0 || theSection->owningThread == tid)
         {
             EnterCriticalSection(&(theSection->criticalSection));
             theSection->count ++;
@@ -186,9 +185,9 @@ int F4CheckHasCriticalSection(F4CSECTIONHANDLE* theSection)
 {
     HANDLE tid = (HANDLE)GetCurrentThreadId();
 
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
-        if (theSection and theSection->owningThread == tid and theSection->count > 0)
+        if (theSection && theSection->owningThread == tid && theSection->count > 0)
         {
             return true;
         }
@@ -201,7 +200,7 @@ int F4CheckHasCriticalSection(F4CSECTIONHANDLE* theSection)
 
 void F4LeaveCriticalSection(F4CSECTIONHANDLE* theSection)
 {
-    if (theSection and (theSection not_eq (F4CSECTIONHANDLE*)0xfeeefeee) and (theSection not_eq (F4CSECTIONHANDLE*)0xbaadf00d))
+    if (theSection && (theSection != (F4CSECTIONHANDLE*)0xfeeefeee) && (theSection != (F4CSECTIONHANDLE*)0xbaadf00d))
     {
         //if (theSection){
         theSection->count --;
@@ -218,7 +217,7 @@ void F4LeaveCriticalSection(F4CSECTIONHANDLE* theSection)
         DWORD endt = GetTickCount();
         int time = endt - theSection->time;
 
-        if (theSection->count == 0 and time > interesttime)
+        if (theSection->count == 0 && time > interesttime)
         {
             MonoPrint("Has held critical section %s for %d\n", theSection->name, time);
         }
@@ -331,10 +330,10 @@ int F4SetThreadProcessor(F4THREADHANDLE theThread, int theProcessor)
 /* old stuff
 int F4SuspendThread (F4THREADHANDLE theThread)
 {
-   //F4Assert( "Don't call F4SuspendThread silly" == NULL );
+   //F4Assert( "Don't call F4SuspendThread silly!" == NULL );
  int retval = F4THREAD_ERROR;
  if (F4Thread[theThread].inUse){
- if (SuspendThread(F4Thread[theThread].handle) not_eq 0xFFFFFFFF){
+ if (SuspendThread(F4Thread[theThread].handle) != 0xFFFFFFFF){
  retval = F4THREAD_OK;
  }
  }
@@ -343,10 +342,10 @@ int F4SuspendThread (F4THREADHANDLE theThread)
 
 int F4ResumeThread (F4THREADHANDLE theThread)
 {
- //F4Assert( "Don't call F4ResumeThread silly" == NULL );
+ //F4Assert( "Don't call F4ResumeThread silly!" == NULL );
  int retval = F4THREAD_ERROR;
  if (F4Thread[theThread].inUse){
- if (ResumeThread(F4Thread[theThread].handle) not_eq 0xFFFFFFFF){
+ if (ResumeThread(F4Thread[theThread].handle) != 0xFFFFFFFF){
  retval = F4THREAD_OK;
  }
  }

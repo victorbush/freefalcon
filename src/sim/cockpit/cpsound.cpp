@@ -39,7 +39,7 @@ int CPSoundList::GetSoundIndex(int id)
     int i = 0;
     BOOL found = FALSE;
 
-    while ( not found and i < mSoundTally)
+    while (!found && i < mSoundTally)
     {
 
         if (mpSoundArray[i].soundId == id)

@@ -41,7 +41,7 @@ void LantirnDrawable::Display(VirtualDisplay* newDisplay)
 
     display = newDisplay;
     ShiAssert(theLantirn);
-    flash = vuxRealTime bitand 0x200;
+    flash = vuxRealTime & 0x200;
 
     if (display->type == VirtualDisplay::DISPLAY_GENERAL)
         DrawTerrain();
@@ -111,7 +111,7 @@ void LantirnDrawable::Display(VirtualDisplay* newDisplay)
 
     // JB 010325
     //MI reenabled with config var
-    if (lantdebug and g_bLantDebug)
+    if (lantdebug && g_bLantDebug)
     {
         char buf[200];
         float pos = 9.2f;
@@ -161,15 +161,15 @@ void LantirnDrawable::Display(VirtualDisplay* newDisplay)
     {
         char tempstr[20] = "";
 
-        if (theLantirn->evasize  == 1 and flash)
+        if (theLantirn->evasize  == 1 && flash)
             sprintf(tempstr, "FLY UP");
-        else if (theLantirn->evasize  == 2 and flash)
+        else if (theLantirn->evasize  == 2 && flash)
             sprintf(tempstr, "OBSTACLE");
 
-        if (theLantirn->SpeedUp and not flash)
+        if (theLantirn->SpeedUp && !flash)
             sprintf(tempstr, "SLOW");
 
-        if (playerAC and playerAC->RFState not_eq 2)
+        if (playerAC && playerAC->RFState != 2)
             display->TextCenter(0, 0.25, tempstr);
     }
 }
@@ -190,7 +190,7 @@ void LantirnDrawable::PushButton(int whichButton, int whichMFD)
             break;
 
         case 2:
-            lantdebug = not lantdebug;
+            lantdebug = !lantdebug;
             break;
 
         case 3:

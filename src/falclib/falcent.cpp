@@ -161,7 +161,7 @@ int FalconEntity::calc_dirty_bucket(int dirty_score)
     // sfr : new
     int bin = 0;
 
-    while ((dirty_score bitand 0x1) == 0)
+    while ((dirty_score & 0x1) == 0)
     {
         ++bin;
         dirty_score >>= 4;
@@ -226,7 +226,7 @@ void FalconEntity::ClearDirty(void)
     int bin;
     VuEnterCriticalSection();
     bin = calc_dirty_bucket();
-    assert((bin >= 0) and (bin < MAX_DIRTY_BUCKETS));
+    assert((bin >= 0) && (bin < MAX_DIRTY_BUCKETS));
     dirty_classes = 0;
     dirty_score = 0;
     DirtyBucket[bin]->Remove(this);
@@ -240,7 +240,7 @@ void FalconEntity::ClearDirty(void)
 
 void FalconEntity::MakeDirty(Dirty_Class bits, Dirtyness score)
 {
-    dirty_classes or_eq bits;
+    dirty_classes |= bits;
 
     // sfr: for player entities, always send reliable and immediatelly
     if (IsPlayer())
@@ -250,10 +250,10 @@ void FalconEntity::MakeDirty(Dirty_Class bits, Dirtyness score)
 
     // send only local units which are active (in DB) and if the unit is more dirty than currently is
     if (
-        ( not IsLocal()) or
-        (VuState() not_eq VU_MEM_ACTIVE) or
-        (score <= dirty_score) or
- not (TheCampaign.Flags bitand CAMP_LOADED)
+        (!IsLocal()) ||
+        (VuState() != VU_MEM_ACTIVE) ||
+        (score <= dirty_score) ||
+        !(TheCampaign.Flags & CAMP_LOADED)
     )
     {
         return;
@@ -297,63 +297,63 @@ int FalconEntity::EncodeDirty(unsigned char **stream)
     *(short*)*stream = (short)dirty_classes;
     *stream += sizeof(short);
 
-    if (dirty_classes bitand DIRTY_FALCON_ENTITY)
+    if (dirty_classes & DIRTY_FALCON_ENTITY)
     {
         *(uchar *)(*stream) = falconFlags;
         *stream += sizeof(uchar);
     }
 
-    if (dirty_classes bitand DIRTY_CAMPAIGN_BASE)
+    if (dirty_classes & DIRTY_CAMPAIGN_BASE)
     {
         ((CampBaseClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_OBJECTIVE)
+    if (dirty_classes & DIRTY_OBJECTIVE)
     {
         ((ObjectiveClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_UNIT)
+    if (dirty_classes & DIRTY_UNIT)
     {
         ((UnitClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_PACKAGE)
+    if (dirty_classes & DIRTY_PACKAGE)
     {
         ((PackageClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_SQUADRON)
+    if (dirty_classes & DIRTY_SQUADRON)
     {
         ((SquadronClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_FLIGHT)
+    if (dirty_classes & DIRTY_FLIGHT)
     {
         ((FlightClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_GROUND_UNIT)
+    if (dirty_classes & DIRTY_GROUND_UNIT)
     {
         ((GroundUnitClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_BATTALION)
+    if (dirty_classes & DIRTY_BATTALION)
     {
         ((BattalionClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_TEAM)
+    if (dirty_classes & DIRTY_TEAM)
     {
         ((TeamClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_SIM_BASE)
+    if (dirty_classes & DIRTY_SIM_BASE)
     {
         ((SimBaseClass*)this)->WriteDirty(stream);
     }
 
-    if (dirty_classes bitand DIRTY_AIRCRAFT)
+    if (dirty_classes & DIRTY_AIRCRAFT)
     {
         ((AircraftClass*)this)->WriteDirty(stream);
     }
@@ -374,62 +374,62 @@ void FalconEntity::DecodeDirty(unsigned char **stream, long *rem)
     //read bits and update count
     memcpychk(&bits, stream, sizeof(short), rem);
 
-    if (bits bitand DIRTY_FALCON_ENTITY)
+    if (bits & DIRTY_FALCON_ENTITY)
     {
         memcpychk(&falconFlags, stream, sizeof(uchar), rem);
     }
 
-    if (bits bitand DIRTY_CAMPAIGN_BASE)
+    if (bits & DIRTY_CAMPAIGN_BASE)
     {
         ((CampBaseClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_OBJECTIVE)
+    if (bits & DIRTY_OBJECTIVE)
     {
         ((ObjectiveClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_UNIT)
+    if (bits & DIRTY_UNIT)
     {
         ((UnitClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_PACKAGE)
+    if (bits & DIRTY_PACKAGE)
     {
         ((PackageClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_SQUADRON)
+    if (bits & DIRTY_SQUADRON)
     {
         ((SquadronClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_FLIGHT)
+    if (bits & DIRTY_FLIGHT)
     {
         ((FlightClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_GROUND_UNIT)
+    if (bits & DIRTY_GROUND_UNIT)
     {
         ((GroundUnitClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_BATTALION)
+    if (bits & DIRTY_BATTALION)
     {
         ((BattalionClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_TEAM)
+    if (bits & DIRTY_TEAM)
     {
         ((TeamClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_SIM_BASE)
+    if (bits & DIRTY_SIM_BASE)
     {
         ((SimBaseClass*)this)->ReadDirty(stream, rem);
     }
 
-    if (bits bitand DIRTY_AIRCRAFT)
+    if (bits & DIRTY_AIRCRAFT)
     {
         ((AircraftClass*)this)->ReadDirty(stream, rem);
     }
@@ -441,7 +441,7 @@ void FalconEntity::DoCampaignDirtyData(VU_TIME realTime)
 {
     static VU_TIME lastSent = 0;
 
-    if ( not (TheCampaign.Flags bitand CAMP_LOADED) or ((realTime - lastSent) < SIMDIRTYDATA_INTERVAL))
+    if (!(TheCampaign.Flags & CAMP_LOADED) || ((realTime - lastSent) < SIMDIRTYDATA_INTERVAL))
     {
         return;
     }
@@ -465,24 +465,24 @@ void FalconEntity::DoCampaignDirtyData(VU_TIME realTime)
 #if USE_VU_COLL_FOR_DIRTY
         FalconEntity *current;
 
-        while ((current = static_cast<FalconEntity*>(campDirtyBuckets[bucket]->PopHead())) not_eq NULL)
+        while ((current = static_cast<FalconEntity*>(campDirtyBuckets[bucket]->PopHead())) != NULL)
 #else
-        while ( not campDirtyBuckets[bucket]->empty())
+        while (!campDirtyBuckets[bucket]->empty())
 #endif
         {
             //bucket 7 and 8 are OOB(out of band), the others must respect bw
-            if ((bucket < 7) and (toSend < 0) and (sent))
+            if ((bucket < 7) && (toSend < 0) && (sent))
             {
                 break;
             }
 
-#if not USE_VU_COLL_FOR_DIRTY
+#if !USE_VU_COLL_FOR_DIRTY
             FalconEntityBin current(campDirtyBuckets[bucket]->front());
             campDirtyBuckets[bucket]->pop_front();
 #endif
 
             // can happen if inserted multiple times
-            if ((current->dirty_classes == 0) or (current->GetDirty() == 0))
+            if ((current->dirty_classes == 0) || (current->GetDirty() == 0))
             {
                 continue;
             }
@@ -516,7 +516,7 @@ void FalconEntity::DoCampaignDirtyData(VU_TIME realTime)
 void FalconEntity::DoSimDirtyData(VU_TIME realTime)
 {
     // only do if initialized
-    if ( not (TheCampaign.Flags bitand CAMP_LOADED) or (simDirtyBuckets == NULL))
+    if (!(TheCampaign.Flags & CAMP_LOADED) || (simDirtyBuckets == NULL))
     {
         return;
     }
@@ -548,25 +548,25 @@ void FalconEntity::DoSimDirtyData(VU_TIME realTime)
 #if USE_VU_COLL_FOR_DIRTY
         FalconEntity *current;
 
-        while ((current = static_cast<FalconEntity*>(simDirtyBuckets[bucket]->PopHead())) not_eq NULL)
+        while ((current = static_cast<FalconEntity*>(simDirtyBuckets[bucket]->PopHead())) != NULL)
 #else
-        while ( not simDirtyBuckets[bucket]->empty())
+        while (!simDirtyBuckets[bucket]->empty())
 #endif
         {
             //bucket 7 and 8 are OOB (out of band), others must respect limit
-            if ((bucket < 7) and (toSend < 0) and (sent))
+            if ((bucket < 7) && (toSend < 0) && (sent))
             {
                 break;
             }
 
-#if not USE_VU_COLL_FOR_DIRTY
+#if !USE_VU_COLL_FOR_DIRTY
             // get the entity in FIFO fashion
             FalconEntityBin current(simDirtyBuckets[bucket]->front());
             simDirtyBuckets[bucket]->pop_front();
 #endif
 
             // discard non dirty entities, can happen if it was inserted more than once
-            if ((current->dirty_classes == 0) or (current->GetDirty() == 0))
+            if ((current->dirty_classes == 0) || (current->GetDirty() == 0))
             {
                 continue;
             }
@@ -608,12 +608,12 @@ void FalconEntity::MakeFlagsDirty(void)
 
 void FalconEntity::MakeFalconEntityDirty(Dirty_Falcon_Entity bits, Dirtyness score)
 {
-    if (( not IsLocal()) or (VuState() not_eq VU_MEM_ACTIVE))
+    if ((!IsLocal()) || (VuState() != VU_MEM_ACTIVE))
     {
         return;
     }
 
-    dirty_falcent or_eq bits;
+    dirty_falcent |= bits;
 
     MakeDirty(DIRTY_FALCON_ENTITY, score);
 }

@@ -78,7 +78,7 @@ public :
     virtual void GetAGCenter(float* x, float* y);
     virtual int  IsAG(void)
     {
-        return mode not_eq AA ? TRUE : FALSE;
+        return mode != AA ? TRUE : FALSE;
     };
     virtual void SetMode(RadarMode cmd);
 

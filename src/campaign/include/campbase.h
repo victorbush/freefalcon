@@ -1,7 +1,6 @@
 #ifndef CAMPBASE_H
 #define CAMPBASE_H
 
-#include <cISO646>
 #include <tchar.h>
 #include "Entity.h"
 #include "FalcLib.h"
@@ -207,7 +206,7 @@ public:
     virtual int SaveSize(void);
     virtual int Save(VU_BYTE **stream);
 
-#if not USE_VU_COLL_FOR_CAMPAIGN
+#if !USE_VU_COLL_FOR_CAMPAIGN
     // function objects for associative containers holding CampBaseClass entities, such as deaggregatedMap
     /** sends deaggregated data to a target */
     class SendDeagOp
@@ -218,7 +217,7 @@ public:
         {
             CampBaseClass *cb = mapIt.second.get();
 
-            if (( not cb->IsAggregate()) and (cb->IsLocal()))
+            if ((!cb->IsAggregate()) && (cb->IsLocal()))
             {
                 cb->SendDeaggregateData(target.get());
             }
@@ -397,7 +396,7 @@ public:
     {
         return 0;    // MLR 10/3/2004 - finishing what //me123 started
     }
-    /* BattalionClass bitand TaskForceClass both have this function, which is invoked in GroundClass::MissileTrack() */
+    /* BattalionClass & TaskForceClass both have this function, which is invoked in GroundClass::MissileTrack() */
 
     // Core functions
     void SendMessage(VU_ID id, short msg, short d1, short d2, short d3, short d4);
@@ -424,53 +423,53 @@ public:
     }
     virtual int IsEmitting(void)
     {
-        return base_flags bitand CBC_EMITTING;
+        return base_flags & CBC_EMITTING;
     }
     int IsJammed(void)
     {
-        return base_flags bitand CBC_JAMMED;
+        return base_flags & CBC_JAMMED;
     }
     // Local flag access
     int IsChecked(void)
     {
-        return local_flags bitand CBC_CHECKED;
+        return local_flags & CBC_CHECKED;
     }
     int IsAwake(void)
     {
-        return local_flags bitand CBC_AWAKE;
+        return local_flags & CBC_AWAKE;
     }
     int InPackage(void)
     {
-        return local_flags bitand CBC_IN_PACKAGE;
+        return local_flags & CBC_IN_PACKAGE;
     }
     int InSimLists(void)
     {
-        return local_flags bitand CBC_IN_SIM_LIST;
+        return local_flags & CBC_IN_SIM_LIST;
     }
     int IsInterested(void)
     {
-        return local_flags bitand CBC_INTEREST;
+        return local_flags & CBC_INTEREST;
     }
     int IsReserved(void)
     {
-        return local_flags bitand CBC_RESERVED_ONLY;
+        return local_flags & CBC_RESERVED_ONLY;
     }
     int IsAggregate(void)
     {
-        return local_flags bitand CBC_AGGREGATE;
+        return local_flags & CBC_AGGREGATE;
     }
     int IsTacan(void)
     {
-        return local_flags bitand CBC_HAS_TACAN;
+        return local_flags & CBC_HAS_TACAN;
     }
     // sfr: added for new driver
     virtual int HasEntity(VuEntity *e) const
     {
-        return ((components and (components->Find(e) not_eq NULL)) or (this == e));
+        return ((components && (components->Find(e) != NULL)) || (this == e));
     }
     int HasDelta(void)
     {
-        return local_flags bitand CBC_HAS_DELTA;
+        return local_flags & CBC_HAS_DELTA;
     }
 
     // Getters
@@ -501,7 +500,7 @@ public:
     int GetSpotted(Team t);
     int GetIdentified(Team t)
     {
-        return (spotted >> (t + 8)) bitand 0x01;    // 2002-02-11 ADDED BY S.G. Getter to know if the target is identified or not.
+        return (spotted >> (t + 8)) & 0x01;    // 2002-02-11 ADDED BY S.G. Getter to know if the target is identified or not.
     }
 
     // Setters
@@ -519,19 +518,19 @@ public:
     void SetTacan(int t);
     void SetChecked(void)
     {
-        local_flags or_eq CBC_CHECKED;
+        local_flags |= CBC_CHECKED;
     }
     void UnsetChecked(void)
     {
-        local_flags and_eq compl CBC_CHECKED;
+        local_flags &= ~CBC_CHECKED;
     }
     void SetInterest(void)
     {
-        local_flags or_eq CBC_INTEREST;
+        local_flags |= CBC_INTEREST;
     }
     void UnsetInterest(void)
     {
-        local_flags and_eq compl CBC_INTEREST;
+        local_flags &= ~CBC_INTEREST;
     }
     void SetAwake(int d);
     void SetInPackage(int p);

@@ -4,7 +4,7 @@
 
 void MissileClass::Flight(void)
 {
-    if (inputData->displayType not_eq DisplayHTS and display)
+    if (inputData->displayType != DisplayHTS && display)
     {
         display->DisplayExit();
         display = NULL;

@@ -32,9 +32,9 @@ void HeliBrain::FollowWaypoints(void)
     //switch (self->curWaypoint->GetWPAction())
     //{
     //   case WP_LAND:
-    // if ( onStation == Arrived or onStation == Stabilizing )
+    // if ( onStation == Arrived || onStation == Stabilizing )
     //   LandMe();
-    // else if ( not (onStation == OnStation) )
+    // else if ( !(onStation == OnStation) )
     // GoToCurrentWaypoint();
     // break;
     //
@@ -65,11 +65,11 @@ void HeliBrain::GoToCurrentWaypoint(void)
     unit = (Unit)self->GetCampaignObject();
 
     // RV - Biker - If we did miss our pickup do it now
-    if (self->curWaypoint->GetWPAction() == WP_AIRDROP and not unit->GetCargo() and onStation == NotThereYet)
+    if (self->curWaypoint->GetWPAction() == WP_AIRDROP && !unit->GetCargo() && onStation == NotThereYet)
     {
         cargo = (Unit) self->curWaypoint->GetWPTarget();
 
-        if (cargo and unit)
+        if (cargo && unit)
         {
             unit->SetCargoId(cargo->Id());
             cargo->SetCargoId(unit->Id());
@@ -78,7 +78,7 @@ void HeliBrain::GoToCurrentWaypoint(void)
         }
     }
 
-    if (self->curWaypoint->GetWPAction() == WP_PICKUP and onStation == NotThereYet)
+    if (self->curWaypoint->GetWPAction() == WP_PICKUP && onStation == NotThereYet)
     {
         cargo = (Unit) self->curWaypoint->GetWPTarget();
 
@@ -99,8 +99,8 @@ void HeliBrain::GoToCurrentWaypoint(void)
     }
 
     // If we are at starting WP stay on ground
-    if (self->curWaypoint->GetWPFlags() bitand WPF_TAKEOFF  and 
-        self->curWaypoint->GetWPDepartureTime() > SimLibElapsedTime and 
+    if (self->curWaypoint->GetWPFlags() & WPF_TAKEOFF  &&
+        self->curWaypoint->GetWPDepartureTime() > SimLibElapsedTime &&
         self->curWaypoint->GetPrevWP() == NULL)
     {
         LevelTurn(0.0f, 0.0f, TRUE);
@@ -131,7 +131,7 @@ void HeliBrain::GoToCurrentWaypoint(void)
     rollDir = 0.0f;
     rollLoad = 0.0f;
 
-    if (curMode not_eq lastMode)
+    if (curMode != lastMode)
     {
         onStation = NotThereYet;
     }
@@ -162,22 +162,22 @@ void HeliBrain::GoToCurrentWaypoint(void)
 
     // Reached the next waypoint?
     // RV - Biker - Never skip waypoints
-    if (rng < (600.0F * 600.0F) or (onStation not_eq NotThereYet) /*or SimLibElapsedTime > self->curWaypoint->GetWPDepartureTime()*/)
+    if (rng < (600.0F * 600.0F) || (onStation != NotThereYet) /*|| SimLibElapsedTime > self->curWaypoint->GetWPDepartureTime()*/)
     {
         if (onStation == NotThereYet)
         {
             onStation = Arrived;
         }
-        else if (onStation == OnStation and SimLibElapsedTime > self->curWaypoint->GetWPDepartureTime())
+        else if (onStation == OnStation && SimLibElapsedTime > self->curWaypoint->GetWPDepartureTime())
         {
             SelectNextWaypoint();
         }
     }
 
     // landing?
-    if (onStation == Landing or
-        onStation == DropOff or
-        onStation == Landed or
+    if (onStation == Landing ||
+        onStation == DropOff ||
+        onStation == Landed ||
         onStation == PickUp)
     {
         LandMe();
@@ -187,7 +187,7 @@ void HeliBrain::GoToCurrentWaypoint(void)
     // On Station ?
     if (onStation == Arrived)
     {
-        if (self->curWaypoint->GetWPFlags() bitand WPF_LAND)
+        if (self->curWaypoint->GetWPFlags() & WPF_LAND)
         {
             LandMe();
             return;
@@ -231,7 +231,7 @@ void HeliBrain::GoToCurrentWaypoint(void)
     }
 
     // if we're close, just point to spot then go
-    if (fabs(rollLoad) > 0.1f and rng < 1000.0f * 1000.0f)
+    if (fabs(rollLoad) > 0.1f && rng < 1000.0f * 1000.0f)
         desSpeed = 0.5f;
 
     LevelTurn(rollLoad, rollDir, TRUE);
@@ -249,7 +249,7 @@ void HeliBrain::SelectNextWaypoint(void)
 
     // first get our current waypoint index in the list
     for (waypointIndex = 0;
-         wlist and wlist not_eq tmpWaypoint;
+         wlist && wlist != tmpWaypoint;
          wlist = wlist->GetNextWP(), waypointIndex++);
 
     // see if we're running in tactical or campaign.  If so, we want to
@@ -289,7 +289,7 @@ void HeliBrain::SelectNextWaypoint(void)
 
     waypointMode = 0;
 
-    if ( not self->curWaypoint)
+    if (!self->curWaypoint)
     {
         // go back to the beginning
         self->curWaypoint = self->waypoint;

@@ -11,7 +11,6 @@
    ------------------------------------------------------------------------ */
 
 
-#include <cISO646>
 #include <stdio.h>
 #include <stdlib.h>
 #include "bitio.h"
@@ -60,9 +59,9 @@ BIT_FILE *OpenInputBitFile(char *name)
 
 void CloseOutputBitFile(BIT_FILE *bit_file)
 {
-    if (bit_file->mask not_eq 0x80)
-        if (putc(bit_file->rack, bit_file->file) not_eq bit_file->rack)
-            printf("Fatal error in CloseBitFile");
+    if (bit_file->mask != 0x80)
+        if (putc(bit_file->rack, bit_file->file) != bit_file->rack)
+            printf("Fatal error in CloseBitFile!");
 
     fclose(bit_file->file);
     delete [] bit_file;
@@ -77,15 +76,15 @@ void CloseInputBitFile(BIT_FILE *bit_file)
 void OutputBit(BIT_FILE *bit_file, int bit)
 {
     if (bit)
-        bit_file->rack or_eq bit_file->mask;
+        bit_file->rack |= bit_file->mask;
 
     bit_file->mask >>= 1;
 
     if (bit_file->mask == 0)
     {
-        if (putc(bit_file->rack, bit_file->file) not_eq bit_file->rack)
-            printf("Fatal error in OutputBit");
-        else if ((bit_file->pacifier_counter++ bitand PACIFIER_COUNT) == 0)
+        if (putc(bit_file->rack, bit_file->file) != bit_file->rack)
+            printf("Fatal error in OutputBit!");
+        else if ((bit_file->pacifier_counter++ & PACIFIER_COUNT) == 0)
             putc('.', stdout);
 
         bit_file->rack = 0;
@@ -99,18 +98,18 @@ void OutputBits(BIT_FILE *bit_file, unsigned long code, int count)
 
     mask = 1L << (count - 1);
 
-    while (mask not_eq 0)
+    while (mask != 0)
     {
-        if (mask bitand code)
-            bit_file->rack or_eq bit_file->mask;
+        if (mask & code)
+            bit_file->rack |= bit_file->mask;
 
         bit_file->mask >>= 1;
 
         if (bit_file->mask == 0)
         {
-            if (putc(bit_file->rack, bit_file->file) not_eq bit_file->rack)
-                printf("Fatal error in OutputBit");
-            else if ((bit_file->pacifier_counter++ bitand PACIFIER_COUNT) == 0)
+            if (putc(bit_file->rack, bit_file->file) != bit_file->rack)
+                printf("Fatal error in OutputBit!");
+            else if ((bit_file->pacifier_counter++ & PACIFIER_COUNT) == 0)
                 putc('.', stdout);
 
             bit_file->rack = 0;
@@ -135,11 +134,11 @@ int InputBit(BIT_FILE *bit_file)
         if (bit_file->rack == EOF)
             return (unsigned long)EOF;
 
-        if ((bit_file->pacifier_counter++ bitand PACIFIER_COUNT) == 0)
+        if ((bit_file->pacifier_counter++ & PACIFIER_COUNT) == 0)
             putc('.', stdout);
     }
 
-    value = bit_file->rack bitand bit_file->mask;
+    value = bit_file->rack & bit_file->mask;
     bit_file->mask >>= 1;
 
     if (bit_file->mask == 0)
@@ -157,7 +156,7 @@ unsigned long InputBits(BIT_FILE *bit_file, int bit_count)
     mask = 1L << (bit_count - 1);
     return_value = 0;
 
-    while (mask not_eq 0)
+    while (mask != 0)
     {
         /*
          * 0x80 is silence in sound files, clear or zero
@@ -174,8 +173,8 @@ unsigned long InputBits(BIT_FILE *bit_file, int bit_count)
                 return (unsigned long)EOF;
         }
 
-        if (bit_file->rack bitand bit_file->mask)
-            return_value or_eq mask;
+        if (bit_file->rack & bit_file->mask)
+            return_value |= mask;
 
         /*
          * Packs a byte and a half into one byte. A byte for me is 5 bits - On Compression.
@@ -197,9 +196,9 @@ void FilePrintBinary(FILE *file, unsigned int code, int bits)
 
     mask = 1 << (bits - 1);
 
-    while (mask not_eq 0)
+    while (mask != 0)
     {
-        if (code bitand mask)
+        if (code & mask)
             fputc('1', file);
         else
             fputc('0', file);

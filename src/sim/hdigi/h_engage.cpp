@@ -20,18 +20,18 @@ void HeliBrain::WvrEngageCheck(void)
     /*-------*/
     /* entry */
     /*-------*/
-    if (curMode not_eq WVREngageMode)
+    if (curMode != WVREngageMode)
     {
         /*--------------------------------*/
         /* check against threshold values */
         /*--------------------------------*/
         classPtr = (Falcon4EntityClassType*)(maxTargetPtr->BaseData()->EntityType());
 
-        if (classPtr->vuClassData.classInfo_[VU_TYPE] == TYPE_AIRPLANE) // and 
+        if (classPtr->vuClassData.classInfo_[VU_TYPE] == TYPE_AIRPLANE) // &&
             /*
-                      targetPtr->sensorState    >= modeData[WVREngageMode].minSensorState and 
-                      targetPtr->sensorId       >= modeData[WVREngageMode].minSensorId and 
-                      targetPtr->pcRange        <= modeData[WVREngageMode].maxRange and 
+                      targetPtr->sensorState    >= modeData[WVREngageMode].minSensorState &&
+                      targetPtr->sensorId       >= modeData[WVREngageMode].minSensorId &&
+                      targetPtr->pcRange        <= modeData[WVREngageMode].maxRange &&
                       targetPtr->pc_ata          <= modeData[WVREngageMode].max_ata)
             */
         {

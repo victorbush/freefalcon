@@ -1,7 +1,6 @@
 #ifndef _FCC_H
 #define _FCC_H
 
-#include <cISO646>
 #include "drawable.h"
 #include "Entity.h"
 #include "campwp.h"
@@ -50,20 +49,20 @@ public:
     VU_TIME lastHit;
     void SetFlag(int flag)
     {
-        flags or_eq flag;
+        flags |= flag;
     };
     int IsSet(int flag)
     {
-        return (flags bitand flag) ? 1 : 0;
+        return (flags & flag) ? 1 : 0;
     };
     void ClearFlag(int flag)
     {
-        flags and_eq compl flag;
+        flags &= ~flag;
     } ;
     //MI
     void ToggleFlag(int flag)
     {
-        flags xor_eq flag;
+        flags ^= flag;
     };
 private:
     FalconEntity* baseObject;
@@ -366,7 +365,7 @@ public:
     };
     BOOL InTransistion(void)
     {
-        return mStptMode not_eq mNewStptMode;
+        return mStptMode != mNewStptMode;
     };
     void SetBombReleaseOverride(int newVal)
     {
@@ -374,15 +373,15 @@ public:
     };
     void SetHsdState(HsdStates st)
     {
-        hsdstates or_eq st;
+        hsdstates |= st;
     };
     void ToggleHsdState(HsdStates st)
     {
-        hsdstates xor_eq st;
+        hsdstates ^= st;
     };
     BOOL IsHsdState(HsdStates st)
     {
-        return (hsdstates bitand st) == (unsigned int) st ? TRUE : FALSE;
+        return (hsdstates & st) == (unsigned int) st ? TRUE : FALSE;
     };
     void MissileLaunch();
 

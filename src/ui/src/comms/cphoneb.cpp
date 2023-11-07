@@ -55,7 +55,7 @@ void PhoneBook::Load(char *filename)
 
     ifp = fopen(filename, "rb");
 
-    if ( not ifp)
+    if (!ifp)
     {
         return;
     }
@@ -101,7 +101,7 @@ void PhoneBook::Save(char *filename)
     // open file for writing
     ofp = fopen(filename, "wb");
 
-    if ( not ofp)
+    if (!ofp)
     {
         return;
     }
@@ -166,7 +166,7 @@ void PhoneBook::Remove(long ID)
 {
     PHONEBOOK *cur, *prev;
 
-    if ( not Root_) return;
+    if (!Root_) return;
 
     if (Root_->ID == ID)
     {

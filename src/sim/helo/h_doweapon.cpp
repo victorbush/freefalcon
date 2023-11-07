@@ -72,7 +72,7 @@ void HelicopterClass::DoWeapons(void)
                                                   &pos,
                                                   &vec);
 
-            if ( not IsFiring())
+            if (!IsFiring())
             {
                 // KCK: This has been moved to GunClass::Exec, since that's where we generate
                 // new bullets
@@ -111,10 +111,10 @@ void HelicopterClass::DoWeapons(void)
 
     /*
     ** edg: no more FCC stuff here.  All done in hdigi now
-    if ( FCC->releaseConsent and Sms->curWeapon )
+    if ( FCC->releaseConsent && Sms->curWeapon )
     {
-       if (FCC->GetMasterMode() == FireControlComputer::Missile or
-        FCC->GetMasterMode() == FireControlComputer::Dogfight or
+       if (FCC->GetMasterMode() == FireControlComputer::Missile ||
+        FCC->GetMasterMode() == FireControlComputer::Dogfight ||
         FCC->GetMasterMode() == FireControlComputer::MissileOverride)
        {
       theMissile = (MissileClass *)Sms->curWeapon;
@@ -139,10 +139,10 @@ void HelicopterClass::DoWeapons(void)
       }
 
        }
-       else if (FCC->GetMasterMode() == FireControlComputer::AirGroundBomb and 
+       else if (FCC->GetMasterMode() == FireControlComputer::AirGroundBomb &&
           FCC->GetSubMode() == FireControlComputer::RCKT)
        {
-          if (FCC->bombPickle and Sms->curWeapon and not OnGround())
+          if (FCC->bombPickle && Sms->curWeapon && !OnGround())
           {
              // Play the sound
              F4SoundFXSetPos( SFX_RCKTLOOP, TRUE, XPos(), YPos(), ZPos(), 1.0f );

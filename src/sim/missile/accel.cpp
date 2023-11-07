@@ -3,7 +3,7 @@
 
 void MissileClass::Accelerometers(void)
 {
-    if ( not ifd)
+    if (!ifd)
         return; // JB 010720
 
     /*--------------------------*/

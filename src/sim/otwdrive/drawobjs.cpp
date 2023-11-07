@@ -37,18 +37,18 @@ void OTWDriverClass::UpdateVehicleDrawables(void)
     Tpoint objLocation;
     Trotation objRotation;
 
-    if ( not SimDriver.objectList)
+    if (!SimDriver.objectList)
         // The Sim isn't running yet..
         return;
 
 
     // Deal with the current object of interest as a special case
-    if (otwPlatform and otwPlatform->drawPointer)
+    if (otwPlatform && otwPlatform->drawPointer)
     {
         // Record ownship's position and orientation.
         ObjectSetData(otwPlatform.get(), &ownshipPos, &ownshipRot);
 
-        if (DisplayInCockpit() or not otwPlatform->OnGround())
+        if (DisplayInCockpit() || !otwPlatform->OnGround())
         {
             // Inhibit the drawing of the otwPlatform drawable
             otwPlatform->drawPointer->SetInhibitFlag(TRUE);
@@ -79,7 +79,7 @@ void OTWDriverClass::UpdateVehicleDrawables(void)
             numObjsProcessed++;
 
             // Skip things without draw pointers
-            if ( not theObject->drawPointer)
+            if (!theObject->drawPointer)
             {
                 continue;
             }
@@ -93,7 +93,7 @@ void OTWDriverClass::UpdateVehicleDrawables(void)
                 }
             }
             // Its visible, so just update it.
-            else if ( not theObject->IsExploding())
+            else if (!theObject->IsExploding())
             {
                 // Update its position
                 ObjectSetData(theObject, &objLocation, &objRotation);
@@ -115,7 +115,7 @@ void OTWDriverClass::UpdateVehicleDrawables(void)
                 numObjsInDrawList++;
 
                 // Put this object into the visual display list if it isn't already there.
-                if ( not theObject->drawPointer->InDisplayList())
+                if (!theObject->drawPointer->InDisplayList())
                 {
                     InsertObjectIntoDrawList(theObject);
                 }
@@ -142,7 +142,7 @@ void OTWDriverClass::UpdateVehicleDrawables(void)
                     campObject->GetRealPosition(&pos.x, &pos.y, &pos.z);
                     ((DrawablePoint*)(campObject->draw_pointer))->Update(&pos);
 
-                    if ( not campObject->draw_pointer->InDisplayList())
+                    if (!campObject->draw_pointer->InDisplayList())
                         InsertObject(campObject->draw_pointer);
                 }
                 else

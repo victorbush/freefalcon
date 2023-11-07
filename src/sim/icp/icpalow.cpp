@@ -34,20 +34,20 @@ void ICPClass::PNUpdateALOWMode(int button, int)
 
     TheHud->lowAltWarning = min(max(0.0F, TheHud->lowAltWarning), 99999.0F);
 
-    mUpdateFlags or_eq ALOW_UPDATE;
+    mUpdateFlags |= ALOW_UPDATE;
 }
 void ICPClass::ExecALOWMode(void)
 {
-    if ( not g_bRealisticAvionics)
+    if (!g_bRealisticAvionics)
     {
         //MI Original code
         char tmpstr[5] = "";
         long alt;
         int alt1, alt2;
 
-        // if(mUpdateFlags bitand ALOW_UPDATE) {
+        // if(mUpdateFlags & ALOW_UPDATE) {
 
-        mUpdateFlags and_eq not ALOW_UPDATE;
+        mUpdateFlags &= !ALOW_UPDATE;
 
         sprintf(mpLine1, "ALOW LEVEL");
 
@@ -93,7 +93,7 @@ void ICPClass::ExecALOWMode(void)
         //Line2
         FillDEDMatrix(1, 4, "CARA ALOW");
 
-        if ( not EDITMSLFLOOR and not TFADV)
+        if (!EDITMSLFLOOR && !TFADV)
         {
             PossibleInputs = 5;
             ScratchPad(1, 16, 24);

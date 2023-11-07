@@ -21,47 +21,47 @@ void SetReliefType(CellData TheCell, ReliefType NewReliefType)
 {
     CellDataType Temp = (CellDataType)NewReliefType;
 
-    *TheCell = (CellDataType)((*TheCell bitand compl ReliefMask) bitor ((Temp << ReliefShift) bitand ReliefMask));
+    *TheCell = (CellDataType)((*TheCell & ~ReliefMask) | ((Temp << ReliefShift) & ReliefMask));
 }
 
 void SetGroundCover(CellData TheCell, CoverType NewGroundCover)
 {
     CellDataType Temp = (CellDataType)NewGroundCover;
 
-    *TheCell = (CellDataType)((*TheCell bitand compl GroundCoverMask) bitor ((Temp << GroundCoverShift) bitand GroundCoverMask));
+    *TheCell = (CellDataType)((*TheCell & ~GroundCoverMask) | ((Temp << GroundCoverShift) & GroundCoverMask));
 }
 
 void SetRoadCell(CellData TheCell, char Road)
 {
     CellDataType Temp = Road;
 
-    *TheCell = (CellDataType)((*TheCell bitand compl RoadMask) bitor ((Temp << RoadShift) bitand RoadMask));
+    *TheCell = (CellDataType)((*TheCell & ~RoadMask) | ((Temp << RoadShift) & RoadMask));
 }
 
 void SetRailCell(CellData TheCell, char Rail)
 {
     CellDataType Temp = Rail;
 
-    *TheCell = (CellDataType)((*TheCell bitand compl RailMask) bitor ((Temp << RailShift) bitand RailMask));
+    *TheCell = (CellDataType)((*TheCell & ~RailMask) | ((Temp << RailShift) & RailMask));
 }
 
 ReliefType GetReliefType(CellData TheCell)
 {
-    return (ReliefType)((*TheCell bitand ReliefMask) >> ReliefShift);
+    return (ReliefType)((*TheCell & ReliefMask) >> ReliefShift);
 }
 
 CoverType GetGroundCover(CellData TheCell)
 {
-    return (CoverType)((*TheCell bitand GroundCoverMask) >> GroundCoverShift);
+    return (CoverType)((*TheCell & GroundCoverMask) >> GroundCoverShift);
 }
 
 char GetRoadCell(CellData TheCell)
 {
-    return (char)((*TheCell bitand RoadMask) >> RoadShift);
+    return (char)((*TheCell & RoadMask) >> RoadShift);
 }
 
 char GetRailCell(CellData TheCell)
 {
-    return (char)((*TheCell bitand RailMask) >> RailShift);
+    return (char)((*TheCell & RailMask) >> RailShift);
 }
 

@@ -63,7 +63,7 @@ int FalconTrackMessage::Process(uchar autodisp)
 
     FalconEntity *theEntity = static_cast<FalconEntity*>(Entity());
 
-    if ( not theEntity)
+    if (!theEntity)
     {
         return 0;
     }
@@ -78,10 +78,10 @@ int FalconTrackMessage::Process(uchar autodisp)
         SimMoverClass *mEntity = static_cast<SimMoverClass*>(theEntity);
 
         if (
- not mEntity->IsLocal() and 
-            mEntity->numSensors > 1 and 
+            !mEntity->IsLocal() &&
+            mEntity->numSensors > 1 &&
             // MN 2002-03-03 CTD
-            mEntity->sensorArray[1] and 
+            mEntity->sensorArray[1] &&
             // JB 010604 CTD
             mEntity->IsAirplane()
         )
@@ -118,7 +118,7 @@ int FalconTrackMessage::Process(uchar autodisp)
 
     if (taggedEntity)
     {
-        // HACK HACK HACK  This should be status info on the aircraft concerned...
+        // HACK HACK HACK!  This should be status info on the aircraft concerned...
         // check for smoke on/off messages
         if (dataBlock.trackType == Track_SmokeOn)
         {
@@ -130,7 +130,7 @@ int FalconTrackMessage::Process(uchar autodisp)
         }
         else if (dataBlock.trackType == Track_JettisonAll)
         {
-            if (( not IsLocal()) and (taggedEntity->IsAirplane()))
+            if ((!IsLocal()) && (taggedEntity->IsAirplane()))
             {
                 //MonoPrint ("JettisonAll %08x\n", dataBlock.id, dataBlock.hardpoint);
                 ((AircraftClass*)taggedEntity)->Sms->EmergencyJettison();
@@ -138,7 +138,7 @@ int FalconTrackMessage::Process(uchar autodisp)
         }
         else if (dataBlock.trackType == Track_JettisonWeapon)
         {
-            if (( not IsLocal()) and (taggedEntity->IsAirplane()))
+            if ((!IsLocal()) && (taggedEntity->IsAirplane()))
             {
                 //MonoPrint ("Jettison Weapon %08x %d\n", dataBlock.id, dataBlock.hardpoint);
                 ((AircraftClass*)taggedEntity)->Sms->JettisonWeapon(dataBlock.hardpoint);
@@ -146,7 +146,7 @@ int FalconTrackMessage::Process(uchar autodisp)
         }
         else if (dataBlock.trackType == Track_RemoveWeapon)
         {
-            if (( not IsLocal()) and (taggedEntity->IsAirplane()))
+            if ((!IsLocal()) && (taggedEntity->IsAirplane()))
             {
                 //MonoPrint ("RemoveWeapon %08x %d\n", dataBlock.id, dataBlock.hardpoint);
                 ((AircraftClass*)taggedEntity)->Sms->RemoveWeapon(dataBlock.hardpoint);
@@ -178,7 +178,7 @@ int FalconTrackMessage::Process(uchar autodisp)
             }
             else if (taggedEntity->IsFlight())
             {
-                if ((dataBlock.trackType == Track_Lock) or (dataBlock.trackType == Track_Launch))
+                if ((dataBlock.trackType == Track_Lock) || (dataBlock.trackType == Track_Launch))
                 {
                     // Tell the campaign entity that it's being locked on to.
                     ((Flight)taggedEntity)->RegisterLock(theEntity);

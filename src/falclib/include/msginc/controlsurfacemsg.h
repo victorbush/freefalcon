@@ -56,14 +56,14 @@ public:
 
         theEntity = (SimMoverClass*)(vuDatabase->Find(dataBlock.entityID));
 
-        if (theEntity and not theEntity->IsLocal())
+        if (theEntity && !theEntity->IsLocal())
         {
             theEntity->SetDOFs(dataBlock.DOFData);
             theEntity->SetSwitches(dataBlock.switchData);
             wasDead = theEntity->IsDead();
             memcpy(theEntity->SpecialData(), dataBlock.specialData, sizeof(SimBaseSpecialData));
 
-            if (theEntity->IsDead() and not wasDead)
+            if (theEntity->IsDead() && !wasDead)
                 theEntity->SetDead(TRUE);
         }
 

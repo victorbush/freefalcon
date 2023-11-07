@@ -16,13 +16,13 @@ GetLoadedModules(DWORD     dwPID        ,
                  LPUINT    puiRealCount)
 {
     // Do the debug checking.
-    ASSERT(NULL not_eq puiRealCount) ;
+    ASSERT(NULL != puiRealCount) ;
     ASSERT(FALSE == IsBadWritePtr(puiRealCount , sizeof(UINT)));
 #ifdef _DEBUG
 
-    if (0 not_eq uiCount)
+    if (0 != uiCount)
     {
-        ASSERT(NULL not_eq paModArray) ;
+        ASSERT(NULL != paModArray) ;
         ASSERT(FALSE == IsBadWritePtr(paModArray                   ,
                                       uiCount *
                                       sizeof(HMODULE)));
@@ -34,8 +34,8 @@ GetLoadedModules(DWORD     dwPID        ,
     //  memory in paModArray if uiCount is > 0.  The user can pass zero
     //  in uiCount if they are just interested in the total to be
     //  returned so they could dynamically allocate a buffer.
-    if ((TRUE == IsBadWritePtr(puiRealCount , sizeof(UINT)))    or
-        ((uiCount > 0) and 
+    if ((TRUE == IsBadWritePtr(puiRealCount , sizeof(UINT)))    ||
+        ((uiCount > 0) &&
          (TRUE == IsBadWritePtr(paModArray ,
                                 uiCount * sizeof(HMODULE)))))
     {

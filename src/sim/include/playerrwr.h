@@ -29,7 +29,7 @@ public :
     // State Access Functions
     int HasActivity(void)
     {
-        return detectionList[0].entity not_eq NULL;
+        return detectionList[0].entity != NULL;
     };
     int LaunchIndication(void)
     {
@@ -76,25 +76,25 @@ public :
 
     virtual void TogglePriority(void)
     {
-        priorityMode = not priorityMode;
+        priorityMode = !priorityMode;
     };
     virtual void ToggleTargetSep(void);
     virtual void ToggleUnknowns(void)
     {
-        showUnknowns = not showUnknowns;
+        showUnknowns = !showUnknowns;
     };
     virtual void ToggleNaval(void)
     {
-        showNaval = not showNaval;
+        showNaval = !showNaval;
     };
     virtual void ToggleSearch(void)
     {
-        showSearch = not showSearch;
+        showSearch = !showSearch;
     };
     virtual void SelectNextEmitter(void);
     virtual void ToggleLowAltPriority(void)
     {
-        lowAltPriority = not lowAltPriority;
+        lowAltPriority = !lowAltPriority;
     };
     virtual void ToggleAutoDrop(void) {};
 

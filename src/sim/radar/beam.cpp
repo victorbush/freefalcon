@@ -20,7 +20,7 @@ void RadarDopplerClass::MoveBeam(void)
     float az, el, theta;
 
     //MI no radar if RF Switch in SILENT or QUIET
-    if (SimDriver.GetPlayerAircraft() and (SimDriver.GetPlayerAircraft()->RFState == 1 or
+    if (SimDriver.GetPlayerAircraft() && (SimDriver.GetPlayerAircraft()->RFState == 1 ||
                                           SimDriver.GetPlayerAircraft()->RFState == 2))
     {
         SetEmitting(FALSE);
@@ -30,11 +30,11 @@ void RadarDopplerClass::MoveBeam(void)
     switch (mode)
     {
         case GM:
-            if (flags bitand DBS1)
+            if (flags & DBS1)
             {
                 curScanRate = scanRate * g_fDBS1ScanRateFactor;//0.25F; // We're fudging -- Up the scan rate to reduce the latency
             }
-            else if (flags bitand DBS2)
+            else if (flags & DBS2)
             {
                 curScanRate = scanRate * g_fDBS2ScanRateFactor;//0.05F; // We're fudging -- Up the scan rate to reduce the latency
             }
@@ -102,7 +102,7 @@ void RadarDopplerClass::MoveBeam(void)
                 beamEl = elScan;
         }
 
-        if (beamAz == -azScan and beamEl == elScan)
+        if (beamAz == -azScan && beamEl == elScan)
             ClearFlagBit(HomingBeam);
     }
     /*-----------------*/
@@ -172,7 +172,7 @@ void RadarDopplerClass::MoveBeam(void)
             /*------------------*/
             /* Off the top edge */
             /*------------------*/
-            if (beamEl > elScan or beamEl + seekerElCenter > MAX_ANT_EL)
+            if (beamEl > elScan || beamEl + seekerElCenter > MAX_ANT_EL)
             {
                 SetFlagBit(ChangingBars);
                 targetAz = beamAz + barWidth;
@@ -183,7 +183,7 @@ void RadarDopplerClass::MoveBeam(void)
             /*---------------------*/
             /* Off the bottom edge */
             /*---------------------*/
-            else if (beamEl < -elScan or beamEl + seekerElCenter < -MAX_ANT_EL)
+            else if (beamEl < -elScan || beamEl + seekerElCenter < -MAX_ANT_EL)
             {
                 SetFlagBit(ChangingBars);
                 targetAz = beamAz + barWidth;
@@ -222,8 +222,8 @@ void RadarDopplerClass::MoveBeam(void)
                     el += (-MAX_ANT_EL - theta);
 
                 // target in beam ?
-                if ((az >= curScanLeft and az <= curScanRight and 
-                     el <= curScanTop and el >= curScanBottom) or scanDir == ScanRev)
+                if ((az >= curScanLeft && az <= curScanRight &&
+                     el <= curScanTop && el >= curScanBottom) || scanDir == ScanRev)
                 {
                     // Can See, or, have seen so head home
                     scanDir = ScanRev;
@@ -259,7 +259,7 @@ void RadarDopplerClass::MoveBeam(void)
                             beamEl = elScan;
                     }
 
-                    if (beamAz == azScan and beamEl == elScan)
+                    if (beamAz == azScan && beamEl == elScan)
                     {
                         ClearFlagBit(SAMingTarget);
                         ClearFlagBit(ChangingBars);
@@ -409,13 +409,13 @@ void RadarDopplerClass::MoveBeam(void)
             /*------------*/
             /* Right Edge */
             /*------------*/
-            if (scanDir == ScanFwd and 
-                (beamAz > azScan or beamAz + seekerAzCenter > MAX_ANT_EL))
+            if (scanDir == ScanFwd &&
+                (beamAz > azScan || beamAz + seekerAzCenter > MAX_ANT_EL))
             {
 #if 0 // This will be nice but is a bit broken inside GMComposit.cpp  SCR 8/14/98
 
                 // In GM DBS modes, the beam always sweeps from left to right
-                if ((mode == GM) and ((flags bitand DBS1) or (flags bitand DBS2)))
+                if ((mode == GM) && ((flags & DBS1) || (flags & DBS2)))
                 {
                     beamAz = max(-azScan, -MAX_ANT_EL + seekerAzCenter);
                 }
@@ -432,8 +432,8 @@ void RadarDopplerClass::MoveBeam(void)
             /*-----------*/
             /* Left Edge */
             /*-----------*/
-            else if (scanDir == ScanRev and 
-                     (beamAz < -azScan or beamAz + seekerAzCenter < -MAX_ANT_EL))
+            else if (scanDir == ScanRev &&
+                     (beamAz < -azScan || beamAz + seekerAzCenter < -MAX_ANT_EL))
             {
                 SetFlagBit(ChangingBars);
                 targetEl = beamEl - barWidth;
@@ -470,10 +470,10 @@ int RadarDopplerClass::LookingAtObject(SimObjectType* target)
     float az, el, theta;
     SimObjectLocalData* targetData = target->localData;
 
-    if ( not IsSet(SpaceStabalized))
+    if (!IsSet(SpaceStabalized))
     {
-        if (targetData->az >= curScanLeft and targetData->az <= curScanRight and 
-            targetData->el <= curScanTop and targetData->el >= curScanBottom)
+        if (targetData->az >= curScanLeft && targetData->az <= curScanRight &&
+            targetData->el <= curScanTop && targetData->el >= curScanBottom)
             retval = TRUE;
         else
             retval = FALSE;
@@ -490,8 +490,8 @@ int RadarDopplerClass::LookingAtObject(SimObjectType* target)
         else if (theta < -MAX_ANT_EL)
             el += (-MAX_ANT_EL - theta);
 
-        if (az >= curScanLeft and az <= curScanRight and 
-            el <= curScanTop and el >= curScanBottom)
+        if (az >= curScanLeft && az <= curScanRight &&
+            el <= curScanTop && el >= curScanBottom)
             retval = TRUE;
         else
             retval = FALSE;

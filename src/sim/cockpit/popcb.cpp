@@ -26,7 +26,7 @@ BOOL CBCheckExtent(int callerIdx, int numInFlight, int extent, BOOL isPolling, V
     {
         case AiFlightLead:
 
-            if (numInFlight > 2 or (numInFlight == 2 and extent == AiWingman))
+            if (numInFlight > 2 || (numInFlight == 2 && extent == AiWingman))
             {
                 retVal = TRUE;
             }
@@ -35,7 +35,7 @@ BOOL CBCheckExtent(int callerIdx, int numInFlight, int extent, BOOL isPolling, V
 
         case AiElementLead:
 
-            if (numInFlight == 4 and extent == AiWingman)
+            if (numInFlight == 4 && extent == AiWingman)
             {
                 retVal = TRUE;
             }
@@ -66,7 +66,7 @@ BOOL CBTestForTarget(int callerIdx, int numInFlight, int extent, BOOL isPolling,
 
     if (CBCheckExtent(callerIdx, numInFlight, extent, isPolling, tgtId))
     {
-        if (tgtId not_eq FalconNullId)
+        if (tgtId != FalconNullId)
         {
             retVal = TRUE;
         }

@@ -78,7 +78,7 @@ int FalconSendUnitData::Decode(VU_BYTE **buf, long *rem)
     //decode event
     FalconEvent::Decode(buf, rem);
 
-    if ((init - *rem) not_eq Size())
+    if ((init - *rem) != Size())
     {
         char err[50];
         sprintf(err, "%s %d: invalid datablock size", __FILE__, __LINE__);
@@ -96,14 +96,14 @@ int FalconSendUnitData::Decode(VU_BYTE **buf, long *rem)
               dataBlock.block,
               dataBlock.size);
 
-    if ( not TheCampaign.IsPreLoaded() or not session)
+    if (!TheCampaign.IsPreLoaded() || !session)
     {
         return (init - *rem);
     }
 
-    if (TheCampaign.Flags bitand CAMP_NEED_UNIT_DATA)
+    if (TheCampaign.Flags & CAMP_NEED_UNIT_DATA)
     {
-        if (dataBlock.set not_eq session->unitDataReceiveSet)
+        if (dataBlock.set != session->unitDataReceiveSet)
         {
             MonoPrint("Tossing old Set, starting a new one\n");
             // New data - toss the old stuff
@@ -113,7 +113,7 @@ int FalconSendUnitData::Decode(VU_BYTE **buf, long *rem)
             memset(session->unitDataReceived, 0, FS_MAXBLK / 8);
         }
 
-        if ( not session->unitDataReceiveBuffer)
+        if (!session->unitDataReceiveBuffer)
         {
             session->unitDataReceiveBuffer = new uchar[dataBlock.totalSize];
         }
@@ -133,19 +133,19 @@ int FalconSendUnitData::Decode(VU_BYTE **buf, long *rem)
         memcpy(bufptr, dataBlock.unitData, dataBlock.size);
 
 #ifdef DEBUG_STARTUP
-        MonoPrint("Got Unit Block #%d\n", dataBlock.block);
+        MonoPrint("Got Unit Block #%d!\n", dataBlock.block);
 #endif
 
         gCampJoinTries = 0;
 
         // Mark this block as being received.
-        session->unitDataReceived[dataBlock.block / 8] or_eq (1 << (dataBlock.block % 8));
+        session->unitDataReceived[dataBlock.block / 8] |= (1 << (dataBlock.block % 8));
 
         // Check if we've gotten all our blocks
         for (int i = 0; i < dataBlock.totalBlocks; i++)
         {
-            // if ( not StillNeeded(dataBlock.block, session->unitDataReceived))
-            if ( not (session->unitDataReceived[i / 8] bitand (1 << (i % 8))))
+            // if (!StillNeeded(dataBlock.block, session->unitDataReceived))
+            if (!(session->unitDataReceived[i / 8] & (1 << (i % 8))))
             {
                 //return size;
                 return init - *rem;
@@ -153,7 +153,7 @@ int FalconSendUnitData::Decode(VU_BYTE **buf, long *rem)
         }
 
         // If we get here, it's because all blocks are read
-        TheCampaign.Flags and_eq compl CAMP_NEED_UNIT_DATA;
+        TheCampaign.Flags &= ~CAMP_NEED_UNIT_DATA;
         bufptr = session->unitDataReceiveBuffer;
         //sfr: hack, i think this is the value
         long lsize = dataBlock.totalSize;
@@ -212,11 +212,11 @@ void SendCampaignUnitData(FalconSessionEntity *session, VuTargetEntity *target, 
     FalconSendUnitData *msg;
     //CampBaseClass *ent;
 
-    if ( not blocksNeeded)
+    if (!blocksNeeded)
     {
         int set = rand();
 
-        if ( not set)
+        if (!set)
             set++;
 
         if (session->unitDataSendBuffer)
@@ -229,7 +229,7 @@ void SendCampaignUnitData(FalconSessionEntity *session, VuTargetEntity *target, 
     }
 
     // Find the block size, if we havn't already
-    if ( not gUnitBlockSize)
+    if (!gUnitBlockSize)
     {
         // This is a temporary message, purely for sizing purposes
         FalconSendUnitData tmpmsg(session->Id(), target);
@@ -277,7 +277,7 @@ void SendCampaignUnitData(FalconSessionEntity *session, VuTargetEntity *target, 
 
         for (
             CampBaseClass *ent = static_cast<CampBaseClass*>(deagIt.GetFirst());
-            ent not_eq NULL;
+            ent != NULL;
             ent = static_cast<CampBaseClass*>(deagIt.GetNext())
         )
         {
@@ -297,7 +297,7 @@ int StillNeeded(int block, uchar gotData[])
 
     ShiAssert(block < FS_MAXBLK);
 
-    if (gotData[block / 8] bitand (1 << (block % 8)))
+    if (gotData[block / 8] & (1 << (block % 8)))
         return 1;
 
     return 0;
@@ -315,7 +315,7 @@ MonoPrint("Sending unit data (%d blocks): ",blocks);
 
 while (sizeleft)
 {
-if ( not msg)
+if (!msg)
 msg = new FalconSendUnitData(id, target);
 if (sizeleft < gUnitBlockSize)
 {

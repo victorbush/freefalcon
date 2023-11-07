@@ -91,7 +91,7 @@ void UIComms::StartCommsDoneCB(int success)
 {
     if (success == F4COMMS_CONNECTED)
     {
-        if ( not RemoteLogbooks_)
+        if (!RemoteLogbooks_)
         {
             RemoteLogbooks_ = new UI_Hash;
             RemoteLogbooks_->Setup(20);
@@ -114,7 +114,7 @@ void UIComms::SetStatsFile(char *filename)
 {
     if (GameStats_)
     {
-        if ( not stricmp(filename, GameStats_->GetSaveName()))
+        if (!stricmp(filename, GameStats_->GetSaveName()))
             return;
 
         delete GameStats_;
@@ -125,7 +125,7 @@ void UIComms::SetStatsFile(char *filename)
     GameStats_->SetName(filename);
     GameStats_->LoadStats();
 
-    if (FalconLocalGame and (FalconLocalGame->GetGameType() == game_Campaign or FalconLocalGame->GetGameType() == game_TacticalEngagement))
+    if (FalconLocalGame && (FalconLocalGame->GetGameType() == game_Campaign || FalconLocalGame->GetGameType() == game_TacticalEngagement))
     {
         LoadStats();
     }
@@ -196,7 +196,7 @@ void UIComms::SetUserInfo()
 
 BOOL UIComms::LookAtGame(VuGameEntity* game)
 {
-    if ( not game or game == vuPlayerPoolGroup)
+    if (!game || game == vuPlayerPoolGroup)
     {
         TargetGame_ = FalconNullId;
         TheCampaign.CurrentGame.reset();
@@ -226,7 +226,7 @@ VuGameEntity* UIComms::GetTargetGame()
 
     VuGameEntity* game = (VuGameEntity*) vuDatabase->Find(TargetGame_);
 
-    if ( not game)
+    if (!game)
         TargetGame_ = FalconNullId;
 
     return game;
@@ -236,7 +236,7 @@ void *UIComms::GetRemoteLB(long playerID)
 {
     RemoteLB *lbptr;
 
-    if ( not RemoteLogbooks_) // Major problem...
+    if (!RemoteLogbooks_) // Major problem...
         return(NULL);
 
     lbptr = (RemoteLB*)RemoteLogbooks_->Find(playerID);
@@ -247,7 +247,7 @@ void UIComms::ReceiveLogbook(VU_ID from, LB_PILOT *pilot)
 {
     RemoteLB *lbptr;
 
-    if ( not RemoteLogbooks_) // Major problem...
+    if (!RemoteLogbooks_) // Major problem...
         return;
 
     lbptr = (RemoteLB*)RemoteLogbooks_->Find(from.creator_);
@@ -279,7 +279,7 @@ void UIComms::ReceiveImage(VU_ID from, uchar type, short sec, short blksize, lon
 {
     RemoteLB *lbptr;
 
-    if ( not RemoteLogbooks_) // Major problem...
+    if (!RemoteLogbooks_) // Major problem...
         return;
 
     lbptr = (RemoteLB*)RemoteLogbooks_->Find(from.creator_);
@@ -331,7 +331,7 @@ void UIComms::LoadStats()
 {
     StatList *stats;
 
-    if ( not GameStats_)
+    if (!GameStats_)
         return;
 
     stats = GameStats_->Find(TheCampaign.GetCreatorIP(), TheCampaign.GetCreationTime(), TheCampaign.GetCreationIter());
@@ -358,7 +358,7 @@ void UIComms::LoadStats()
 
 void UIComms::SaveStats()
 {
-    if ( not GameStats_)
+    if (!GameStats_)
         return;
 
     GameStats_->AddStat(TheCampaign.GetCreatorIP(), TheCampaign.GetCreationTime(), TheCampaign.GetCreationIter(),

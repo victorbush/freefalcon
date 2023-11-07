@@ -40,7 +40,7 @@ extern int VisualDetectionRange[OtherDam];
 extern uchar DefaultDamageMods[OtherDam + 1];
 
 // ================
-// Defines bitand macros
+// Defines & macros
 // ================
 
 #define InfiniteCost  32000

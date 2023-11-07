@@ -15,7 +15,7 @@
 
             1) file extraction from archive (zip) files.
             2) virtual file system that allows easy patching of data.
-            3) caching beyond the minimal i/o buffers bitand mscdex.
+            3) caching beyond the minimal i/o buffers & mscdex.
             4) asynchronous read/writes.
             5) event logging (for general debugging as well as to
                provide a table from which to sort the contents of
@@ -88,9 +88,8 @@
  TBD:  CD statistic caching (head movements, warning tracks, etc).
 
    ---------------------------------------------------------------------- */
-#include <cISO646>
 #include "lists.h"         /* list manipulation functions (+list.cpp)        */
-#include "resmgr.h"        /* exported prototypes bitand type definitions         */
+#include "resmgr.h"        /* exported prototypes & type definitions         */
 //#include "memmgr.h"
 #include "omni.h"
 
@@ -150,8 +149,8 @@ extern int  __cdecl _flush(FILE * str);
 #define _IOSETVBUF              0x0400 /* from file2.h */
 #define _SH_DENYNO              0x40   /* from share.h */
 
-#define anybuf(s)               ((s)->_flag bitand (_IOMYBUF|_IONBF|_IOYOURBUF))
-#define inuse(s)                ((s)->_flag bitand (_IOREAD|_IOWRT|_IORW))
+#define anybuf(s)               ((s)->_flag & (_IOMYBUF|_IONBF|_IOYOURBUF))
+#define inuse(s)                ((s)->_flag & (_IOREAD|_IOWRT|_IORW))
 
 
 #define SHOULD_I_CALL(idx,retval)       if( RES_CALLBACK[(idx)] )\
@@ -194,7 +193,7 @@ extern int  __cdecl _flush(FILE * str);
     I override with a file called c:\game\patches\foo.dat I have replaced both
     \game\foo.dat AND \object\foo.dat with the file found in c:\game\patches --
     obviously this requires that more attention be paid to reducing these
- complexities and avoiding possible pitfalls.
+    complexities and avoiding possible pitfalls.
 
       Flat model:       Single hash table
                         All filenames are peers
@@ -237,15 +236,15 @@ extern int  __cdecl _flush(FILE * str);
 
 #define NOTHING                  -1
 
-#define FLAG_TEST(a,b)           ( a bitand b )
-#define FLAG_SET(a,b)            ( a or_eq b )
-#define FLAG_UNSET(a,b)          ( a xor_eq compl b )
+#define FLAG_TEST(a,b)           ( a & b )
+#define FLAG_SET(a,b)            ( a |= b )
+#define FLAG_UNSET(a,b)          ( a ^= ~b )
 
 #define HI_WORD(a)               ((a)>>16)
 #define LO_WORD(a)               ((a)&0x0ffff)
 
-#define SET_HIWORD(a,b)          { a or_eq ((b)<<16);   }
-#define SET_LOWORD(a,b)          { a or_eq (b)&0x0ffff; }
+#define SET_HIWORD(a,b)          { a |= ((b)<<16);   }
+#define SET_LOWORD(a,b)          { a |= (b)&0x0ffff; }
 
 #define WRITTEN_TO_FLAG          -1
 
@@ -512,7 +511,7 @@ get_handle(void);                                       /* return an available f
 
 void
 split_path(const char * path, char * filename, char * dirpath),      /* cut a path string in two        */
-           shut_down(void);                                        /* release allocations bitand reset Resource Mgr.    */
+           shut_down(void);                                        /* release allocations & reset Resource Mgr.    */
 
 
 char
@@ -608,7 +607,7 @@ RES_EXPORT int ResInit(HWND hwnd)
     /* if the user is calling ResInit to re-initialize the resource manager
        (since this is allowable), we need to free up any previous allocations. */
 
-    if ( not RESMGR_INIT)
+    if (!RESMGR_INIT)
     {
         memset(GLOBAL_SEARCH_PATH, 0, sizeof(GLOBAL_SEARCH_PATH));
         memset(RES_PATH, 0, sizeof(char*) * RES_DIR_LAST);     /* reset system paths */
@@ -625,7 +624,7 @@ RES_EXPORT int ResInit(HWND hwnd)
     FILE_HANDLES = (FILE_ENTRY *)MemMalloc(sizeof(FILE_ENTRY) * MAX_FILE_HANDLES, "File handles");
 #endif
 
-    if ( not FILE_HANDLES)
+    if (!FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "ResInit");
         return(FALSE);
@@ -678,9 +677,9 @@ RES_EXPORT int ResInit(HWND hwnd)
            switching to the device.  Of course, for this case, anytime the user
            double clicks on the floppy icon from the desktop will also cause this
            crash.  Caveat Emptor.   */
-        if ( not _chdrive(drive))
+        if (!_chdrive(drive))
         {
-            GLOBAL_VOLUME_MASK or_eq (1 << drive);
+            GLOBAL_VOLUME_MASK |= (1 << drive);
         }
     }
 
@@ -695,7 +694,7 @@ RES_EXPORT int ResInit(HWND hwnd)
     RES_DEVICES = (DEVICE_ENTRY *)MemMalloc(MAX_DEVICES * sizeof(DEVICE_ENTRY), "Devices");
 #endif
 
-    if ( not RES_DEVICES)
+    if (!RES_DEVICES)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "ResInit");
         return(FALSE);
@@ -707,19 +706,19 @@ RES_EXPORT int ResInit(HWND hwnd)
     {
         dev = &RES_DEVICES[drive - 1];
 
-        if (GLOBAL_VOLUME_MASK bitand (1 << drive))
+        if (GLOBAL_VOLUME_MASK & (1 << drive))
         {
             root[0] = (char)('A' + (drive - 1));
 
             /* According to Microsoft, most of the parameters to GetVolumeInformation are optional, however
                this is not the case.  It is possible to completely destroy the file system on a floppy
-               diskette by calling this seemingly innocuous function without all of the parameters */
+               diskette by calling this seemingly innocuous function without all of the parameters! */
 
             dev -> type = (char)(GetDriveType(root));
             dev -> letter = root[0];
 
-            if ((dev -> type == DRIVE_FIXED) or
-                (dev -> type == DRIVE_CDROM) or
+            if ((dev -> type == DRIVE_FIXED) ||
+                (dev -> type == DRIVE_CDROM) ||
                 (dev -> type == DRIVE_RAMDISK))
             {
 
@@ -734,13 +733,13 @@ RES_EXPORT int ResInit(HWND hwnd)
 
             /* Initialize default entries into the system path tables */
 
-            if ((dev -> type == DRIVE_CDROM) and not RES_PATH[ RES_DIR_CD ])
+            if ((dev -> type == DRIVE_CDROM) && !RES_PATH[ RES_DIR_CD ])
             {
-                GLOBAL_CD_DEVICE = drive - 1; /* NEED A BETTER WAY */
+                GLOBAL_CD_DEVICE = drive - 1; /* NEED A BETTER WAY!! */
                 RES_PATH[ RES_DIR_CD ] = MemStrDup(root);
             }
 
-            if ((drive == 3) and (dev -> type == DRIVE_FIXED))
+            if ((drive == 3) && (dev -> type == DRIVE_FIXED))
                 RES_PATH[ RES_DIR_HD ] = MemStrDup(root);
         }
         else
@@ -758,7 +757,7 @@ RES_EXPORT int ResInit(HWND hwnd)
 
 #if (RES_MULTITHREAD)
 
-    if ( not GLOCK) GLOCK = CREATE_LOCK("multithread");
+    if (!GLOCK) GLOCK = CREATE_LOCK("multithread");
 
 #endif
 
@@ -816,7 +815,7 @@ RES_EXPORT void ResExit(void)
 
 #if USE_SH_POOLS
 
-    if (gResmgrMemPool not_eq NULL)
+    if (gResmgrMemPool != NULL)
     {
         MemPoolFree(gResmgrMemPool);
         gResmgrMemPool = NULL;
@@ -851,24 +850,24 @@ RES_EXPORT int ResMountCD(int cd_number, int device)
 
 #if( RES_DEBUG_PARAMS )   /* parameter checking only with debug version */
 
-    if (cd_number < 1 or cd_number > MAX_CD)
+    if (cd_number < 1 || cd_number > MAX_CD)
         SHOULD_I_CALL_WITH(CALLBACK_UNKNOWN_CD, RES_ERR_ILLEGAL_CD, retval);
 
-    if ( not retval)
+    if (!retval)
         return(FALSE);
 
 #endif
 
     GLOBAL_CD_DEVICE = device;
 
-    if (GLOBAL_CURRENT_CD not_eq cd_number)   /* we need this flag later */
+    if (GLOBAL_CURRENT_CD != cd_number)   /* we need this flag later */
         resynch = TRUE;
 
     /* has the user installed a handler for swap cd? */
 
     SHOULD_I_CALL_WITH(CALLBACK_SWAP_CD, cd_number, retval);
 
-    if ( not retval)
+    if (!retval)
         return(FALSE);
 
     GLOBAL_CURRENT_CD = cd_number;
@@ -877,7 +876,7 @@ RES_EXPORT int ResMountCD(int cd_number, int device)
 
     SHOULD_I_CALL_WITH(CALLBACK_RESYNCH_CD, cd_number, retval);
 
-    if ( not retval)
+    if (!retval)
         return(FALSE);
 
     /* haven't failed so far... */
@@ -978,7 +977,7 @@ RES_EXPORT int ResCheckMedia(int device)
 
 #if( RES_DEBUG_PARAMS )
 
-    if (device < 0 or device > MAX_DEVICES)
+    if (device < 0 || device > MAX_DEVICES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCheckMedia (use ordinals)");
         return(-1);
@@ -998,7 +997,7 @@ RES_EXPORT int ResCheckMedia(int device)
 
     if (GetVolumeInformation(root, name, 22, &serial, &long1, &long2, dummy, 5))
     {
-        if (strcmp(name, dev -> name) or (serial not_eq dev -> serial))
+        if (strcmp(name, dev -> name) || (serial != dev -> serial))
         {
             strcpy(dev -> name, name);
             dev -> serial = serial;
@@ -1053,7 +1052,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
 
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     HASH_ENTRY * entry;
 #endif
 
@@ -1074,7 +1073,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not filename or (strlen(filename) > _MAX_FNAME))
+    if (!filename || (strlen(filename) > _MAX_FNAME))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAttach");
         return(-1);
@@ -1082,19 +1081,19 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
 #endif
 
-    if ( not GLOBAL_HASH_TABLE)
+    if (!GLOBAL_HASH_TABLE)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAttach");
         return(-1);
     }
 
-    if ( not attach_point)
+    if (!attach_point)
         attach_point = GLOBAL_CURRENT_PATH;
 
 #if( RES_COERCE_FILENAMES )
     len = strlen(attach_point);
 
-    if (attach_point[len - 1] not_eq ASCII_BACKSLASH)
+    if (attach_point[len - 1] != ASCII_BACKSLASH)
     {
         attach_point[len++] = ASCII_BACKSLASH;
         attach_point[len] = 0x00;
@@ -1108,7 +1107,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
     info.size = 0;
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find(attach_point, GLOBAL_HASH_TABLE);
 
 
@@ -1120,9 +1119,9 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
        to false. */
 
 
-#if( not RES_ALLOW_ALIAS )
+#if( !RES_ALLOW_ALIAS )
 
-    if ( not entry)
+    if (!entry)
     {
         SAY_ERROR(RES_ERR_PATH_NOT_FOUND, attach_point);
         return(-1);
@@ -1134,14 +1133,14 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
        an 'added' directory (a directory that has been incorporated
        into the Resource Manager via ResAddPath or ResCreatePath */
 
-    if ( not entry)
+    if (!entry)
     {
 
 #if( RES_DEBUG_VERSION )
 
         if (GLOBAL_SEARCH_INDEX >= (MAX_DIRECTORIES - 1))
         {
-            assert( not "Exceeded MAX_DIRECTORIES as defined in omni.h");
+            assert(!"Exceeded MAX_DIRECTORIES as defined in omni.h");
             //            SAY_ERROR( RES_ERR_TOO_MANY_DIRECTORIES, "ResAddPath" );
             return(FALSE);
         }
@@ -1150,14 +1149,14 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
         table = hash_create(ARCHIVE_TABLE_SIZE, attach_point);
 
         strcpy(info.name, attach_point);                  /* insert a dummy entry into the global hash table  */
-        info.attrib = _A_SUBDIR bitor (unsigned int)FORCE_BIT;
+        info.attrib = _A_SUBDIR | (unsigned int)FORCE_BIT;
         info.time_create = 0;
         info.time_access = 0;
         info.size = 0;
 
         entry = hash_add(&info, GLOBAL_HASH_TABLE);
 
-        if ( not entry)
+        if (!entry)
         {
             SAY_ERROR(RES_ERR_UNKNOWN, "ResAttach");
             return(-1);
@@ -1184,7 +1183,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
     archive = archive_create(attach_point, filename, GLOBAL_HASH_TABLE, replace_flag);
 #endif /* RES_FLAT_MODEL  */
 
-    if ( not archive)
+    if (!archive)
     {
         SAY_ERROR(RES_ERR_CANT_OPEN_ARCHIVE, filename);
         return(-1);
@@ -1192,7 +1191,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
     for (i = 0; i < (GLOBAL_SEARCH_INDEX - 1); i++)
     {
-        if ( not stricmp(GLOBAL_SEARCH_PATH[i], attach_point))
+        if (!stricmp(GLOBAL_SEARCH_PATH[i], attach_point))
         {
             //            archive -> directory = (char)i;   /* GFG */
             archive -> directory = (char)(i);     /* GFG */
@@ -1226,7 +1225,7 @@ RES_EXPORT int ResDevice(int device_id, DEVICE_ENTRY * dev)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if (device_id < 0 or device_id > MAX_DEVICES or not dev)
+    if (device_id < 0 || device_id > MAX_DEVICES || !dev)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResDevice");
         return(FALSE);
@@ -1260,7 +1259,7 @@ RES_EXPORT void ResDetach(int handle)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not ARCHIVE_LIST)
+    if (!ARCHIVE_LIST)
     {
         //SAY_ERROR( RES_ERR_UNKNOWN_ARCHIVE, "ResDetach" );
         return;
@@ -1278,7 +1277,7 @@ RES_EXPORT void ResDetach(int handle)
             break;
     }
 
-    if ( not list)    /* couldn't find it, may already have been closed - or handle is incorrect */
+    if (!list)    /* couldn't find it, may already have been closed - or handle is incorrect */
     {
         SAY_ERROR(RES_ERR_UNKNOWN_ARCHIVE, "ResDetach");
         return;
@@ -1300,7 +1299,7 @@ RES_EXPORT void ResDetach(int handle)
        data via that method.  Therefore, we don't want to free it up until
        all the zips are detached - then we might as well to reclaim memory */
 
-    if ( not ARCHIVE_LIST)
+    if (!ARCHIVE_LIST)
         inflate_free();
 
     /* close the actual archive file */
@@ -1358,7 +1357,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not name)
+    if (!name)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResOpenFile");
         return(-1);
@@ -1401,18 +1400,18 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
        pathname (eg; ..\windows\foo.c).
        ----------------------------------------------------  */
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find_table(name, &table);
 #else /* flat model */
     entry = hash_find(name, GLOBAL_HASH_TABLE);
 #endif
 
-    if ( not entry)      /* NOT FOUND */
+    if (!entry)      /* NOT FOUND */
     {
         /* if the user is trying to create a file on the harddrive,
            this is ok. */
 
-        if ( not (mode bitand _O_CREAT))
+        if (!(mode & _O_CREAT))
         {
             SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
 #if (RES_MULTITHREAD)
@@ -1433,7 +1432,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
             IF_LOG(LOG("creating file: %s\n", name));
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
 
             if (strchr(name, ASCII_BACKSLASH))
             {
@@ -1447,7 +1446,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 entry = hash_find(GLOBAL_CURRENT_PATH, GLOBAL_HASH_TABLE);
             }
 
-            if ( not entry or not entry -> dir)    /* directory is not already added */
+            if (!entry || !entry -> dir)    /* directory is not already added */
             {
                 SAY_ERROR(RES_ERR_UNKNOWN_WRITE_TO, name);
 #if (RES_MULTITHREAD)
@@ -1469,7 +1468,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 strcpy(filename, name);
 
             table = GLOBAL_HASH_TABLE;
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
             strcpy(data.name, filename);
 
@@ -1480,7 +1479,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
             entry = hash_add(&data, table);
 
-            if ( not entry)
+            if (!entry)
             {
                 SAY_ERROR(RES_ERR_UNKNOWN, "ResOpen - create");
 #if (RES_MULTITHREAD)
@@ -1492,7 +1491,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
             for (dir_index = 0; dir_index <= GLOBAL_SEARCH_INDEX; dir_index++)
             {
-                if ( not stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
+                if (!stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
                 {
                     entry -> directory = dir_index;
                     entry -> volume = (char)(toupper(dirpath[0]) - 'A');
@@ -1516,12 +1515,12 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
     /* Make sure the user isn't trying to write to an archive file.
        Someday this may be possible, but not for a while. */
 
-    if (entry -> archive not_eq -1)
+    if (entry -> archive != -1)
     {
         int check;
 
-        check = (_O_CREAT bitor _O_APPEND bitor _O_RDWR bitor _O_WRONLY);
-        check and_eq mode;
+        check = (_O_CREAT | _O_APPEND | _O_RDWR | _O_WRONLY);
+        check &= mode;
 
         if (check)   /* don't known why had to do it broken out like this - ask MSVC */
         {
@@ -1545,14 +1544,14 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
     {
         /* may seem redundant but there are too many pathological cases otherwise */
 
-        if (mode bitand _O_CREAT)
+        if (mode & _O_CREAT)
             res_fullpath(filename, name, _MAX_PATH);    /* regardless of coercion state */
         else
             sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
 
         /* there is actually a third parameter to open() (MSVC just doesn't admit it)
            octal 666 ensures that stack-crap won't accidently create this file as
-           read-only.  Thank to Roger Fujii for this fix */
+           read-only.  Thank to Roger Fujii for this fix! */
 
         file -> os_handle = _open(filename, mode, 0x1b6 /* choked on O666 and O666L */);
 
@@ -1603,7 +1602,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 break;
         }
 
-        if ( not list)
+        if (!list)
         {
             SAY_ERROR(RES_ERR_UNKNOWN, " ");   /* archive handle in hash entry is incorrect (or archive detached) */
 #if (RES_MULTITHREAD)
@@ -1653,7 +1652,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 zip = (COMPRESSED_FILE *)MemMalloc(sizeof(COMPRESSED_FILE) + (entry -> size), "Inflate");
 #endif
 
-                if ( not zip)
+                if (!zip)
                 {
                     SAY_ERROR(RES_ERR_NO_MEMORY, "Inflate");
 #if (RES_MULTITHREAD)
@@ -1737,7 +1736,7 @@ RES_EXPORT int ResSizeFile(int file)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if (file < 0 or file >= MAX_FILE_HANDLES)
+    if (file < 0 || file >= MAX_FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSizeFile");
         return(-1);
@@ -1777,7 +1776,7 @@ RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer or handle < 0 or handle > MAX_FILE_HANDLES)
+    if (!buffer || handle < 0 || handle > MAX_FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResReadFile");
         return(-1);
@@ -1809,7 +1808,7 @@ RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
 
     }
 
-    if ( not file -> zip)
+    if (!file -> zip)
     {
 
         /* The only way to insure that the heads will be in the right place is
@@ -1885,7 +1884,7 @@ RES_EXPORT char * ResLoadFile(const char * filename,  char * buffer, size_t * si
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not filename)
+    if (!filename)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResLoadFile");
         return(NULL);
@@ -1893,14 +1892,14 @@ RES_EXPORT char * ResLoadFile(const char * filename,  char * buffer, size_t * si
 
 #endif /* RES_DEBUG_PARAMS */
 
-    file = ResOpenFile(filename, _O_RDONLY bitor _O_BINARY);
+    file = ResOpenFile(filename, _O_RDONLY | _O_BINARY);
 
     if (EMPTY(file))
         return(NULL);   /* message will already have been printed if using the debug version */
 
     s = ResSizeFile(file);
 
-    if ( not buffer)
+    if (!buffer)
     {
 #ifdef USE_SH_POOLS
         alloc_buffer = (char *)MemAllocPtr(gResmgrMemPool, s, 0);
@@ -1908,7 +1907,7 @@ RES_EXPORT char * ResLoadFile(const char * filename,  char * buffer, size_t * si
         alloc_buffer = (char *)MemMalloc(s, filename);
 #endif
 
-        if ( not alloc_buffer)
+        if (!alloc_buffer)
         {
             SAY_ERROR(RES_ERR_NO_MEMORY, filename);
             ResCloseFile(file);
@@ -1967,7 +1966,7 @@ RES_EXPORT void ResUnloadFile(char * buffer)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer)
+    if (!buffer)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResUnloadFile");
         return;
@@ -2007,7 +2006,7 @@ RES_EXPORT int ResCloseFile(int file)
 
 #if( RES_DEBUG_PARAMS )
 
-    if (file < 0 or file >= MAX_FILE_HANDLES)
+    if (file < 0 || file >= MAX_FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCloseFile");
         return(FALSE);
@@ -2029,7 +2028,7 @@ RES_EXPORT int ResCloseFile(int file)
 
     SHOULD_I_CALL_WITH(CALLBACK_CLOSE_FILE, file, retval);
 
-    if ( not FILE_HANDLES[file].zip)
+    if (!FILE_HANDLES[file].zip)
     {
         /* if the file has been written to, recheck the size */
 
@@ -2043,7 +2042,7 @@ RES_EXPORT int ResCloseFile(int file)
 
             split_path(FILE_HANDLES[file].filename, filename, dirpath);
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
             entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
 
             if (entry)
@@ -2073,10 +2072,10 @@ RES_EXPORT int ResCloseFile(int file)
                 SAY_ERROR(RES_ERR_UNKNOWN, "set size");
             }
 
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
         }
 
-        if ( not FILE_HANDLES[ file ].seek_start)   /* don't close an archive */
+        if (!FILE_HANDLES[ file ].seek_start)   /* don't close an archive */
             _close(FILE_HANDLES[ file ].os_handle);
 
 #ifdef USE_SH_POOLS
@@ -2141,7 +2140,7 @@ RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count)
 
 #if( RES_DEBUG_PARAMS )
 
-    if (handle < 0 or handle >= MAX_FILE_HANDLES or not buffer)
+    if (handle < 0 || handle >= MAX_FILE_HANDLES || !buffer)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResWriteFile");
         return(0);
@@ -2164,7 +2163,7 @@ RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count)
         return(0);
     }
 
-    if ( not (file -> mode bitand (_O_CREAT bitor _O_APPEND bitor _O_RDWR bitor _O_WRONLY)))
+    if (!(file -> mode & (_O_CREAT | _O_APPEND | _O_RDWR | _O_WRONLY)))
     {
         SAY_ERROR(RES_ERR_PROBLEM_WRITING, file -> filename);
 #if (RES_MULTITHREAD)
@@ -2219,7 +2218,7 @@ RES_EXPORT int ResDeleteFile(const char * name)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not name)
+    if (!name)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResDeleteFile");
         return(FALSE);
@@ -2232,8 +2231,8 @@ RES_EXPORT int ResDeleteFile(const char * name)
 
     IF_LOG(LOG("delete: %s\n", name));
 
-#if( not RES_USE_FLAT_MODEL )
-    /* find both the entry bitand the table it resides in */
+#if( !RES_USE_FLAT_MODEL )
+    /* find both the entry & the table it resides in */
     entry = hash_find_table(name, &table);
 #else
     entry = hash_find(name, GLOBAL_HASH_TABLE);
@@ -2241,7 +2240,7 @@ RES_EXPORT int ResDeleteFile(const char * name)
     table = GLOBAL_HASH_TABLE;
 #endif
 
-    if ( not entry)
+    if (!entry)
     {
         SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
 #if (RES_MULTITHREAD)
@@ -2292,7 +2291,7 @@ RES_EXPORT int ResModifyFile(const char * name, int flags)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not name)
+    if (!name)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResModifyFile");
         return(FALSE);
@@ -2305,13 +2304,13 @@ RES_EXPORT int ResModifyFile(const char * name, int flags)
 
     IF_LOG(LOG("modify: %s %d\n", name, flags));
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find_table(name, NULL);
 #else
     entry = hash_find(name, GLOBAL_HASH_TABLE);
 #endif
 
-    if ( not entry)
+    if (!entry)
     {
         SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
 #if (RES_MULTITHREAD)
@@ -2333,7 +2332,7 @@ RES_EXPORT int ResModifyFile(const char * name, int flags)
             return(FALSE);
         }
 
-        entry -> attrib = flags bitor FORCE_BIT;
+        entry -> attrib = flags | FORCE_BIT;
     }
     else
     {
@@ -2370,7 +2369,7 @@ RES_EXPORT int ResMakeDirectory(char * pathname)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not pathname)
+    if (!pathname)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResMakeDirectory");
         return(FALSE);
@@ -2441,7 +2440,7 @@ RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
 
     IF_LOG(LOG("deltree: %s\n", pathname));
 
-    if ( not (fileinfo.attrib bitand _A_SUBDIR))
+    if (!(fileinfo.attrib & _A_SUBDIR))
     {
         SAY_ERROR(RES_ERR_IS_NOT_DIRECTORY, pathname);
         return(FALSE);
@@ -2455,16 +2454,16 @@ RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
     sprintf(full_path, "%s\\*.*", pathname);
     handle = _findfirst(full_path, &fileinfo);
 
-    while (status not_eq -1)
+    while (status != -1)
     {
 
-        if ( not stricmp(fileinfo.name, ".") or not stricmp(fileinfo.name, ".."))
+        if (!stricmp(fileinfo.name, ".") || !stricmp(fileinfo.name, ".."))
         {
             status = _findnext(handle, &fileinfo);
             continue;
         }
 
-        if (fileinfo.attrib bitand _A_SUBDIR)
+        if (fileinfo.attrib & _A_SUBDIR)
         {
             char recurse_path[MAX_PATH];
             sprintf(recurse_path, "%s\\%s", pathname, fileinfo.name);
@@ -2534,7 +2533,7 @@ RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
                directories that have not been freed.
 
                ResOpen will fail if the directory does
- not exist or if there is not enough
+               not exist or if there is not enough
                memory to allocate space for the whole
                directory.
 
@@ -2551,7 +2550,7 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
 {
     //    int count = 0;
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
 
     HASH_TABLE * hsh;
     HASH_ENTRY * entry;
@@ -2562,7 +2561,7 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not GLOBAL_SEARCH_INDEX)
+    if (!GLOBAL_SEARCH_INDEX)
         return(NULL);
 
 #endif
@@ -2573,7 +2572,7 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
 
     entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
 
-    if (entry and entry -> dir)
+    if (entry && entry -> dir)
     {
         hsh = (HASH_TABLE *)entry -> dir;
 
@@ -2590,7 +2589,7 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
         dir -> filenames = (char**)((char*)dir + sizeof(RES_DIR));
         dir -> string_pool = (char*)dir + sizeof(RES_DIR) + (sizeof(char *) * (hsh -> num_entries));
 
-        if ( not dir -> filenames or not dir -> string_pool)
+        if (!dir -> filenames || !dir -> string_pool)
         {
             SAY_ERROR(RES_ERR_NO_MEMORY, "ResOpenDirectory");
             return(NULL);
@@ -2633,7 +2632,7 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
         return(dir);
     }
 
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
     return(NULL);   /* only usefull in the hierarchical version */
 }
@@ -2656,7 +2655,7 @@ RES_EXPORT char * ResReadDirectory(RES_DIR * dir)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if ( not dir)
+    if (!dir)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResReadDirectory");
         return(NULL);
@@ -2691,7 +2690,7 @@ RES_EXPORT void ResCloseDirectory(RES_DIR * dir)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if ( not dir)
+    if (!dir)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCloseDirectory");
         return;
@@ -2732,7 +2731,7 @@ RES_EXPORT int ResExistFile(char * name)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not name)
+    if (!name)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResExistFile");
         return(FALSE);
@@ -2745,7 +2744,7 @@ RES_EXPORT int ResExistFile(char * name)
 
     IF_LOG(LOG("exist file: %s\n", name));
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find_table(name, NULL);
 #else /* flat model */
     entry = hash_find(name, GLOBAL_HASH_TABLE);
@@ -2782,7 +2781,7 @@ RES_EXPORT int ResExistDirectory(char * pathname)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not pathname)
+    if (!pathname)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResExistDirectory");
         return(FALSE);
@@ -2795,7 +2794,7 @@ RES_EXPORT int ResExistDirectory(char * pathname)
 #if( RES_COERCE_FILENAMES )
     len = strlen(path);
 
-    if (path[len - 1] not_eq ASCII_BACKSLASH)
+    if (path[len - 1] != ASCII_BACKSLASH)
     {
         path[len++] = ASCII_BACKSLASH;
         path[len] = 0x00;
@@ -2828,7 +2827,7 @@ RES_EXPORT long ResTellFile(int handle)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if (handle < 0 or handle >= MAX_FILE_HANDLES)
+    if (handle < 0 || handle >= MAX_FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResTellFile");
         return(-1);
@@ -2881,13 +2880,13 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if (handle < 0 or handle >= MAX_FILE_HANDLES)
+    if (handle < 0 || handle >= MAX_FILE_HANDLES)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSeekFile");
         return(-1);
     }
 
-    if ((origin not_eq SEEK_CUR) and (origin not_eq SEEK_SET) and (origin not_eq SEEK_END))
+    if ((origin != SEEK_CUR) && (origin != SEEK_SET) && (origin != SEEK_END))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSeekFile");
         return(-1);
@@ -2910,7 +2909,7 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
     }
 
     /* If we are writing, do seek anyway */
-    if (FILE_HANDLES[ handle ].mode bitand (O_WRONLY bitor O_RDWR))
+    if (FILE_HANDLES[ handle ].mode & (O_WRONLY | O_RDWR))
     {
         FILE_HANDLES[ handle ].current_pos  = lseek(FILE_HANDLES[ handle ].os_handle, offset, origin);
     }
@@ -2966,13 +2965,13 @@ RES_EXPORT int ResSetDirectory(const char * pathname)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not pathname or not (*pathname))
+    if (!pathname || !(*pathname))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSetDirectory");
         return(FALSE);
     }
 
-    if ( not GLOBAL_PATH_LIST)
+    if (!GLOBAL_PATH_LIST)
     {
         SAY_ERROR(RES_ERR_MUST_CREATE_PATH, "ResSetDirectory");
         return(FALSE);
@@ -2985,7 +2984,7 @@ RES_EXPORT int ResSetDirectory(const char * pathname)
 
     len = strlen(full);
 
-    if (full[len - 1] not_eq ASCII_BACKSLASH)
+    if (full[len - 1] != ASCII_BACKSLASH)
     {
         full[len++] = ASCII_BACKSLASH;
         full[len++] = '\0';
@@ -2996,7 +2995,7 @@ RES_EXPORT int ResSetDirectory(const char * pathname)
 
     entry = hash_find(pathname, GLOBAL_HASH_TABLE);
 
-    if ( not entry or not entry -> dir)
+    if (!entry || !entry -> dir)
     {
         SAY_ERROR(RES_ERR_PATH_NOT_FOUND, pathname);
         return(FALSE);
@@ -3009,7 +3008,7 @@ RES_EXPORT int ResSetDirectory(const char * pathname)
                        of the search path.  All of the other CD
                        paths, however, are still at the bottom. */
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     /* Force to the head of the list */
     GLOBAL_PATH_LIST = LIST_REMOVE(GLOBAL_PATH_LIST, entry -> dir);
     GLOBAL_PATH_LIST = LIST_APPEND(GLOBAL_PATH_LIST, entry -> dir);
@@ -3023,7 +3022,7 @@ RES_EXPORT int ResSetDirectory(const char * pathname)
 
 
 #if 0   // GFG May 05/98
-#if( not RES_ALLOW_ALIAS )
+#if( !RES_ALLOW_ALIAS )
 
     if (_chdir(pathname))
     {
@@ -3062,13 +3061,13 @@ RES_EXPORT int ResGetDirectory(char * buffer)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer)
+    if (!buffer)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResGetDirectory");
         return(0);
     }
 
-    if ( not GLOBAL_PATH_LIST)
+    if (!GLOBAL_PATH_LIST)
     {
         SAY_ERROR(RES_ERR_MUST_CREATE_PATH, "ResSetDirectory");
         return(0);
@@ -3076,11 +3075,11 @@ RES_EXPORT int ResGetDirectory(char * buffer)
 
 #endif
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     check = strcpy(buffer, ((HASH_TABLE *)(GLOBAL_PATH_LIST -> node)) -> name);
 #else
     check = strcpy(buffer, GLOBAL_CURRENT_PATH);
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
     IF_LOG(LOG("get dir: %s\n", buffer));
 
@@ -3111,7 +3110,7 @@ RES_EXPORT int ResGetPath(int idx, char * buffer)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer or idx < 0)
+    if (!buffer || idx < 0)
     {
         return(0);
     }
@@ -3151,7 +3150,7 @@ RES_EXPORT int ResGetArchive(int handle, char * buffer)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not ARCHIVE_LIST)
+    if (!ARCHIVE_LIST)
     {
         *buffer = 0x00;
         return(0);
@@ -3169,7 +3168,7 @@ RES_EXPORT int ResGetArchive(int handle, char * buffer)
             break;
     }
 
-    if ( not list)    /* couldn't find it, may already have been closed - or handle is incorrect */
+    if (!list)    /* couldn't find it, may already have been closed - or handle is incorrect */
     {
         *buffer = 0x00;
         return(0);
@@ -3219,7 +3218,7 @@ RES_EXPORT int ResWhereIs(char * filename, char * path)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not filename)
+    if (!filename)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResGetDirectory");
         return(-1);
@@ -3230,14 +3229,14 @@ RES_EXPORT int ResWhereIs(char * filename, char * path)
     REQUEST_LOCK(GLOCK);
 #endif
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find_table(filename, NULL);
 #else /* flat model */
     //    entry = hash_find( file, GLOBAL_HASH_TABLE );  /* GFG  31/01/98 */
     entry = hash_find(filename, GLOBAL_HASH_TABLE);
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
-    if ( not entry)
+    if (!entry)
     {
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK);
@@ -3245,25 +3244,25 @@ RES_EXPORT int ResWhereIs(char * filename, char * path)
         return(-1);
     }
 
-    if (entry -> archive not_eq -1)
-        retval or_eq RES_ARCHIVE;
+    if (entry -> archive != -1)
+        retval |= RES_ARCHIVE;
 
     type = RES_DEVICES[ entry -> volume ].type;
 
     if (type == DRIVE_CDROM)
     {
-        retval or_eq RES_CD;
-        retval or_eq RES_DEVICES[ entry -> volume ].id;
+        retval |= RES_CD;
+        retval |= RES_DEVICES[ entry -> volume ].id;
     }
 
     if (type == DRIVE_REMOTE)
-        retval or_eq RES_NET;
+        retval |= RES_NET;
 
     if (type == DRIVE_FIXED)
-        retval or_eq RES_HD;
+        retval |= RES_HD;
 
     if (type == DRIVE_REMOVABLE)
-        retval or_eq RES_FLOPPY;
+        retval |= RES_FLOPPY;
 
     if (path)
         strcpy(path, GLOBAL_SEARCH_PATH[ entry -> directory ]);
@@ -3347,7 +3346,7 @@ RES_EXPORT int ResStatusFile(const char * filename, RES_STAT * stat_buffer)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not filename or not stat_buffer)
+    if (!filename || !stat_buffer)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResStatusFile");
         return(FALSE);
@@ -3355,7 +3354,7 @@ RES_EXPORT int ResStatusFile(const char * filename, RES_STAT * stat_buffer)
 
 #endif /* RES_DEBUG_PARAMS */
 
-    if ( not GLOBAL_SEARCH_INDEX)
+    if (!GLOBAL_SEARCH_INDEX)
     {
         SAY_ERROR(RES_ERR_MUST_CREATE_PATH, "ResStatusFile");
         return(FALSE);
@@ -3367,7 +3366,7 @@ RES_EXPORT int ResStatusFile(const char * filename, RES_STAT * stat_buffer)
 
     entry = hash_find_table(filename, NULL);
 
-    if ( not entry)
+    if (!entry)
     {
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK);
@@ -3389,7 +3388,7 @@ RES_EXPORT int ResStatusFile(const char * filename, RES_STAT * stat_buffer)
 
     for (list = GLOBAL_PATH_LIST; list; list = list -> next)
     {
-        if ( not (strcmp(src, ((HASH_TABLE *)(list -> node)) -> name)))
+        if (!(strcmp(src, ((HASH_TABLE *)(list -> node)) -> name)))
         {
             stat_buffer -> directory = hit;
             break;
@@ -3428,7 +3427,7 @@ RES_EXPORT PFI ResSetCallback(int which, PFI func)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ((which < 0) or (which >=  NUMBER_OF_CALLBACKS))
+    if ((which < 0) || (which >=  NUMBER_OF_CALLBACKS))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSetCallback");
         return(NULL);
@@ -3464,7 +3463,7 @@ RES_EXPORT PFI ResGetCallback(int which)
 {
 #if( RES_DEBUG_PARAMS )
 
-    if ((which < 0) or (which >= NUMBER_OF_CALLBACKS))
+    if ((which < 0) || (which >= NUMBER_OF_CALLBACKS))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResGetCallback");
         return(NULL);
@@ -3503,7 +3502,7 @@ RES_EXPORT int ResCreatePath(char * path, int recurse)
 
 #if( RES_DEBUG_VERSON )
 
-    if ( not path)
+    if (!path)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCreatePath");
         return(FALSE);
@@ -3544,7 +3543,7 @@ RES_EXPORT int ResCreatePath(char * path, int recurse)
     RELEASE_LOCK(GLOCK);
 #endif
 
-    if ( not GLOBAL_HASH_TABLE)
+    if (!GLOBAL_HASH_TABLE)
         return(FALSE);
 
     return(ResAddPath(path, recurse));
@@ -3610,7 +3609,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
 #ifdef RES_NO_REPEATED_ADDPATHS
 
-    if (get_dir_index(path) not_eq -1)
+    if (get_dir_index(path) != -1)
     {
         return TRUE;
     }
@@ -3621,13 +3620,13 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not path)
+    if (!path)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAddPath");
         return(FALSE);
     }
 
-    if ( not GLOBAL_HASH_TABLE)
+    if (!GLOBAL_HASH_TABLE)
     {
         printf("You must first call ResCreatePath()\n");
         return(FALSE);
@@ -3639,7 +3638,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
     if (GLOBAL_SEARCH_INDEX >= (MAX_DIRECTORIES - 1))
     {
-        assert( not "Exceeded MAX_DIRECTORIES as defined in omni.h");
+        assert(!"Exceeded MAX_DIRECTORIES as defined in omni.h");
         //        SAY_ERROR( RES_ERR_TOO_MANY_DIRECTORIES, "ResAddPath" );
         return(FALSE);
     }
@@ -3653,7 +3652,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
     res_fullpath(tmp_path, path, (_MAX_PATH - 2));   /* non-portable */
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find(tmp_path, GLOBAL_HASH_TABLE);
 
     if (entry)
@@ -3665,7 +3664,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
     length = strlen(tmp_path);
 
-    if (tmp_path[ length - 1 ] not_eq ASCII_BACKSLASH)
+    if (tmp_path[ length - 1 ] != ASCII_BACKSLASH)
     {
         tmp_path[ length++ ] = ASCII_BACKSLASH;
         tmp_path[ length ] = '\0';
@@ -3703,7 +3702,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
     tmp_path[ length++ ] = ASCII_ASTERISK;
     tmp_path[ length ]   = '\0';
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
 
     /* for the hierarchical model, we create a new hash table for the directory to
        be added.  Then we insert a hashed entry into the GLOBAL_HASH_TABLE which
@@ -3724,30 +3723,30 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
 #endif
 
-    if ( not entry or not entry -> dir)
+    if (!entry || !entry -> dir)
         local_table = hash_create(count, buffer);   /* create a new table                               */
     else if (entry)
         local_table = entry -> dir;
 
-    if ( not local_table)
+    if (!local_table)
         return(FALSE);
 
     strcpy(data.name, buffer);                      /* insert a dummy entry into the global hash table  */
-    data.attrib = _A_SUBDIR bitor (unsigned int)FORCE_BIT;
+    data.attrib = _A_SUBDIR | (unsigned int)FORCE_BIT;
     data.time_create = 0;
     data.time_access = 0;
     data.size = 0;
 
-    if ( not entry)
+    if (!entry)
         entry = hash_add(&data, GLOBAL_HASH_TABLE);
 
-    if ( not entry)
+    if (!entry)
         return(FALSE);
 
-    if ( not entry -> dir)
+    if (!entry -> dir)
         entry -> dir = local_table;
 
-    if ( not refresh)
+    if (!refresh)
     {
         entry -> offset = 0;
         entry -> csize  = 0;
@@ -3762,7 +3761,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
 #else
     local_table = GLOBAL_HASH_TABLE;                /* flat mode - all entries go into the root         */
-#endif  /* not RES_USE_FLAT_MODEL */
+#endif  /* !RES_USE_FLAT_MODEL */
 
     /* enter the files into the local hash table, keeping count of the total
        number of entries. */
@@ -3773,7 +3772,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
 
 
-    if ( not refresh)
+    if (!refresh)
     {
         dir_was = GLOBAL_SEARCH_INDEX;
 
@@ -3795,17 +3794,17 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
     directory = _findfirst(tmp_path, &data);
 #endif
 
-    if (directory not_eq -1)
+    if (directory != -1)
     {
-        /* integral volume id bitand path index */
+        /* integral volume id & path index */
 
-        while ( not done)
+        while (!done)
         {
 
             /* don't add directories to the hash table,
                ResTreeAdd is used to recurse directories */
 
-            if ( not (data.attrib bitand _A_SUBDIR))
+            if (!(data.attrib & _A_SUBDIR))
             {
 
                 /* Reject empty files before calling hash_add.  This
@@ -3831,7 +3830,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
                     continue;
                 }
 
-#endif /* not RES_ALLOW_EMPTY_FILES */
+#endif /* !RES_ALLOW_EMPTY_FILES */
 
                 if (refresh)
                 {
@@ -3856,13 +3855,13 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
 
                     entry = hash_find(data.name, local_table);
 
-                    if ( not entry)
+                    if (!entry)
                         entry = hash_add(&data, local_table);
 
                     if (entry)
                     {
                         entry -> size = data.size;
-                        entry -> attrib = data.attrib bitor FORCE_BIT;
+                        entry -> attrib = data.attrib | FORCE_BIT;
                     }
                 }
                 else
@@ -3887,20 +3886,20 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
             }
             else      /* if we want to add an entire directory tree, recurse is TRUE */
             {
-                if (recurse and not full_yet)
+                if (recurse && !full_yet)
                 {
-                    if (strcmp(data.name, ".") and strcmp(data.name, ".."))
+                    if (strcmp(data.name, ".") && strcmp(data.name, ".."))
                     {
                         int idx, ln;
 
                         ln = strlen(tmp_path);
 
-                        for (idx = ln - 1; idx, tmp_path[idx] not_eq ASCII_BACKSLASH; idx--) ;
+                        for (idx = ln - 1; idx, tmp_path[idx] != ASCII_BACKSLASH; idx--) ;
 
                         strncpy(buffer, tmp_path, idx);
                         sprintf(&buffer[idx], "\\%s\\", data.name);
 
-                        if ( not ResAddPath(buffer, TRUE))     /* Recursively call this function. */
+                        if (!ResAddPath(buffer, TRUE))     /* Recursively call this function. */
                         {
                             full_yet = TRUE;               /* We want to continue adding this directory, and THEN */
                             retval = FALSE;                /* trickle up a return flag.                           */
@@ -3927,7 +3926,7 @@ RES_EXPORT int ResAddPath(char * path, int recurse)
         }
 
 #if 0
-        _findclose(directory);   /* done */
+        _findclose(directory);   /* done! */
 #endif
 
     }
@@ -3988,16 +3987,16 @@ RES_EXPORT int ResBuildPathname(int index, char * path_in, char * path_out)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ((index < RES_DIR_NONE)  or
-        (index >= RES_DIR_LAST) or
-        ( not path_out))
+    if ((index < RES_DIR_NONE)  ||
+        (index >= RES_DIR_LAST) ||
+        (!path_out))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResBuildPathname");
         return(-1);
     }
 
 
-    if ((index not_eq RES_DIR_NONE) and (RES_PATH[ index ] == NULL))
+    if ((index != RES_DIR_NONE) && (RES_PATH[ index ] == NULL))
     {
         SAY_ERROR(RES_ERR_NO_SYSTEM_PATH, "ResBuildPathname");
         *path_out = '\0';
@@ -4012,7 +4011,7 @@ RES_EXPORT int ResBuildPathname(int index, char * path_in, char * path_out)
 
     if (path_in)
     {
-        if (index not_eq RES_DIR_NONE)                     /* since all these end with a slash  */
+        if (index != RES_DIR_NONE)                     /* since all these end with a slash  */
             while (*path_in == ASCII_BACKSLASH)     /* trim leading backslashes             */
                 path_in++;
 
@@ -4033,7 +4032,7 @@ RES_EXPORT int ResBuildPathname(int index, char * path_in, char * path_out)
 
         len = strlen(tmp);
 
-        if (len and (tmp[len - 1] not_eq ASCII_BACKSLASH))
+        if (len && (tmp[len - 1] != ASCII_BACKSLASH))
         {
             tmp[len++] = ASCII_BACKSLASH;
             tmp[len] = '\0';
@@ -4048,7 +4047,7 @@ RES_EXPORT int ResBuildPathname(int index, char * path_in, char * path_out)
 
     /* if there is a system path index */
 
-    if (index not_eq RES_DIR_NONE)
+    if (index != RES_DIR_NONE)
         sprintf(path_out, "%s%s", RES_PATH[ index ], tmp);
     else
         strcpy(path_out, tmp);
@@ -4093,7 +4092,7 @@ RES_EXPORT int ResCountDirectory(char * path , struct _finddata_t **file_data)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not path)
+    if (!path)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCountDirectory");
         return(-1);
@@ -4107,12 +4106,12 @@ RES_EXPORT int ResCountDirectory(char * path , struct _finddata_t **file_data)
 
     res_fullpath(fullpath, path, (_MAX_PATH - 3));
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
 
 #if 0
     entry = hash_find(fullpath, GLOBAL_HASH_TABLE);
 
-    if (entry and entry -> dir)
+    if (entry && entry -> dir)
         return(((HASH_TABLE *)entry -> dir) -> num_entries);
 
 #endif
@@ -4134,7 +4133,7 @@ RES_EXPORT int ResCountDirectory(char * path , struct _finddata_t **file_data)
     *file_data = data = MemMalloc(data_count * sizeof(struct _finddata_t), "ResCountDirectory");
 #endif
 
-    if ( not data)
+    if (! data)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "ResCountDirectory");
         return (-1);
@@ -4146,7 +4145,7 @@ RES_EXPORT int ResCountDirectory(char * path , struct _finddata_t **file_data)
     //    dir = _findfirst( fullpath, &data );
     dir = _findfirst(fullpath, data);
 
-    if (dir not_eq -1)
+    if (dir != -1)
     {
         count = 1;
 
@@ -4166,12 +4165,12 @@ RES_EXPORT int ResCountDirectory(char * path , struct _finddata_t **file_data)
             data++;
             ret =  _findnext(dir, data);
 
-            if ( not ret)
+            if (!ret)
             {
                 count++;
             }
         }
-        while ( not ret);
+        while (!ret);
 
 
         _findclose(dir);
@@ -4211,9 +4210,9 @@ RES_EXPORT void ResAssignPath(int index, char * path)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ((index <= RES_DIR_NONE) or
-        (index >= RES_DIR_LAST) or
-        ( not path))
+    if ((index <= RES_DIR_NONE) ||
+        (index >= RES_DIR_LAST) ||
+        (!path))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAssignPath");
         return;
@@ -4235,7 +4234,7 @@ RES_EXPORT void ResAssignPath(int index, char * path)
     ptr = (char *)MemMalloc(_MAX_PATH, path);
 #endif
 
-    if ( not ptr)
+    if (!ptr)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "Assign path");
         return;
@@ -4252,7 +4251,7 @@ RES_EXPORT void ResAssignPath(int index, char * path)
 
     len = strlen(ptr);
 
-    if (len and (ptr[ len - 1 ] not_eq ASCII_BACKSLASH))
+    if (len && (ptr[ len - 1 ] != ASCII_BACKSLASH))
     {
         ptr[len++] = ASCII_BACKSLASH;
         ptr[len] = '\0';
@@ -4292,7 +4291,7 @@ RES_EXPORT void ResAssignPath(int index, char * path)
                 pointer - not the main instruction
                 pointer that executes the callback), you
                 should take care that the callback function
-                is short, simple and finite
+                is short, simple and finite!
 
    ======================================================= */
 
@@ -4303,7 +4302,7 @@ RES_EXPORT int ResAsynchRead(int file, void * buffer, PFV callback)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer or (file < 0) or (file > MAX_FILE_HANDLES))
+    if (!buffer || (file < 0) || (file > MAX_FILE_HANDLES))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAsynchRead");
         return(FALSE);
@@ -4319,7 +4318,7 @@ RES_EXPORT int ResAsynchRead(int file, void * buffer, PFV callback)
     data = (ASYNCH_DATA *)MemMalloc(sizeof(ASYNCH_DATA), "Asynch data");
 #endif
 
-    if ( not data)
+    if (!data)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, NULL);
         return(FALSE);
@@ -4369,7 +4368,7 @@ RES_EXPORT int ResAsynchRead(int file, void * buffer, PFV callback)
                 pointer - not the main instruction
                 pointer that executes the callback), you
                 should take care that the callback function
-                is short, simple and finite
+                is short, simple and finite!
 
    ======================================================= */
 
@@ -4380,7 +4379,7 @@ RES_EXPORT int ResAsynchWrite(int file, void * buffer, PFV callback)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not buffer or (file < 0) or (file > MAX_FILE_HANDLES))
+    if (!buffer || (file < 0) || (file > MAX_FILE_HANDLES))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAsynchWrite");
         return(FALSE);
@@ -4396,7 +4395,7 @@ RES_EXPORT int ResAsynchWrite(int file, void * buffer, PFV callback)
     data = (ASYNCH_DATA *)MemMalloc(sizeof(ASYNCH_DATA), "Asynch data");
 #endif
 
-    if ( not data)
+    if (!data)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, NULL);
         return(FALSE);
@@ -4409,7 +4408,7 @@ RES_EXPORT int ResAsynchWrite(int file, void * buffer, PFV callback)
     thread_id = _beginthread(asynch_write, 128 /*stack size*/, (void *)(data));
 
     //SetThreadPriority( thread_id, THREAD_PRIORITY_LOWEST );
-    //#error PROTOTYPE THIS
+    //#error PROTOTYPE THIS!
 
 
     if (thread_id == -1)
@@ -4455,7 +4454,7 @@ RES_EXPORT int ResExtractFile(const char * dst, const char * src)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not dst or not src)
+    if (!dst || !src)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResExtract");
         return(-1);
@@ -4483,9 +4482,9 @@ RES_EXPORT int ResExtractFile(const char * dst, const char * src)
 
     if (buffer)
     {
-        handle = ResOpenFile(fdst, _O_CREAT bitor _O_WRONLY bitor _O_BINARY);
+        handle = ResOpenFile(fdst, _O_CREAT | _O_WRONLY | _O_BINARY);
 
-        if (handle not_eq -1)
+        if (handle != -1)
         {
             size = ResWriteFile(handle, buffer, size);
             ResCloseFile(handle);
@@ -4522,13 +4521,13 @@ RES_EXPORT void ResPurge(const char * archive, const char * volume, const int * 
 {
     LIST * list;
 
-    if ( not archive and not volume and not directory and not filename)
+    if (!archive && !volume && !directory && !filename)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResPurge");
         return;
     }
 
-    if ( not GLOBAL_PATH_LIST)
+    if (!GLOBAL_PATH_LIST)
         return;
 
     for (list = GLOBAL_PATH_LIST; list; list = list -> next)
@@ -4564,7 +4563,7 @@ RES_EXPORT void ResPurge(const char * archive, const char * volume, const int * 
 
         file = ResFOpen( "test.txt", "r" );
 
-        if( not file )
+        if( !file )
             return;
 
         fscanf( file, "%s", &name );
@@ -4718,7 +4717,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not name or not mode)
+    if (!name || !mode)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFOpen");
         return(FALSE);
@@ -4734,19 +4733,19 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
        need to return an error if the file being operated on
        is an archive file (eventually, this may be otherwise) */
 
-    if (strchr(mode, 'w') or strchr(mode, 'a'))
+    if (strchr(mode, 'w') || strchr(mode, 'a'))
         write_flag = TRUE;
 
 
     /* find the file */
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry = hash_find_table(name, &table);          /* look through tables in search path order */
 #else
     entry = hash_find(name, GLOBAL_HASH_TABLE);     /* look in the root hash table (flat model) */
 #endif
 
-    if ( not entry and table and not write_flag)
+    if (!entry && table && !write_flag)
     {
         SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
         SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, -1, retval);
@@ -4760,7 +4759,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
            Creating a file for writing
        ------------------------------------- */
 
-    if ( not entry and write_flag)     /* FILE NOT FOUND */
+    if (!entry && write_flag)     /* FILE NOT FOUND */
     {
 
         /* if the user is trying to create a file on the harddrive,
@@ -4768,7 +4767,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
            openning the file for any writing, we can return with
            an error now. */
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
 
         /* see if the destination directory exists */
 
@@ -4788,7 +4787,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
         /* if the directory does not exist, this is an error.  Otherwise,
            we get the ptr to the hash table for the destination directory */
 
-        if ( not entry or not entry -> dir)    /* directory not found in resmgr */
+        if (!entry || !entry -> dir)    /* directory not found in resmgr */
         {
             SAY_ERROR(RES_ERR_UNKNOWN_WRITE_TO, name);
 #if (RES_MULTITHREAD)
@@ -4814,7 +4813,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         table = GLOBAL_HASH_TABLE;
 
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
 
         /* We use a dummy _finddata_t struct to stuff an entry for
@@ -4828,7 +4827,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         entry = hash_add(&data, table);
 
-        if ( not entry)
+        if (!entry)
         {
             SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen - create");
 #if (RES_MULTITHREAD)
@@ -4845,7 +4844,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         for (dir_index = 0; dir_index <= GLOBAL_SEARCH_INDEX; dir_index++)
         {
-            if ( not stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
+            if (!stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
             {
                 entry -> directory = dir_index;
                 entry -> volume = (char)(toupper(dirpath[0]) - 'A');
@@ -4869,7 +4868,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
     /* Make sure the user isn't trying to write to an archive file.
        Someday this may be possible, but not for a while. */
 
-    if (entry and (entry -> archive not_eq -1) and write_flag)
+    if (entry && (entry -> archive != -1) && write_flag)
     {
         SAY_ERROR(RES_ERR_CANT_WRITE_ARCHIVE, "ResFOpen");
 #if (RES_MULTITHREAD)
@@ -4887,7 +4886,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
     stream = _getstream(); /* taken from open.c */
 
-    if ( not stream)
+    if (!stream)
     {
         SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResFOpen");
 #if (RES_MULTITHREAD)
@@ -4908,7 +4907,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
     stream -> _bufsiz  = 0;
     stream -> _tmpfname = NULL;
 
-    if ( not entry or (entry -> archive == -1))
+    if (!entry || (entry -> archive == -1))
     {
 
         /* ----- Loose file ----- */
@@ -4920,7 +4919,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
            is in an archive, the handle is our file handle which
            we use to access the archive and read the file. */
 
-        if ( not entry)  /* assume it's a 'create' acceptable mode */
+        if (!entry)  /* assume it's a 'create' acceptable mode */
             res_fullpath(filename, name, _MAX_PATH);    /* regardless of coercion state */
         else
             sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
@@ -4928,7 +4927,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         /* call the same low-level open file that fopen uses */
 
-        if ( not _openfile(filename, mode, _SH_DENYNO, stream))
+        if (!_openfile(filename, mode, _SH_DENYNO, stream))
         {
 
             if (errno == EACCES)
@@ -4958,7 +4957,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         /* tag the structure as our own flavor (specifically 'loose') */
 
-        stream -> _flag or_eq _IOLOOSE;
+        stream -> _flag |= _IOLOOSE;
 
         UNLOCK_STREAM(stream);
 
@@ -5015,7 +5014,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
 
         /* oops.  big problem. */
 
-        if ( not list)
+        if (!list)
         {
             SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen");   /* archive handle in hash entry is incorrect (or archive detached) */
             UNLOCK_STREAM(stream);
@@ -5042,12 +5041,12 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
         /* Tag the structure as our own flavor (specifically 'archive'), as well
            as use a vc++ uniqueness. */
 
-        stream -> _flag or_eq (_IOARCHIVE bitor _IOSTRG bitor _IOREAD);
+        stream -> _flag |= (_IOARCHIVE | _IOSTRG | _IOREAD);
 
 
         /* ---------------------------------------------------------------------------
 
-                                          UGGGH
+                                          UGGGH!!
 
            Microsoft morons didn't implement any of their stdio streaming functions
            like everyone else in the fucking world, so this is a sordid fix.  The
@@ -5093,7 +5092,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
                 file -> csize       = 0;
                 file -> size        = entry -> size;
                 file -> filename    = MemStrDup(filename);
-                file -> mode        = _O_RDONLY bitor _O_BINARY;
+                file -> mode        = _O_RDONLY | _O_BINARY;
                 file -> device      = entry -> volume;
                 file -> zip         = NULL; /* only used if we need to deflate */
 
@@ -5117,7 +5116,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
                 zip = (COMPRESSED_FILE *)MemMalloc(sizeof(COMPRESSED_FILE) + (entry -> size), "Inflate");
 #endif
 
-                if ( not zip)
+                if (!zip)
                 {
                     SAY_ERROR(RES_ERR_NO_MEMORY, "Inflate");
                     RELEASE_LOCK(archive -> lock);
@@ -5132,7 +5131,7 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
                 file -> csize       = entry -> csize;
                 file -> size        = entry -> size;
                 file -> filename    = MemStrDup(filename);
-                file -> mode        = _O_RDONLY bitor _O_BINARY;
+                file -> mode        = _O_RDONLY | _O_BINARY;
                 file -> device      = entry -> volume;
 
 #ifdef USE_SH_POOLS
@@ -5216,7 +5215,7 @@ int __cdecl RES_FCLOSE(FILE * file)
 #if( RES_DEBUG_PARAMS )
     /* check to see if it's one of our two flavors of FILE ptrs */
 
-    if ( not file or not (file -> _flag, (_IOARCHIVE bitor _IOLOOSE)))
+    if (!file || !(file -> _flag, (_IOARCHIVE | _IOLOOSE)))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFClose");
         return(EOF); /* error */
@@ -5252,7 +5251,7 @@ int __cdecl RES_FCLOSE(FILE * file)
 
         /* since microsoft doesn't use have symmetry with it's _getstream()
            function (eg; _freestream()), we just set the _flag field to 0
-          and assume that's all there is to do (seems like this is true
+           and assume that's all there is to do (seems like this is true
            after looking at close.c and fclose.c */
 
         /* Actually, not quite. If the streaming io functions are used then
@@ -5304,7 +5303,7 @@ int __cdecl RES_FCLOSE(FILE * file)
 
 
 
-#define bigbuf(s)       ((s)->_flag bitand (_IOMYBUF|_IOYOURBUF))
+#define bigbuf(s)       ((s)->_flag & (_IOMYBUF|_IOYOURBUF))
 #define _osfile(i)      ( _pioinfo(i)->osfile
 #define FCRLF           0x04    /* CR-LF across read buffer (in text mode) */
 #define _IOCTRLZ        0x2000
@@ -5327,7 +5326,7 @@ int __cdecl RES_FCLOSE(FILE * file)
 
                 However, for the sake of consistency
                 with the API for streaming functions,
-               and because I think this will work
+                and because I think this will work
                 for 99.9999% of our projects, I did
                 the skinny solution.
 
@@ -5340,7 +5339,7 @@ int __cdecl RES_FCLOSE(FILE * file)
 
                 If ftell doesn't work for you as it is
                 here (first of all, call me because
-                I'll be amazed), define
+                I'll be amazed!), define
                 RES_REPLACE_FTELL to be FALSE and call
                 ResFTell.  This will always work.
 
@@ -5367,7 +5366,7 @@ long __cdecl RES_FTELL(FILE * stream)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not stream)
+    if (!stream)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ftell");
         return(-1);
@@ -5384,13 +5383,13 @@ long __cdecl RES_FTELL(FILE * stream)
 
     LOCK_STREAM(stream);
 
-    if ((stream -> _flag) bitand _IOARCHIVE)
+    if ((stream -> _flag) & _IOARCHIVE)
     {
         handle = stream -> _file;
 
         /* GFG_NOV06        count = (int)( stream -> _ptr - stream -> _base ); *//* should be safe (key word: SHOULD) */
 
-        if (handle < 0 or handle > MAX_FILE_HANDLES or (FILE_HANDLES[ handle ].os_handle == -1 and not (stream -> _flag bitand _IOLOOSE)))
+        if (handle < 0 || handle > MAX_FILE_HANDLES || (FILE_HANDLES[ handle ].os_handle == -1 && !(stream -> _flag & _IOLOOSE)))
         {
             SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ftell");
             UNLOCK_STREAM(stream);
@@ -5401,7 +5400,7 @@ long __cdecl RES_FTELL(FILE * stream)
         }
 
         /***  GFG_NOV06
-               if( stream -> _flag bitand _IOARCHIVE )
+               if( stream -> _flag & _IOARCHIVE )
                    count = FILE_HANDLES[ handle ].current_pos - stream -> _cnt;
                else
                    count += FILE_HANDLES[ handle ].current_pos;
@@ -5436,7 +5435,7 @@ long __cdecl RES_FTELL(FILE * stream)
         return(-1L);
     }
 
-    if ( not bigbuf(stream))           /* _IONBF or no buffering designated */
+    if (!bigbuf(stream))           /* _IONBF or no buffering designated */
     {
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK);
@@ -5448,14 +5447,14 @@ long __cdecl RES_FTELL(FILE * stream)
 
     offset = stream->_ptr - stream->_base;
 
-    if (stream->_flag bitand (_IOWRT bitor _IOREAD))
+    if (stream->_flag & (_IOWRT | _IOREAD))
     {
-        if (stream -> _flag bitand _O_TEXT)
+        if (stream -> _flag & _O_TEXT)
             for (p = stream->_base; p < stream->_ptr; p++)
                 if (*p == '\n')  /* adjust for '\r' */
                     offset++;
     }
-    else if ( not (stream->_flag bitand _IORW))
+    else if (!(stream->_flag & _IORW))
     {
         errno = EINVAL;
         UNLOCK_STREAM(stream);
@@ -5474,7 +5473,7 @@ long __cdecl RES_FTELL(FILE * stream)
         return((long)offset);
     }
 
-    if (stream->_flag bitand _IOREAD)    /* go to preceding sector */
+    if (stream->_flag & _IOREAD)    /* go to preceding sector */
     {
 
         if (stream->_cnt == 0)      /* filepos holds correct location */
@@ -5494,7 +5493,7 @@ long __cdecl RES_FTELL(FILE * stream)
             /* If text mode, adjust for the cr/lf substitution. If
                binary mode, we're outta here. */
 
-            if (stream -> _flag bitand _O_TEXT)
+            if (stream -> _flag & _O_TEXT)
             {
                 /* (1) If we're not at eof, simply copy _bufsiz
                    onto rdcnt to get the # of untranslated
@@ -5522,9 +5521,9 @@ long __cdecl RES_FTELL(FILE * stream)
 
                     /* If last byte was ^Z, the lowio read
                        didn't tell us about it.  Check flag
-                      and bump count, if necessary. */
+                       and bump count, if necessary. */
 
-                    if (stream->_flag bitand _IOCTRLZ)
+                    if (stream->_flag & _IOCTRLZ)
                         ++rdcnt;
 
                     UNLOCK_STREAM(stream);
@@ -5545,9 +5544,9 @@ long __cdecl RES_FTELL(FILE * stream)
 
                     LOCK_STREAM(stream);
 
-                    if ((rdcnt <= _SMALL_BUFSIZ) and 
-                        (stream->_flag bitand _IOMYBUF) and 
- not (stream->_flag bitand _IOSETVBUF))
+                    if ((rdcnt <= _SMALL_BUFSIZ) &&
+                        (stream->_flag & _IOMYBUF) &&
+                        !(stream->_flag & _IOSETVBUF))
                     {
                         /* The translated contents of
                            the buffer is small and we
@@ -5579,7 +5578,7 @@ long __cdecl RES_FTELL(FILE * stream)
 
             filepos -= (long)rdcnt;
 
-        } /* end else stream->_cnt not_eq 0 */
+        } /* end else stream->_cnt != 0 */
     }
     else
         UNLOCK_STREAM(stream);
@@ -5636,19 +5635,19 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
     if (anybuf(stream)) /* already has buffer, use its size */
         bufsize = stream->_bufsiz;
     else
-#if defined (_M_M68K) or defined (_M_MPPC)
+#if defined (_M_M68K) || defined (_M_MPPC)
         bufsize = BUFSIZ;           /* assume will get BUFSIZ buffer */
 
-#else  /* defined (_M_M68K) or defined (_M_MPPC) */
+#else  /* defined (_M_M68K) || defined (_M_MPPC) */
         bufsize = _INTERNAL_BUFSIZ; /* assume will get _INTERNAL_BUFSIZ buffer */
-#endif  /* defined (_M_M68K) or defined (_M_MPPC) */
+#endif  /* defined (_M_M68K) || defined (_M_MPPC) */
 
     /* here is the main loop -- we go through here until we're done */
-    while (count not_eq 0)
+    while (count != 0)
     {
         /* if the buffer exists and has characters, copy them to user
            buffer */
-        if (anybuf(stream) and stream->_cnt not_eq 0)
+        if (anybuf(stream) && stream->_cnt != 0)
         {
             /* how much do we want? */
             nbytes = (count < (unsigned)stream->_cnt) ? count : stream->_cnt;
@@ -5661,14 +5660,14 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
             data += nbytes;
 
             /* GFG_NOV06 */
-            if (stream -> _flag bitand _IOARCHIVE)
+            if (stream -> _flag & _IOARCHIVE)
                 FILE_HANDLES[ stream -> _file ].current_pos += nbytes;
 
 
 
 
         }              //          |<---------- MODIFIED ----------->|
-        else if ((count >= bufsize) and not (stream -> _flag bitand _IOARCHIVE))
+        else if ((count >= bufsize) && !(stream -> _flag & _IOARCHIVE))
         {
             //          |<---------- MODIFIED ----------->|
             /* If we have more than bufsize chars to read, get data
@@ -5687,7 +5686,7 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
             if (nread == 0)
             {
                 /* end of file -- out of here */
-                stream->_flag or_eq _IOEOF;
+                stream->_flag |= _IOEOF;
                 UNLOCK_STREAM(stream);
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK);
@@ -5697,7 +5696,7 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
             else if (nread == (unsigned) - 1)
             {
                 /* error -- out of here */
-                stream->_flag or_eq _IOERR;
+                stream->_flag |= _IOERR;
                 UNLOCK_STREAM(stream);
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK);
@@ -5728,7 +5727,7 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
             --count;
 
             /* GFG_NOV06 */
-            if (stream -> _flag bitand _IOARCHIVE)
+            if (stream -> _flag & _IOARCHIVE)
                 FILE_HANDLES[ stream -> _file ].current_pos++;
 
             /* update buffer size */
@@ -5776,7 +5775,7 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not stream)
+    if (!stream)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "fseek");
         return(-1);
@@ -5789,7 +5788,7 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
 
     LOCK_STREAM(stream);
 
-    if (stream -> _flag bitand _IOARCHIVE)
+    if (stream -> _flag & _IOARCHIVE)
     {
         pos = FILE_HANDLES[ stream -> _file ].current_pos;
 
@@ -5832,10 +5831,10 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
     }
     else
     {
-        if ( not inuse(stream) or
-            ((whence not_eq SEEK_SET) and 
-             (whence not_eq SEEK_CUR) and 
-             (whence not_eq SEEK_END)))
+        if (!inuse(stream) ||
+            ((whence != SEEK_SET) &&
+             (whence != SEEK_CUR) &&
+             (whence != SEEK_END)))
         {
             errno = EINVAL;
             UNLOCK_STREAM(stream);
@@ -5847,7 +5846,7 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
 
         /* Clear EOF flag */
 
-        stream -> _flag and_eq compl _IOEOF;
+        stream -> _flag &= ~_IOEOF;
 
         /* If seeking relative to current location, then convert to
            a seek relative to beginning of file.  This accounts for
@@ -5868,13 +5867,13 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
            read access only, decrease _bufsiz so that the next _filbuf
            won't cost quite so much */
 
-        if (stream->_flag bitand _IORW)
-            stream->_flag and_eq compl (_IOWRT bitor _IOREAD);
+        if (stream->_flag & _IORW)
+            stream->_flag &= ~(_IOWRT | _IOREAD);
         else
         {
-            if ((stream->_flag bitand _IOREAD) and 
-                (stream->_flag bitand _IOMYBUF) and 
- not (stream->_flag bitand _IOSETVBUF))
+            if ((stream->_flag & _IOREAD) &&
+                (stream->_flag & _IOMYBUF) &&
+                !(stream->_flag & _IOSETVBUF))
             {
                 stream->_bufsiz = _SMALL_BUFSIZ;
             }
@@ -5896,7 +5895,7 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
         // file.  Therefore... the following fix was actually scribling
         // memory.
 
-        // if( pos not_eq -1 )
+        // if( pos != -1 )
         //     FILE_HANDLES[ stream -> _file ].current_pos = pos; [KBR SEPT 10 96]
 
         if (pos == -1)
@@ -5908,7 +5907,7 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
         }
 
 
-        if ((stream -> _flag bitand _IOARCHIVE) and (pos not_eq -1))
+        if ((stream -> _flag & _IOARCHIVE) && (pos != -1))
             FILE_HANDLES[ stream -> _file ].current_pos = pos;
     }
 
@@ -5967,42 +5966,42 @@ int __cdecl _filbuf(FILE * stream)
 
 #if( RES_DEBUG_PARAMS )
 
-    if ( not stream)
+    if (!stream)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "_filbuf");
         return(EOF);
     }
 
-    // if( not (stream -> _flag bitand ( _IOARCHIVE bitor _IOLOOSE )) ) {
+    // if( !(stream -> _flag & ( _IOARCHIVE | _IOLOOSE )) ) {
     //    /* You can actually remove this error trap if you want fopen
     //       as well as ResFOpen */
-    //    SAY_ERROR( RES_ERR_UNKNOWN, "Stream not created with ResFOpen" );
-    //    stream -> _flag or_eq _IOREAD;
+    //    SAY_ERROR( RES_ERR_UNKNOWN, "Stream not created with ResFOpen!" );
+    //    stream -> _flag |= _IOREAD;
     //    return( EOF );
     // }
 #endif
 
     //LRKLUDGE
     // If its a string return
-    if ( not inuse(stream) or
-        ((stream->_flag bitand _IOSTRG) and 
- not (stream->_flag bitand (_IOLOOSE bitor _IOARCHIVE))))
+    if (!inuse(stream) ||
+        ((stream->_flag & _IOSTRG) &&
+         !(stream->_flag & (_IOLOOSE | _IOARCHIVE))))
         return(EOF);
 
     /* if stream is opened as WRITE ONLY, set error and return */
-    if (stream -> _flag bitand _IOWRT)
+    if (stream -> _flag & _IOWRT)
     {
-        stream -> _flag or_eq _IOERR;
+        stream -> _flag |= _IOERR;
         return(EOF);
     }
 
     /* force flag */
 
-    stream -> _flag or_eq _IOREAD;
+    stream -> _flag |= _IOREAD;
 
     /* Get a buffer, if necessary. (taken from _filbuf.c) */
 
-    if ( not (stream -> _base))
+    if (!(stream -> _base))
         _getbuf(stream);
     else
         stream -> _ptr = stream -> _base;
@@ -6013,7 +6012,7 @@ int __cdecl _filbuf(FILE * stream)
     SHOULD_I_CALL_WITH(CALLBACK_FILL_STREAM, stream, retval);
 
     if (retval)
-        return(0xff bitand retval);
+        return(0xff & retval);
 
     /* READ OR DECOMPRESS ? */
 
@@ -6025,7 +6024,7 @@ int __cdecl _filbuf(FILE * stream)
        archive, we assume we already have a decomressed buffer from
        which to copy bytes. */
 
-    if ( not (stream -> _flag bitand _IOARCHIVE))
+    if (!(stream -> _flag & _IOARCHIVE))
     {
         compressed_flag = FALSE;
         handle = stream -> _file;
@@ -6044,11 +6043,11 @@ int __cdecl _filbuf(FILE * stream)
         if (file -> os_handle == -1)
         {
             SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "_filbuf internal error");
-            stream -> _flag or_eq _IOERR;
+            stream -> _flag |= _IOERR;
             return(EOF);
         }
 
-        if ( not file -> zip)      /* file is just stored */
+        if (!file -> zip)      /* file is just stored */
         {
             compressed_flag = FALSE;
             handle = file -> os_handle;
@@ -6077,7 +6076,7 @@ int __cdecl _filbuf(FILE * stream)
         }
     }
 
-    if ( not compressed_flag)
+    if (!compressed_flag)
     {
 
         stream -> _cnt = _read(handle, stream -> _base, stream -> _bufsiz);
@@ -6087,9 +6086,9 @@ int __cdecl _filbuf(FILE * stream)
 
             if (stream -> _cnt < 0)       /* error reading */
             {
-                stream -> _flag or_eq _IOERR;
+                stream -> _flag |= _IOERR;
 
-                if (stream -> _flag bitand (_IOARCHIVE bitor _IOLOOSE))  /* make sure this is an fopen() file */
+                if (stream -> _flag & (_IOARCHIVE | _IOLOOSE))  /* make sure this is an fopen() file */
                     ResCheckMedia(file -> device);              /* if not, has media changed?        */
 
                 return(EOF);
@@ -6101,16 +6100,16 @@ int __cdecl _filbuf(FILE * stream)
             ***/
         }
 
-        if ((stream -> _cnt == 0) or (stream -> _cnt == -1))
+        if ((stream -> _cnt == 0) || (stream -> _cnt == -1))
         {
-            stream -> _flag or_eq stream -> _cnt ? _IOERR : _IOEOF;
+            stream -> _flag |= stream -> _cnt ? _IOERR : _IOEOF;
             stream -> _cnt = 0;
             return(EOF);
         }
 
         //  Don't think I need this, but... _osfile_safe(i) expands to (_pioinfo_safe(i)->osfile)
-        //  if( not (stream -> _flag bitand ( _IOWRT bitor _IORW )) and ((_osfile_safe(_fileno(stream)) bitand (FTEXT|FEOFLAG)) == (FTEXT|FEOFLAG)))
-        //      stream -> _flag or_eq _IOCTRLZ;
+        //  if( !(stream -> _flag & ( _IOWRT | _IORW )) && ((_osfile_safe(_fileno(stream)) & (FTEXT|FEOFLAG)) == (FTEXT|FEOFLAG)))
+        //      stream -> _flag |= _IOCTRLZ;
 
         /* Check for small _bufsiz (_SMALL_BUFSIZ). If it is small and
            if it is our buffer, then this must be the first _filbuf after
@@ -6118,16 +6117,16 @@ int __cdecl _filbuf(FILE * stream)
            larger value (_INTERNAL_BUFSIZ) so that the next _filbuf call,
            if one is made, will fill the whole buffer. */
 
-        if ((stream -> _bufsiz == _SMALL_BUFSIZ) and 
-            (stream -> _flag bitand _IOMYBUF) and 
- not (stream -> _flag bitand _IOSETVBUF))
+        if ((stream -> _bufsiz == _SMALL_BUFSIZ) &&
+            (stream -> _flag & _IOMYBUF) &&
+            !(stream -> _flag & _IOSETVBUF))
         {
             stream -> _bufsiz = _INTERNAL_BUFSIZ;
         }
     }
 
     stream -> _cnt--;
-    return(0xff bitand *stream -> _ptr++);
+    return(0xff & *stream -> _ptr++);
 }
 
 
@@ -6173,9 +6172,9 @@ RES_EXPORT int ResDbgLogOpen(char * filename)
 
     /* there is actually a third parameter to open() (MSVC just doesn't admit it)
        octal 666 ensures that stack-crap won't accidently create this file as
-       read-only.  Thank to Roger Fujii for this fix */
+       read-only.  Thank to Roger Fujii for this fix! */
 
-    RES_DEBUG_FILE = _open(filename, _O_RDWR bitor _O_CREAT bitor _O_TEXT, 0x1b6 /* Choked on O666L and O666 */);
+    RES_DEBUG_FILE = _open(filename, _O_RDWR | _O_CREAT | _O_TEXT, 0x1b6 /* Choked on O666L and O666 */);
 
     if (RES_DEBUG_FILE == -1)
     {
@@ -6241,7 +6240,7 @@ RES_EXPORT void ResDbgPrintf(char * msg, ...)
 
     length = vsprintf(buffer, msg, data);
 
-    if (RES_DEBUG_OPEN_LOG and RES_DEBUG_LOGGING)
+    if (RES_DEBUG_OPEN_LOG && RES_DEBUG_LOGGING)
         _write(RES_DEBUG_FILE, buffer, length);
 
 #ifdef RES_DEBUG_STDIO
@@ -6292,7 +6291,7 @@ RES_EXPORT void ResDbgDump(void)
     LIST         * list;
     int            i;
 
-    if (RES_DEBUG_LOGGING and RES_DEBUG_OPEN_LOG)
+    if (RES_DEBUG_LOGGING && RES_DEBUG_OPEN_LOG)
     {
 
         IF_LOG(LOG("\n\n-------------\n"));
@@ -6470,7 +6469,7 @@ void shut_down(void)
     if (FILE_HANDLES)    /* close any open file handles, clear for heck of it */
     {
         for (index = 0; index < MAX_FILE_HANDLES; index++)
-            if (FILE_HANDLES[ index ].os_handle not_eq -1)
+            if (FILE_HANDLES[ index ].os_handle != -1)
                 ResCloseFile(index);
 
 #ifdef USE_SH_POOLS
@@ -6493,7 +6492,7 @@ void shut_down(void)
 
         LIST_DESTROY(ARCHIVE_LIST, NULL);
 
-        //UGGH --> Why won't this compile? LIST_DESTROY( ARCHIVE_LIST, res_detach_ex );
+        //UGGH! --> Why won't this compile? LIST_DESTROY( ARCHIVE_LIST, res_detach_ex );
 
         ARCHIVE_LIST = NULL;
 
@@ -6571,7 +6570,7 @@ int get_dir_index(char * path)
 
     for (dir_index = 0; dir_index < GLOBAL_SEARCH_INDEX; dir_index++)
     {
-        if ( not stricmp(path, GLOBAL_SEARCH_PATH[ dir_index ]))
+        if (!stricmp(path, GLOBAL_SEARCH_PATH[ dir_index ]))
             return(dir_index);
     }
 
@@ -6670,14 +6669,14 @@ void res_detach_ex(ARCHIVE * archive)
 
     int i;
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     HASH_TABLE * table;
 
     for (i = 0; i < archive -> num_entries; i++)
     {
         entry = hash_find_table(&archive -> name[i], &table);
 
-        if ( not entry)
+        if (!entry)
         {
             SAY_ERROR(RES_ERR_FILE_NOT_FOUND, &archive -> name[i]);
             continue;
@@ -6694,7 +6693,7 @@ void res_detach_ex(ARCHIVE * archive)
     {
         entry = hash_find(&archive -> name[i], GLOBAL_HASH_TABLE);
 
-        if ( not entry)
+        if (!entry)
         {
             SAY_ERROR(RES_ERR_FILE_NOT_FOUND, &archive -> name[i]);
             continue;
@@ -6704,7 +6703,7 @@ void res_detach_ex(ARCHIVE * archive)
             hash_delete(entry, GLOBAL_HASH_TABLE);
     }
 
-#endif /* not USE_FLAT_MODEL */
+#endif /* !USE_FLAT_MODEL */
 
     _close(archive -> os_handle);
 
@@ -6738,7 +6737,7 @@ int hash(const char * string, int size)
 
 #if( USE_SEDGEWICK )
 
-    for (i = 0; *string not_eq '\0'; string++)
+    for (i = 0; *string != '\0'; string++)
         i = (HASH_CONST * i + (toupper(*string))) % size;
 
 #   error   DO NOT USE SEDGEWICK - RH
@@ -6756,13 +6755,13 @@ int hash(const char * string, int size)
         string++;
     }
 
-    i = (res bitand 0xffffff) % size;
+    i = (res & 0xffffff) % size;
 #endif
 
     return(i);
 }
 
-#if( USE_AFU and USE_SEDGEWICK )
+#if( USE_AFU && USE_SEDGEWICK )
 #   error   You cannot use both hashing algorithms
 #endif /* USE_BOTH? */
 
@@ -6795,7 +6794,7 @@ HASH_TABLE * hash_create(int size, char * name)
     hsh = (HASH_TABLE *)MemMalloc(sizeof(HASH_TABLE), "Hash wrapper");
 #endif
 
-    if ( not hsh)
+    if (!hsh)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "hash_create");
         return(NULL);
@@ -6807,7 +6806,7 @@ HASH_TABLE * hash_create(int size, char * name)
     hsh -> table = (HASH_ENTRY *)MemMalloc(size * sizeof(HASH_ENTRY), name);
 #endif
 
-    if ( not hsh -> table)
+    if (!hsh -> table)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "hash_create");
         return(NULL);
@@ -6823,7 +6822,7 @@ HASH_TABLE * hash_create(int size, char * name)
     string_space = (char *)MemMalloc(sizeb, "Strings");
 #endif
 
-    if ( not string_space)
+    if (!string_space)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "hash_create");
         return(NULL);
@@ -6870,7 +6869,7 @@ void hash_destroy(HASH_TABLE * hsh)
 
         entry -> attrib = 0;
 
-        if ( not entry -> next)
+        if (!entry -> next)
             continue;
 
         prev = entry -> next;
@@ -6983,7 +6982,7 @@ HASH_ENTRY * hash_add(struct _finddata_t * data, HASH_TABLE * hsh)
         float ratio = ((float)hsh -> table_size / (float)hsh -> num_entries);
 
         if (ratio < HASH_MINIMAL_RATIO)
-            hash_resize(hsh);               /* WARNING: THIS IS STILL NOT THREAD SAFE */
+            hash_resize(hsh);               /* WARNING: THIS IS STILL NOT THREAD SAFE! */
     }
 
     hash_val = hash(data -> name, hsh -> table_size);
@@ -7000,7 +6999,7 @@ HASH_ENTRY * hash_add(struct _finddata_t * data, HASH_TABLE * hsh)
             entry -> name = hash_strcpy(hsh, data -> name);
             entry -> offset = 0;
             entry -> size = data -> size;
-            entry -> attrib = data -> attrib bitor FORCE_BIT; /* FORCE_BIT ensures the field will be non-zero */
+            entry -> attrib = data -> attrib | FORCE_BIT; /* FORCE_BIT ensures the field will be non-zero */
             /* entry -> next stays the same         */
             /* hsh -> num_entries stays the same    */
             return(entry);
@@ -7019,7 +7018,7 @@ HASH_ENTRY * hash_add(struct _finddata_t * data, HASH_TABLE * hsh)
         entry -> next = (HASH_ENTRY *)MemMalloc(sizeof(HASH_ENTRY), "Hash entry");
 #endif
 
-        if ( not entry -> next)                           /* malloc failed                                */
+        if (!entry -> next)                           /* malloc failed                                */
         {
             SAY_ERROR(RES_ERR_NO_MEMORY, "hash_add");
             return(NULL);
@@ -7037,12 +7036,12 @@ HASH_ENTRY * hash_add(struct _finddata_t * data, HASH_TABLE * hsh)
     entry -> name = hash_strcpy(hsh, data -> name);
     entry -> offset = 0;
     entry -> size = data -> size;
-    entry -> attrib = data -> attrib bitor FORCE_BIT; /* FORCE_BIT ensures the field will be non-zero */
+    entry -> attrib = data -> attrib | FORCE_BIT; /* FORCE_BIT ensures the field will be non-zero */
     entry -> next = NULL;
     entry -> archive = -1; // Changed on AUG30th  [KBR]
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     entry -> dir = NULL;
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
     hsh -> num_entries++;
 
@@ -7138,7 +7137,7 @@ int hash_resize(HASH_TABLE * hsh)
     entry = (HASH_ENTRY *)MemMalloc(size * sizeof(HASH_ENTRY), "Hash resized");
 #endif
 
-    if ( not entry)
+    if (!entry)
     {
         SAY_ERROR(RES_ERR_NO_MEMORY, "hash_resize");
         return(FALSE);
@@ -7176,7 +7175,7 @@ int hash_resize(HASH_TABLE * hsh)
 
         src -> attrib = 0;
 
-        if ( not src -> next)
+        if (!src -> next)
             continue;
 
         prev = src -> next;
@@ -7237,21 +7236,21 @@ HASH_ENTRY * hash_find(const char * name, HASH_TABLE * hsh)
     int hash_val;
     HASH_ENTRY * entry;
 
-    if ( not GLOBAL_HASH_TABLE)
+    if (!GLOBAL_HASH_TABLE)
         return(NULL);
 
     hash_val = hash(name, hsh -> table_size);               /* calc the hash value for the given string */
 
-    if ( not hsh -> table[ hash_val ].attrib)                   /* no hash entry found                        */
+    if (!hsh -> table[ hash_val ].attrib)                   /* no hash entry found                        */
         return(NULL);
 
     if (hsh -> table[ hash_val ].next == NULL)
-        if ( not stricmp(hsh -> table[ hash_val ].name, name))
+        if (!stricmp(hsh -> table[ hash_val ].name, name))
             return(&hsh -> table[ hash_val ]);              /* just one entry found in the hash position */
 
     /* found imperfect hash entry                    */
     for (entry = &hsh -> table[ hash_val ]; entry; entry = entry -> next)
-        if ( not stricmp(entry -> name, name))
+        if (!stricmp(entry -> name, name))
             return(entry);                                  /* assumes only one occurrence of a given name    */
 
     return(NULL);                                           /* not found                                    */
@@ -7391,7 +7390,7 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
     {
         entry = &hsh -> table[ index ];
 
-        if ( not entry -> attrib)
+        if (!entry -> attrib)
             continue; /* empty hash entry */
 
         if (entry -> next)
@@ -7401,10 +7400,10 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
 
             while (curr)
             {
-                if ((volume and (curr -> volume == *volume)) or
-                    (archive and (curr -> archive == *archive)) or
-                    (directory and (curr -> directory == *directory)) or
-                    (filename and not strcmp(entry -> name, filename)))
+                if ((volume && (curr -> volume == *volume)) ||
+                    (archive && (curr -> archive == *archive)) ||
+                    (directory && (curr -> directory == *directory)) ||
+                    (filename && !strcmp(entry -> name, filename)))
                 {
                     if (curr -> dir)
                         hash_destroy((HASH_TABLE*)prev -> dir);
@@ -7424,10 +7423,10 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
             }
         }
 
-        if ((volume and (entry -> volume == *volume)) or
-            (archive and (entry -> archive == *archive)) or
-            (directory and (entry -> directory == *directory)) or
-            (filename and not strcmp(entry -> name, filename)))
+        if ((volume && (entry -> volume == *volume)) ||
+            (archive && (entry -> archive == *archive)) ||
+            (directory && (entry -> directory == *directory)) ||
+            (filename && !strcmp(entry -> name, filename)))
         {
             if (entry -> dir)
             {
@@ -7502,11 +7501,11 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
 
     HASH_ENTRY * entry = NULL;
 
-#if( not RES_USE_FLAT_MODEL )
+#if( !RES_USE_FLAT_MODEL )
     LIST       * list = NULL;
-#endif /* not RES_USE_FLAT_MODEL */
+#endif /* !RES_USE_FLAT_MODEL */
 
-    if ( not GLOBAL_HASH_TABLE)
+    if (!GLOBAL_HASH_TABLE)
         return(NULL);
 
 
@@ -7558,7 +7557,7 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
         strcpy(fullpath, name);
         wild_len = strlen(name);
 
-        for (wild_len; (name[wild_len] not_eq ASCII_BACKSLASH) and wild_len; wild_len--) ;
+        for (wild_len; (name[wild_len] != ASCII_BACKSLASH) && wild_len; wild_len--) ;
 
         if (wild_len)
         {
@@ -7566,14 +7565,14 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
             fullpath[wild_len + 1] = 0x00;
         }
         else
-            return(NULL);   /* improper use of wildcard directory */
+            return(NULL);   /* improper use of wildcard directory! */
     }
 
 #endif /* RES_WILDCARD_PATHS */
 
     /* check to see if a directory name is specified */
 
-    if ( not wild_path and (strchr(name, ASCII_BACKSLASH) or (name[0] == ASCII_DOT)))
+    if (!wild_path && (strchr(name, ASCII_BACKSLASH) || (name[0] == ASCII_DOT)))
     {
         /* utterly non-portable */
         /* create a full path name from what could be a partial path */
@@ -7614,7 +7613,7 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
         path_used = TRUE;
     }
 
-#if( not RES_USE_FLAT_MODEL ) /* HIERARCHICAL MODEL */
+#if( !RES_USE_FLAT_MODEL ) /* HIERARCHICAL MODEL */
 
     if (path_used)
     {
@@ -7634,7 +7633,7 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
                 if (wild_len > len)
                     continue;
 
-                if ( not strnicmp(&ht -> name[ len - wild_len - 1 ], fullpath, wild_len))
+                if (!strnicmp(&ht -> name[ len - wild_len - 1 ], fullpath, wild_len))
                 {
                     entry = hash_find(filename, ht);
 
@@ -7701,14 +7700,14 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
         return(NULL);
     }
 
-#else /* not RES_USE_FLAT_MODEL */
+#else /* !RES_USE_FLAT_MODEL */
 
     if (path_used)
         entry = hash_find(filename, GLOBAL_HASH_TABLE);
     else
         entry = hash_find(name, GLOBAL_HASH_TABLE);
 
-    if ( not entry)
+    if (!entry)
     {
         if (table)
             *table = NULL;
@@ -7761,7 +7760,7 @@ int get_handle(void)
     PURPOSE:    Returns the filename and the path for
                 a given full file desription.
 
-    PARAMS:     Full filename (path bitand filename), ptr to
+    PARAMS:     Full filename (path & filename), ptr to
                 a buffer for filename, ptr to a buffer
                 for path.
 
@@ -7792,7 +7791,7 @@ void split_path(const char * in_name, char * out_filename, char * out_dirpath)
 
     for (i = len; i >= 0; i--)
     {
-        if ((fullpath[i] == ASCII_BACKSLASH) or
+        if ((fullpath[i] == ASCII_BACKSLASH) ||
             (fullpath[i] == ASCII_COLON))
         {
             if (out_filename) strcpy(out_filename, &fullpath[i + 1]);
@@ -7814,7 +7813,7 @@ void split_path(const char * in_name, char * out_filename, char * out_dirpath)
 
 /* =======================================================
 
-    FUNCTION:   say_error (local only bitand debug only)
+    FUNCTION:   say_error (local only & debug only)
 
     PURPOSE:    Display dialog box with error message.
 
@@ -7830,13 +7829,13 @@ void _say_error(int error, const char * msg, int line, const char * filename)
 {
     int err_code;
     char buffer[ 255 ];
-    char title[] = "Resource Manager Error";
+    char title[] = "Resource Manager Error!";
     char blank[] = "???";
     int  retval = 1;
 
     IF_LOG(LOG("ERROR (line: %d  file: %s):\n", line, filename));
 
-    if ( not msg)
+    if (!msg)
         msg = blank;
 
     RES_DEBUG_ERRNO = error;    /* set the equiv. of an errno */
@@ -7859,10 +7858,10 @@ void _say_error(int error, const char * msg, int line, const char * filename)
             break;
 
         default:    /* an error that is specific to this file */
-            if ((error > RES_ERR_FIRST_ERROR) and (error < RES_ERR_LAST_ERROR))
+            if ((error > RES_ERR_FIRST_ERROR) && (error < RES_ERR_LAST_ERROR))
             {
                 /* error values run from -5000 up, so error will always be negative,
-                  and so will (RES_ERR_OR_FIRST+1).  We want to normalize this to
+                   and so will (RES_ERR_OR_FIRST+1).  We want to normalize this to
                    0,1,2,3... */
 
                 error = error + (-RES_ERR_FIRST_ERROR - 1);
@@ -7879,10 +7878,10 @@ void _say_error(int error, const char * msg, int line, const char * filename)
 
     SHOULD_I_CALL_WITH(CALLBACK_ERROR, err_code, retval);
 
-    //    MessageBox( NULL, buffer, title, MB_OK bitor MB_ICONEXCLAMATION );
+    //    MessageBox( NULL, buffer, title, MB_OK | MB_ICONEXCLAMATION );
 
-    if ( not retval)
-        MessageBox(RES_GLOBAL_HWND, buffer, title, MB_OK bitor MB_ICONEXCLAMATION);
+    if (!retval)
+        MessageBox(RES_GLOBAL_HWND, buffer, title, MB_OK | MB_ICONEXCLAMATION);
 }
 
 
@@ -7910,19 +7909,19 @@ void dbg_print(HASH_ENTRY * data)
     printf("csize: %5d ", data -> csize);
     printf("method: %1d ", data -> method);
 
-    if (attrib bitand _A_RDONLY)  printf("R");
+    if (attrib & _A_RDONLY)  printf("R");
     else   printf(" ");
 
-    if (attrib bitand _A_HIDDEN)  printf("H");
+    if (attrib & _A_HIDDEN)  printf("H");
     else   printf(" ");
 
-    if (attrib bitand _A_SYSTEM)  printf("S");
+    if (attrib & _A_SYSTEM)  printf("S");
     else   printf(" ");
 
-    if (attrib bitand _A_ARCH)    printf("A");
+    if (attrib & _A_ARCH)    printf("A");
     else   printf(" ");
 
-    if (attrib bitand _A_SUBDIR)  printf("\t\t<DIR>");
+    if (attrib & _A_SUBDIR)  printf("\t\t<DIR>");
     else  printf("\t\t     ");
 
     printf("\n");
@@ -7988,7 +7987,7 @@ void dbg_device(DEVICE_ENTRY * dev)
     FUNCTION:    dbg_analyze_hash
 
     PURPOSE:     Print statistics regarding hash
-                 performance bitand contents
+                 performance & contents
 
     PARAMS:      Ptr to a hash table wrapper structure.
 
@@ -8075,7 +8074,7 @@ void dbg_dir(HASH_TABLE * hsh)
                 IF_LOG(LOG("%-14s ", entry -> name));
                 count++;
 
-                if ( not (count % 4)) IF_LOG(LOG("\n"));
+                if (!(count % 4)) IF_LOG(LOG("\n"));
 
                 entry = entry -> next;
             }
@@ -8085,7 +8084,7 @@ void dbg_dir(HASH_TABLE * hsh)
             IF_LOG(LOG("%-14s ", hsh -> table[i].name));
             count++;
 
-            if ( not (count % 4)) IF_LOG(LOG("\n"));
+            if (!(count % 4)) IF_LOG(LOG("\n"));
         }
     }
 
@@ -8110,7 +8109,7 @@ void dbg_dir(HASH_TABLE * hsh)
     false, and go back to the old way.
 
     NOTE: If you continue using res_fullpath, be advised that current
-    working directories of OTHER VOLUMES will not be maintained
+    working directories of OTHER VOLUMES will not be maintained!
 
     (eg F:readme.txt will parse to the literal string, not
     F:\some_dir\readme.txt).  This will not be fixed (I doubt it will
@@ -8162,7 +8161,7 @@ char * res_fullpath(char * abs_buffer, const char * rel_buffer, int maxlen)
 
     maxlen;
 
-    if ( not GLOBAL_PATH_LIST)
+    if (!GLOBAL_PATH_LIST)
         strcpy(current_path, "c:\\");
     else
         strcpy(current_path, ((HASH_TABLE *)(GLOBAL_PATH_LIST -> node)) -> name);
@@ -8173,13 +8172,13 @@ char * res_fullpath(char * abs_buffer, const char * rel_buffer, int maxlen)
 
     if (colon)
     {
-        if (rel_buffer[1] not_eq ASCII_COLON)
+        if (rel_buffer[1] != ASCII_COLON)
         {
             *abs_buffer = 0x00;
             return(NULL);
         }
 
-        if ( not strstr(rel_buffer, ".."))
+        if (!strstr(rel_buffer, ".."))
             return(strcpy(abs_buffer, rel_buffer));
 
         strncpy(drive, rel_buffer, 2);
@@ -8207,7 +8206,7 @@ char * res_fullpath(char * abs_buffer, const char * rel_buffer, int maxlen)
         return(abs_buffer);
     }
 
-    while ( not memcmp(rel, "..", 3))
+    while (!memcmp(rel, "..", 3))
     {
         chop++;
         rel += 2;
@@ -8218,11 +8217,11 @@ char * res_fullpath(char * abs_buffer, const char * rel_buffer, int maxlen)
 
     len = strlen(current_path) - 2;
 
-    for (i = len; i and chop; i--)
+    for (i = len; i && chop; i--)
         if (current_path[i] == ASCII_BACKSLASH)
             chop--;
 
-    if ( not i)
+    if (!i)
         i = 1;
 
     strncpy(tmp_buffer, current_path, i + 2);

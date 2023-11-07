@@ -205,7 +205,7 @@ public:
     int GetWarp(int commid)
     {
         COMM_FILE_INFO *cp = GetComm(commid);
-        ShiAssert(cp not_eq NULL);
+        ShiAssert(cp != NULL);
 
         if (cp) return cp->warp;
 

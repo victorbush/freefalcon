@@ -7,7 +7,6 @@
  for blit operations.
 \***************************************************************************/
 
-#include <cISO646>
 #include "stdafx.h"
 #include "Rotate.h"
 #include "Device.h"
@@ -46,7 +45,7 @@ ImageBuffer::ImageBuffer()
 
 ImageBuffer::~ImageBuffer()
 {
-    ShiAssert( not IsReady());
+    ShiAssert(!IsReady());
     Cleanup(); // OW
 
 #ifdef _IMAGEBUFFER_PROTECT_SURF_LOCK
@@ -65,7 +64,7 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
     try
     {
-        ShiAssert( not IsReady());
+        ShiAssert(!IsReady());
         ShiAssert(dev);
 
 
@@ -92,10 +91,10 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
                         ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY bitor DDSCAPS_3DDEVICE;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY | DDSCAPS_3DDEVICE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSBack, NULL));
 
                         break;
@@ -106,10 +105,10 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
                         ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY bitor DDSCAPS_3DDEVICE;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY | DDSCAPS_3DDEVICE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSBack, NULL));
 
                         break;
@@ -117,23 +116,23 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case Flip:
                     {
-                        if ( not fullScreen)
+                        if (!fullScreen)
                         {
                             ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
                             CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
-                            ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                            ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                             ddsd.dwWidth  = w;
                             ddsd.dwHeight = h;
-                            ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY bitor DDSCAPS_3DDEVICE;
+                            ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY | DDSCAPS_3DDEVICE;
                             CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSBack, NULL));
                         }
 
                         else
                         {
                             // Create the primary surface.
-                            ddsd.dwFlags or_eq DDSD_BACKBUFFERCOUNT;
-                            ddsd.ddsCaps.dwCaps or_eq DDSCAPS_PRIMARYSURFACE bitor DDSCAPS_3DDEVICE bitor DDSCAPS_COMPLEX bitor DDSCAPS_FLIP;
+                            ddsd.dwFlags |= DDSD_BACKBUFFERCOUNT;
+                            ddsd.ddsCaps.dwCaps |= DDSCAPS_PRIMARYSURFACE | DDSCAPS_3DDEVICE | DDSCAPS_COMPLEX | DDSCAPS_FLIP;
                             ddsd.dwBackBufferCount = 1;
                             CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
@@ -149,7 +148,7 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case None:
                     {
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE bitor DDSCAPS_3DDEVICE;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_3DDEVICE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
                         CheckHR(m_pDDSFront->QueryInterface(IID_IDirectDrawSurface7, (void **) &m_pDDSBack));
@@ -165,7 +164,7 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
                 }
 
                 // auto adjust front rect when creating the primary surface in windowed mode
-                if ( not fullScreen)
+                if (!fullScreen)
                 {
                     GetClientRect(targetWin, &m_rcFront);
                     ClientToScreen(targetWin, (LPPOINT)&m_rcFront);
@@ -200,10 +199,10 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case None:
                     {
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY bitor DDSCAPS_3DDEVICE;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_SYSTEMMEMORY | DDSCAPS_3DDEVICE;
                         CheckHR(pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL));
 
                         CheckHR(m_pDDSFront->QueryInterface(IID_IDirectDrawSurface7, (void **) &m_pDDSBack));
@@ -245,17 +244,17 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case None:
                     {
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY bitor DDSCAPS_3DDEVICE;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY | DDSCAPS_3DDEVICE;
                         HRESULT hr = pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL);
 
                         if (FAILED(hr))
                         {
                             if (hr == DDERR_OUTOFVIDEOMEMORY)
                             {
-                                MonoPrint("ImageBuffer::Setup - EVICTING MANAGED TEXTURES \n");
+                                MonoPrint("ImageBuffer::Setup - EVICTING MANAGED TEXTURES !!\n");
 
                                 // if we are out of video memory, evict all managed textures and retry
                                 CheckHR(dev->GetDefaultRC()->m_pD3D->EvictManagedTextures());
@@ -305,15 +304,15 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case None:
                     {
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
-                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY bitor DDSCAPS_LOCALVIDMEM;
+                        ddsd.ddsCaps.dwCaps = DDSCAPS_VIDEOMEMORY | DDSCAPS_LOCALVIDMEM;
 
                         if (front == LocalVideoMem3D)
-                            ddsd.ddsCaps.dwCaps or_eq DDSCAPS_3DDEVICE;
+                            ddsd.ddsCaps.dwCaps |= DDSCAPS_3DDEVICE;
                         else
-                            ddsd.ddsCaps.dwCaps or_eq DDSCAPS_OFFSCREENPLAIN;
+                            ddsd.ddsCaps.dwCaps |= DDSCAPS_OFFSCREENPLAIN;
 
                         HRESULT hr = pDD->CreateSurface(&ddsd, &m_pDDSFront, NULL);
 
@@ -321,7 +320,7 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
                         {
                             if (hr == DDERR_OUTOFVIDEOMEMORY)
                             {
-                                MonoPrint("ImageBuffer::Setup - EVICTING MANAGED TEXTURES \n");
+                                MonoPrint("ImageBuffer::Setup - EVICTING MANAGED TEXTURES !!\n");
 
                                 // if we are out of video memory, evict all managed textures and retry
                                 CheckHR(dev->GetDefaultRC()->m_pD3D->EvictManagedTextures());
@@ -406,7 +405,7 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 
                     case None:
                     {
-                        ddsd.dwFlags or_eq DDSD_WIDTH bitor DDSD_HEIGHT;
+                        ddsd.dwFlags |= DDSD_WIDTH | DDSD_HEIGHT;
                         ddsd.dwWidth  = w;
                         ddsd.dwHeight = h;
                         ddsd.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN;
@@ -434,9 +433,9 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
             }
         }
 
-        if (clip and m_pDDSFront)
+        if (clip && m_pDDSFront)
         {
-            ShiAssert( not fullScreen);
+            ShiAssert(!fullScreen);
             IDirectDrawClipperPtr pDDCLP;
             CheckHR(pDD->CreateClipper(0, &pDDCLP, NULL));
             CheckHR(pDDCLP->SetHWnd(0, targetWin));
@@ -453,17 +452,17 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
          if(back == None)
         // MonoPrint("ImageBuffer::Setup - %dx%d front (%s) created in %s memory\n",
         // m_ddsdFront.dwWidth, m_ddsdFront.dwHeight, arrType2String[front],
-        // m_ddsdFront.ddsCaps.dwCaps bitand DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
-        // (m_ddsdFront.ddsCaps.dwCaps bitand DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"));
+        // m_ddsdFront.ddsCaps.dwCaps & DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
+        // (m_ddsdFront.ddsCaps.dwCaps & DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"));
          else
         /* MonoPrint("ImageBuffer::Setup - %dx%d front (%s) created in %s memory, back (%s) created in %s memory\n",
          m_ddsdFront.dwWidth, m_ddsdFront.dwHeight,
          arrType2String[front],
-         m_ddsdFront.ddsCaps.dwCaps bitand DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
-         (m_ddsdFront.ddsCaps.dwCaps bitand DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"),
+         m_ddsdFront.ddsCaps.dwCaps & DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
+         (m_ddsdFront.ddsCaps.dwCaps & DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"),
           arrType2String[back],
-         m_ddsdBack.ddsCaps.dwCaps bitand DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
-         (m_ddsdBack.ddsCaps.dwCaps bitand DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"));
+         m_ddsdBack.ddsCaps.dwCaps & DDSCAPS_SYSTEMMEMORY  ? "SYSTEM" :
+         (m_ddsdBack.ddsCaps.dwCaps & DDSCAPS_LOCALVIDMEM ? "VIDEO" : "AGP"));
          #endif
         */
         // Set blt target surface depending on whether we will page flip or not
@@ -490,10 +489,10 @@ BOOL ImageBuffer::Setup(DisplayDevice *dev, int w, int h, MPRSurfaceType front, 
 // Alternative setup method
 void ImageBuffer::AttachSurfaces(DisplayDevice *pDev, IDirectDrawSurface7 *pDDSFront, IDirectDrawSurface7 *pDDSBack)
 {
-    if ( not pDev or not pDDSFront)
+    if (!pDev || !pDDSFront)
         return;
 
-    if ( not pDDSBack)
+    if (!pDDSBack)
         pDDSBack = pDDSFront;
 
     try
@@ -563,13 +562,13 @@ void ImageBuffer::ComputeColorShifts(void)
     redShift = 8;
     ShiAssert(mask);
 
-    while ( not (mask bitand 1))
+    while (!(mask & 1))
     {
         mask >>= 1;
         redShift--;
     }
 
-    while (mask bitand 1)
+    while (mask & 1)
     {
         mask >>= 1;
         redShift--;
@@ -580,13 +579,13 @@ void ImageBuffer::ComputeColorShifts(void)
     greenShift = 16;
     ShiAssert(mask);
 
-    while ( not (mask bitand 1))
+    while (!(mask & 1))
     {
         mask >>= 1;
         greenShift--;
     }
 
-    while (mask bitand 1)
+    while (mask & 1)
     {
         mask >>= 1;
         greenShift--;
@@ -597,13 +596,13 @@ void ImageBuffer::ComputeColorShifts(void)
     ShiAssert(mask);
     blueShift = 24;
 
-    while ( not (mask bitand 1))
+    while (!(mask & 1))
     {
         mask >>= 1;
         blueShift--;
     }
 
-    while (mask bitand 1)
+    while (mask & 1)
     {
         mask >>= 1;
         blueShift--;
@@ -623,7 +622,7 @@ void ImageBuffer::UpdateFrontWindowRect(RECT *rect)
     // ShiAssert( frontType == Primary ); // This is only useful for the primary surface
     if (rect) m_rcFront = *rect;
 
-    m_bFrontRectValid = rect and (m_rcFront.left or m_rcFront.right);
+    m_bFrontRectValid = rect && (m_rcFront.left || m_rcFront.right);
 }
 
 // Fix in memory and return and pointer to the memory associated with our back buffer
@@ -645,10 +644,10 @@ void *ImageBuffer::Lock(bool bLockMutexOnly, bool bWriteOnly)
     ZeroMemory(&ddsd, sizeof(ddsd));
     ddsd.dwSize = sizeof(ddsd);
 
-    // DWORD dwFlags = DDLOCK_NOSYSLOCK bitor DDLOCK_WAIT bitor DDLOCK_SURFACEMEMORYPTR;
-    DWORD dwFlags = DDLOCK_WAIT bitor DDLOCK_SURFACEMEMORYPTR;
+    // DWORD dwFlags = DDLOCK_NOSYSLOCK | DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR;
+    DWORD dwFlags = DDLOCK_WAIT | DDLOCK_SURFACEMEMORYPTR;
 
-    if (bWriteOnly) dwFlags or_eq DDLOCK_WRITEONLY;
+    if (bWriteOnly) dwFlags |= DDLOCK_WRITEONLY;
 
     int nRetries = 1;
 
@@ -660,7 +659,7 @@ Retry:
     {
         MonoPrint("ImageBuffer::Lock - Lock failed with 0x%X\n", hr);
 
-        if (hr == DDERR_SURFACELOST and nRetries)
+        if (hr == DDERR_SURFACELOST && nRetries)
         {
             RestoreAll();
             nRetries--;
@@ -692,7 +691,7 @@ void ImageBuffer::Unlock()
 // composed into another buffer.
 void ImageBuffer::SetChromaKey(UInt32 colorKey)
 {
-    if ( not m_pDDSFront) // JB 010404 CTD
+    if (!m_pDDSFront) // JB 010404 CTD
         return;
 
     ShiAssert(IsReady());
@@ -701,21 +700,21 @@ void ImageBuffer::SetChromaKey(UInt32 colorKey)
 
     // RED
     if (redShift >= 0)
-        m_dwColorKey = (colorKey >>  redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        m_dwColorKey = (colorKey >>  redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
     else
-        m_dwColorKey = (colorKey << -redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        m_dwColorKey = (colorKey << -redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
 
     // GREEN
     if (greenShift >= 0)
-        m_dwColorKey or_eq (colorKey >>  greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        m_dwColorKey |= (colorKey >>  greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
     else
-        m_dwColorKey or_eq (colorKey << -greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        m_dwColorKey |= (colorKey << -greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
 
     // BLUE
     if (blueShift >= 0)
-        m_dwColorKey or_eq (colorKey >>  blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        m_dwColorKey |= (colorKey >>  blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
     else
-        m_dwColorKey or_eq (colorKey << -blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        m_dwColorKey |= (colorKey << -blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
 
     DDCOLORKEY key = { m_dwColorKey, m_dwColorKey};
 
@@ -735,31 +734,31 @@ WORD ImageBuffer::Pixel32toPixel16(UInt32 ABGR)
     // RED
     if (redShift >= 0)
     {
-        color = (ABGR >>  redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        color = (ABGR >>  redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
     }
     else
     {
-        color = (ABGR << -redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        color = (ABGR << -redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
     }
 
     // GREEN
     if (greenShift >= 0)
     {
-        color or_eq (ABGR >>  greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        color |= (ABGR >>  greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
     }
     else
     {
-        color or_eq (ABGR << -greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        color |= (ABGR << -greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
     }
 
     // BLUE
     if (blueShift >= 0)
     {
-        color or_eq (ABGR >>  blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        color |= (ABGR >>  blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
     }
     else
     {
-        color or_eq (ABGR << -blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        color |= (ABGR << -blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
     }
 
     return (WORD)color;
@@ -775,31 +774,31 @@ DWORD ImageBuffer::Pixel32toPixel32(UInt32 ABGR)
     // RED
     if (redShift >= 0)
     {
-        color = (ABGR >>  redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        color = (ABGR >>  redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
     }
     else
     {
-        color = (ABGR << -redShift) bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask;
+        color = (ABGR << -redShift) & m_ddsdFront.ddpfPixelFormat.dwRBitMask;
     }
 
     // GREEN
     if (greenShift >= 0)
     {
-        color or_eq (ABGR >>  greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        color |= (ABGR >>  greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
     }
     else
     {
-        color or_eq (ABGR << -greenShift) bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask;
+        color |= (ABGR << -greenShift) & m_ddsdFront.ddpfPixelFormat.dwGBitMask;
     }
 
     // BLUE
     if (blueShift >= 0)
     {
-        color or_eq (ABGR >>  blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        color |= (ABGR >>  blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
     }
     else
     {
-        color or_eq (ABGR << -blueShift) bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask;
+        color |= (ABGR << -blueShift) & m_ddsdFront.ddpfPixelFormat.dwBBitMask;
     }
 
     return color;
@@ -817,31 +816,31 @@ UInt32 ImageBuffer::Pixel16toPixel32(WORD pixel)
     // RED
     if (redShift >= 0)
     {
-        color = (pixel bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask) <<  redShift;
+        color = (pixel & m_ddsdFront.ddpfPixelFormat.dwRBitMask) <<  redShift;
     }
     else
     {
-        color = (pixel bitand m_ddsdFront.ddpfPixelFormat.dwRBitMask) >> -redShift;
+        color = (pixel & m_ddsdFront.ddpfPixelFormat.dwRBitMask) >> -redShift;
     }
 
     // GREEN
     if (greenShift >= 0)
     {
-        color or_eq (pixel bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask) <<  greenShift;
+        color |= (pixel & m_ddsdFront.ddpfPixelFormat.dwGBitMask) <<  greenShift;
     }
     else
     {
-        color or_eq (pixel bitand m_ddsdFront.ddpfPixelFormat.dwGBitMask) >> -greenShift;
+        color |= (pixel & m_ddsdFront.ddpfPixelFormat.dwGBitMask) >> -greenShift;
     }
 
     // BLUE
     if (blueShift >= 0)
     {
-        color or_eq (pixel bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask) <<  blueShift;
+        color |= (pixel & m_ddsdFront.ddpfPixelFormat.dwBBitMask) <<  blueShift;
     }
     else
     {
-        color or_eq (pixel bitand m_ddsdFront.ddpfPixelFormat.dwBBitMask) >> -blueShift;
+        color |= (pixel & m_ddsdFront.ddpfPixelFormat.dwBBitMask) >> -blueShift;
     }
 
     return color;
@@ -857,26 +856,26 @@ void ImageBuffer::Compose(ImageBuffer *srcBuffer, RECT *dstRect, RECT *srcRect)
     ShiAssert(FALSE == F4IsBadReadPtr(srcBuffer, sizeof * srcBuffer));
 
 
-    bool bStretch = ((srcRect->right - srcRect->left) not_eq (dstRect->right - dstRect->left)) or ((srcRect->bottom - srcRect->top) not_eq (dstRect->bottom - dstRect->top));
+    bool bStretch = ((srcRect->right - srcRect->left) != (dstRect->right - dstRect->left)) || ((srcRect->bottom - srcRect->top) != (dstRect->bottom - dstRect->top));
     HRESULT hr;
 
-    if ( not m_bFrontRectValid and not bStretch)
+    if (!m_bFrontRectValid && !bStretch)
     {
-        if (srcRect and m_pBltTarget not_eq m_pDDSBack)
+        if (srcRect && m_pBltTarget != m_pDDSBack)
         {
             RECT rcSrc = *srcRect;
             rcSrc.left += m_rcFront.left;
             rcSrc.top += m_rcFront.top;
 
-            hr = m_pBltTarget->BltFast(rcSrc.left, rcSrc.top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT bitor DDBLTFAST_NOCOLORKEY);
+            hr = m_pBltTarget->BltFast(rcSrc.left, rcSrc.top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
         }
 
-        else hr = m_pBltTarget->BltFast(srcRect->left, srcRect->top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT bitor DDBLTFAST_NOCOLORKEY);
+        else hr = m_pBltTarget->BltFast(srcRect->left, srcRect->top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
     }
 
     else
     {
-        if (m_bFrontRectValid and srcRect and m_pBltTarget not_eq m_pDDSBack)
+        if (m_bFrontRectValid && srcRect && m_pBltTarget != m_pDDSBack)
         {
             RECT rcSrc = *srcRect;
             rcSrc.left += m_rcFront.left;
@@ -890,7 +889,7 @@ void ImageBuffer::Compose(ImageBuffer *srcBuffer, RECT *dstRect, RECT *srcRect)
         else hr = m_pBltTarget->Blt(srcRect, srcBuffer->m_pDDSBack, dstRect, DDBLT_WAIT, NULL);
     }
 
-    if ( not SUCCEEDED(hr))
+    if (!SUCCEEDED(hr))
         MonoPrint("ImageBuffer::Compose - Error 0x%X\n", hr);
 }
 
@@ -904,26 +903,26 @@ void ImageBuffer::ComposeTransparent(ImageBuffer *srcBuffer, RECT *dstRect, RECT
     ShiAssert(FALSE == F4IsBadReadPtr(dstRect, sizeof * dstRect));
     ShiAssert(FALSE == F4IsBadReadPtr(srcBuffer, sizeof * srcBuffer));
 
-    bool bStretch = ((srcRect->right - srcRect->left) not_eq (dstRect->right - dstRect->left)) or ((srcRect->bottom - srcRect->top) not_eq (dstRect->bottom - dstRect->top));
+    bool bStretch = ((srcRect->right - srcRect->left) != (dstRect->right - dstRect->left)) || ((srcRect->bottom - srcRect->top) != (dstRect->bottom - dstRect->top));
     HRESULT hr;
 
-    if ( not m_bFrontRectValid and not bStretch)
+    if (!m_bFrontRectValid && !bStretch)
     {
-        if (srcRect and m_pBltTarget not_eq m_pDDSBack)
+        if (srcRect && m_pBltTarget != m_pDDSBack)
         {
             RECT rcSrc = *srcRect;
             rcSrc.left += m_rcFront.left;
             rcSrc.top += m_rcFront.top;
 
-            hr = m_pBltTarget->BltFast(rcSrc.left, rcSrc.top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT bitor DDBLTFAST_SRCCOLORKEY);
+            hr = m_pBltTarget->BltFast(rcSrc.left, rcSrc.top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
         }
 
-        else hr = m_pBltTarget->BltFast(srcRect->left, srcRect->top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT bitor DDBLTFAST_SRCCOLORKEY);
+        else hr = m_pBltTarget->BltFast(srcRect->left, srcRect->top, srcBuffer->m_pDDSBack, dstRect, DDBLTFAST_WAIT | DDBLTFAST_SRCCOLORKEY);
     }
 
     else
     {
-        if (m_bFrontRectValid and srcRect and m_pBltTarget not_eq m_pDDSBack)
+        if (m_bFrontRectValid && srcRect && m_pBltTarget != m_pDDSBack)
         {
             RECT rcSrc = *srcRect;
             rcSrc.left += m_rcFront.left;
@@ -931,15 +930,15 @@ void ImageBuffer::ComposeTransparent(ImageBuffer *srcBuffer, RECT *dstRect, RECT
             rcSrc.top += m_rcFront.top;
             rcSrc.bottom += m_rcFront.top;
 
-            hr = m_pBltTarget->Blt(&rcSrc, srcBuffer->m_pDDSBack, dstRect, DDBLT_WAIT bitor DDBLT_KEYSRC, NULL);
+            hr = m_pBltTarget->Blt(&rcSrc, srcBuffer->m_pDDSBack, dstRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
         }
 
-        else hr = m_pBltTarget->Blt(srcRect, srcBuffer->m_pDDSBack, dstRect, DDBLT_WAIT bitor DDBLT_KEYSRC, NULL);
+        else hr = m_pBltTarget->Blt(srcRect, srcBuffer->m_pDDSBack, dstRect, DDBLT_WAIT | DDBLT_KEYSRC, NULL);
     }
 
     ShiAssert(SUCCEEDED(hr));
 
-    if ( not SUCCEEDED(hr))
+    if (!SUCCEEDED(hr))
         MonoPrint("ImageBuffer::ComposeTransparent - Error 0x%X\n", hr);
 }
 
@@ -1038,7 +1037,7 @@ void ImageBuffer::SwapBuffers(bool bDontFlip)
         {
             HRESULT hres = m_pDDSBack->GetFlipStatus(DDGFS_CANFLIP);
 
-            if (hres not_eq DDERR_WASSTILLDRAWING)
+            if (hres != DDERR_WASSTILLDRAWING)
             {
                 break;
             }
@@ -1050,7 +1049,7 @@ void ImageBuffer::SwapBuffers(bool bDontFlip)
 
     //STOP_PROFILE("SWAP WAIT : ");
     // OW
-    if ( not bDontFlip and (m_ddsdFront.ddsCaps.dwCaps bitand DDSCAPS_FLIP))
+    if (!bDontFlip && (m_ddsdFront.ddsCaps.dwCaps & DDSCAPS_FLIP))
     {
         hr = m_pDDSFront->Flip(NULL, DDFLIP_WAIT);
         // hr = m_pDDSFront->Flip(NULL, DDFLIP_NOVSYNC);
@@ -1061,14 +1060,14 @@ void ImageBuffer::SwapBuffers(bool bDontFlip)
 
     RECT backRect = { 0, 0, m_ddsdBack.dwWidth, m_ddsdBack.dwHeight };
 
-    if ( not m_bFrontRectValid) // assumes no clipper is attached (fullscreen) 
-        hr = m_pDDSFront->BltFast(m_rcFront.left, m_rcFront.top, m_pDDSBack, &backRect, DDBLTFAST_WAIT bitor DDBLTFAST_NOCOLORKEY);
+    if (!m_bFrontRectValid) // assumes no clipper is attached (fullscreen) !!
+        hr = m_pDDSFront->BltFast(m_rcFront.left, m_rcFront.top, m_pDDSBack, &backRect, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
     else
         hr = m_pDDSFront->Blt(&m_rcFront, m_pDDSBack, &backRect, DDBLT_WAIT, NULL);
 
     ShiAssert(SUCCEEDED(hr));
 
-    if ( not SUCCEEDED(hr))
+    if (!SUCCEEDED(hr))
         MonoPrint("ImageBuffer::SwapBuffers - Error 0x%X\n", hr);
 }
 
@@ -1119,7 +1118,7 @@ void ImageBuffer::BackBufferToRAW(char *filename)
     bih.biPlanes = 1;
     bih.biBitCount = 24;
     bih.biCompression = BI_RGB;
-    bih.biSizeImage = ((((bih.biWidth * bih.biBitCount) + 31) bitand compl 31) >> 3) * bih.biHeight;
+    bih.biSizeImage = ((((bih.biWidth * bih.biBitCount) + 31) & ~31) >> 3) * bih.biHeight;
 
     bfh.bfType = 0x4d42;
     bfh.bfReserved1 = 0;
@@ -1128,7 +1127,7 @@ void ImageBuffer::BackBufferToRAW(char *filename)
     bfh.bfSize = bfh.bfOffBits + bih.biSizeImage;
 
     // Write the header
-    if (( not WriteFile(fileID, &bfh, sizeof(BITMAPFILEHEADER), &dwBytes, NULL)) or (dwBytes not_eq sizeof(BITMAPFILEHEADER)))
+    if ((!WriteFile(fileID, &bfh, sizeof(BITMAPFILEHEADER), &dwBytes, NULL)) || (dwBytes != sizeof(BITMAPFILEHEADER)))
     {
         char string[256];
         PutErrorString(string);
@@ -1137,7 +1136,7 @@ void ImageBuffer::BackBufferToRAW(char *filename)
     }
 
     // Write the bitmap info header
-    if (( not WriteFile(fileID, &bih, sizeof(BITMAPINFOHEADER), &dwBytes, NULL)) or (dwBytes not_eq sizeof(BITMAPINFOHEADER)))
+    if ((!WriteFile(fileID, &bih, sizeof(BITMAPINFOHEADER), &dwBytes, NULL)) || (dwBytes != sizeof(BITMAPINFOHEADER)))
     {
         char string[256];
         PutErrorString(string);
@@ -1173,18 +1172,18 @@ void ImageBuffer::BackBufferToRAW(char *filename)
                     pixel = (WORD*)Pixel(imagePtr, r, c);
                     color = Pixel16toPixel32(*pixel);
 
-                    *p = (BYTE)((color bitand 0x00FF0000) >> 16);
+                    *p = (BYTE)((color & 0x00FF0000) >> 16);
                     p++; // Blue
-                    *p = (BYTE)((color bitand 0x0000FF00) >>  8);
+                    *p = (BYTE)((color & 0x0000FF00) >>  8);
                     p++; // Green
-                    *p = (BYTE)((color bitand 0x000000FF) >>  0);
+                    *p = (BYTE)((color & 0x000000FF) >>  0);
                     p++; // Red
                 }
 
                 // Write the scanline to disk
-                if ( not WriteFile(fileID, buffer, bufferSize, &bytes, NULL))  bytes = 0xFFFFFFFF;
+                if (!WriteFile(fileID, buffer, bufferSize, &bytes, NULL))  bytes = 0xFFFFFFFF;
 
-                if (bytes not_eq bufferSize)
+                if (bytes != bufferSize)
                 {
                     char string[256];
                     PutErrorString(string);
@@ -1214,18 +1213,18 @@ void ImageBuffer::BackBufferToRAW(char *filename)
                     pixel = (DWORD*)Pixel(imagePtr, r, c);
                     color = Pixel32toPixel32(*pixel);
 
-                    *p = (BYTE)((color bitand 0x00FF0000) >> 16);
+                    *p = (BYTE)((color & 0x00FF0000) >> 16);
                     p++; // Blue
-                    *p = (BYTE)((color bitand 0x0000FF00) >>  8);
+                    *p = (BYTE)((color & 0x0000FF00) >>  8);
                     p++; // Green
-                    *p = (BYTE)((color bitand 0x000000FF) >>  0);
+                    *p = (BYTE)((color & 0x000000FF) >>  0);
                     p++; // Red
                 }
 
                 // Write the scanline to disk
-                if ( not WriteFile(fileID, buffer, bufferSize, &bytes, NULL))  bytes = 0xFFFFFFFF;
+                if (!WriteFile(fileID, buffer, bufferSize, &bytes, NULL))  bytes = 0xFFFFFFFF;
 
-                if (bytes not_eq bufferSize)
+                if (bytes != bufferSize)
                 {
                     char string[256];
                     PutErrorString(string);
@@ -1262,7 +1261,7 @@ void ImageBuffer::RestoreAll()
         {
             MonoPrint("ImageBuffer::RestoreAll - Front restored\n");
 
-            if (m_pDDSFront not_eq m_pDDSBack)
+            if (m_pDDSFront != m_pDDSBack)
             {
                 hr = m_pDDSBack->IsLost();
 

@@ -1,4 +1,3 @@
-#include <cISO646>
 #include "Star.h"
 #define EPSILON 1e-6f
 #define elonge      278.833540f     /* Ecliptic longitude of the Sun at epoch 1980.0 */
@@ -217,9 +216,9 @@ int CStar::LeapYear(int year)
 {
     int leap = 0;
 
-    if ( not (year bitand 3))
+    if (!(year & 3))
     {
-        if ( not (year % 400)) leap = 1;
+        if (!(year % 400)) leap = 1;
         else if (year % 100) leap = 1;
     }
 
@@ -249,7 +248,7 @@ float CStar::ConvertHour(int hour, int min, float sec)
 
 void CStar::CalculateDate(int *day, int *month, int *year, int extraday)
 {
-    if ( not extraday) return;
+    if (!extraday) return;
 
     int d = *day + extraday;
     int m = *month;
@@ -330,30 +329,30 @@ int CStar::Setup(char *starfile, float maxmagnitude)
         fscanf(in, "%s", buffer);
         strupr(buffer);
 
-        if ( not strcmp(buffer, "ZZZZ")) break;
-        else if ( not strcmp(buffer, "TOTALCONSTELLATION"))
+        if (!strcmp(buffer, "ZZZZ")) break;
+        else if (!strcmp(buffer, "TOTALCONSTELLATION"))
         {
             fscanf(in, "%d", &totalcons);
         }
-        else if ( not strcmp(buffer, "TOTALSTAR"))
+        else if (!strcmp(buffer, "TOTALSTAR"))
         {
             fscanf(in, "%d", &totalstar);
         }
-        else if ( not strcmp(buffer, "MINMAG"))
+        else if (!strcmp(buffer, "MINMAG"))
         {
             fscanf(in, "%f", &minmag);
         }
-        else if ( not strcmp(buffer, "MAXMAG"))
+        else if (!strcmp(buffer, "MAXMAG"))
         {
             fscanf(in, "%f", &maxmag);
 
             if (maxmag > maxmagnitude) maxmag = maxmagnitude;
         }
-        else if ( not strcmp(buffer, "MININTENSITY"))
+        else if (!strcmp(buffer, "MININTENSITY"))
         {
             fscanf(in, "%f", &minint);
         }
-        else if ( not strcmp(buffer, "MAXINTENSITY"))
+        else if (!strcmp(buffer, "MAXINTENSITY"))
         {
             fscanf(in, "%f", &maxint);
         }
@@ -361,13 +360,13 @@ int CStar::Setup(char *starfile, float maxmagnitude)
 
     StarData *data = NEW(StarData);
 
-    if ( not data)
+    if (!data)
     {
         fclose(in);
         return 2;
     }
 
-    if ( not totalstar)
+    if (!totalstar)
     {
         fclose(in);
         return 2;
@@ -375,7 +374,7 @@ int CStar::Setup(char *starfile, float maxmagnitude)
 
     StarRecord *star = NEWARRAY(StarRecord, totalstar);
 
-    if ( not star)
+    if (!star)
     {
         FREE(data);
         fclose(in);
@@ -427,7 +426,7 @@ int CStar::Setup(char *starfile, float maxmagnitude)
 
     star = NEWARRAY(StarRecord, data -> totalstar);
 
-    if ( not star)
+    if (!star)
     {
         FREE(data -> star);
         FREE(data);
@@ -440,7 +439,7 @@ int CStar::Setup(char *starfile, float maxmagnitude)
 
     StarCoord *coord = NEWARRAY(StarCoord, data -> totalstar);
 
-    if ( not coord)
+    if (!coord)
     {
         FREE(data -> star);
         FREE(data);
@@ -461,7 +460,7 @@ int CStar::Setup(char *starfile, float maxmagnitude)
             if (data -> star[j].color >  data -> star[max].color) max = j;
         }
 
-        if (i not_eq max)
+        if (i != max)
         {
             StarRecord tempstar = data -> star[max];
             data -> star[max] = data -> star[i];
@@ -508,11 +507,11 @@ void CStar::UpdateStar()
 
         if (CalculateStarCoord(star -> ra, star -> dec, coord))
         {
-            if (InsideRange(coord -> az, SunAz) and InsideRange(coord -> alt, SunAlt))
-                coord -> flag or_eq STAR_BEHIND_SUN;
+            if (InsideRange(coord -> az, SunAz) && InsideRange(coord -> alt, SunAlt))
+                coord -> flag |= STAR_BEHIND_SUN;
 
-            if (InsideRange(coord -> az, MoonAz) and InsideRange(coord -> alt, MoonAlt))
-                coord -> flag or_eq STAR_BEHIND_SUN;
+            if (InsideRange(coord -> az, MoonAz) && InsideRange(coord -> alt, MoonAlt))
+                coord -> flag |= STAR_BEHIND_SUN;
 
             if (coord -> alt < HorizonRange)
             {

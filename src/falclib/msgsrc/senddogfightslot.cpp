@@ -39,18 +39,18 @@ int UI_SendDogfightSlot::Process(uchar autodisp)
  if (autodisp)
  return 0;
 
- if(gCommsMgr not_eq NULL)
+ if(gCommsMgr != NULL)
  {
  VuGameEntity *game = (VuGameEntity*) vuDatabase->Find(dataBlock.game);
 
- if (game not_eq FalconLocalGame)
+ if (game != FalconLocalGame)
  return FALSE;
 
  gCommsMgr->LookAtGame(game);
 
  if(dataBlock.status)
  {
- if(FalconLocalGame not_eq game)
+ if(FalconLocalGame != game)
  gCommsMgr->JoinGame(dataBlock.game);
 
  FalconLocalSession->SetSide(dataBlock.teamid);

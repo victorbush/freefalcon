@@ -7,7 +7,6 @@
 // Copyright (c) 1997-2001 Microsoft Corporation. All rights reserved
 //-----------------------------------------------------------------------------
 //#define STRICT
-#include <cISO646>
 #include <windows.h>
 #include <mmsystem.h>
 #include <tchar.h>
@@ -35,14 +34,14 @@ const TCHAR* DXUtil_GetDXSDKMediaPath()
                                 _T("Software\\Microsoft\\DirectX SDK"),
                                 0, KEY_READ, &hKey);
 
-    if (ERROR_SUCCESS not_eq lResult)
+    if (ERROR_SUCCESS != lResult)
         return strNull;
 
     lResult = RegQueryValueEx(hKey, _T("DX81SDK Samples Path"), NULL,
                               &dwType, (BYTE*)strPath, &dwSize);
     RegCloseKey(hKey);
 
-    if (ERROR_SUCCESS not_eq lResult)
+    if (ERROR_SUCCESS != lResult)
         return strNull;
 
     _tcscat(strPath, _T("\\Media\\"));
@@ -64,20 +63,20 @@ HRESULT DXUtil_FindMediaFile(TCHAR* strPath, TCHAR* strFilename)
     TCHAR *strShortName;
     DWORD cchPath;
 
-    if (NULL == strFilename or NULL == strPath)
+    if (NULL == strFilename || NULL == strPath)
         return E_INVALIDARG;
 
     // Build full path name from strFileName (strShortName will be just the leaf filename)
     cchPath = GetFullPathName(strFilename, sizeof(strFullPath) / sizeof(TCHAR), strFullPath, &strShortName);
 
-    if ((cchPath == 0) or (sizeof(strFullPath) / sizeof(TCHAR) <= cchPath))
+    if ((cchPath == 0) || (sizeof(strFullPath) / sizeof(TCHAR) <= cchPath))
         return E_FAIL;
 
     // first try to find the filename given a full path
     file = CreateFile(strFullPath, GENERIC_READ, FILE_SHARE_READ, NULL,
                       OPEN_EXISTING, 0, NULL);
 
-    if (INVALID_HANDLE_VALUE not_eq file)
+    if (INVALID_HANDLE_VALUE != file)
     {
         _tcscpy(strPath, strFullPath);
         CloseHandle(file);
@@ -88,7 +87,7 @@ HRESULT DXUtil_FindMediaFile(TCHAR* strPath, TCHAR* strFilename)
     file = CreateFile(strShortName, GENERIC_READ, FILE_SHARE_READ, NULL,
                       OPEN_EXISTING, 0, NULL);
 
-    if (INVALID_HANDLE_VALUE not_eq file)
+    if (INVALID_HANDLE_VALUE != file)
     {
         _tcscpy(strPath, strShortName);
         CloseHandle(file);
@@ -101,7 +100,7 @@ HRESULT DXUtil_FindMediaFile(TCHAR* strPath, TCHAR* strFilename)
     file = CreateFile(strPath, GENERIC_READ, FILE_SHARE_READ, NULL,
                       OPEN_EXISTING, 0, NULL);
 
-    if (INVALID_HANDLE_VALUE not_eq file)
+    if (INVALID_HANDLE_VALUE != file)
     {
         CloseHandle(file);
         return S_OK;
@@ -124,7 +123,7 @@ HRESULT DXUtil_ReadStringRegKey(HKEY hKey, TCHAR* strRegName, TCHAR* strValue,
 {
     DWORD dwType;
 
-    if (ERROR_SUCCESS not_eq RegQueryValueEx(hKey, strRegName, 0, &dwType,
+    if (ERROR_SUCCESS != RegQueryValueEx(hKey, strRegName, 0, &dwType,
                                          (BYTE*)strValue, &dwLength))
     {
         _tcscpy(strValue, strDefault);
@@ -143,7 +142,7 @@ HRESULT DXUtil_ReadStringRegKey(HKEY hKey, TCHAR* strRegName, TCHAR* strValue,
 HRESULT DXUtil_WriteStringRegKey(HKEY hKey, TCHAR* strRegName,
                                  TCHAR* strValue)
 {
-    if (ERROR_SUCCESS not_eq RegSetValueEx(hKey, strRegName, 0, REG_SZ,
+    if (ERROR_SUCCESS != RegSetValueEx(hKey, strRegName, 0, REG_SZ,
                                        (BYTE*)strValue,
                                        (_tcslen(strValue) + 1)*sizeof(TCHAR)))
         return E_FAIL;
@@ -164,7 +163,7 @@ HRESULT DXUtil_ReadIntRegKey(HKEY hKey, TCHAR* strRegName, DWORD* pdwValue,
     DWORD dwType;
     DWORD dwLength = sizeof(DWORD);
 
-    if (ERROR_SUCCESS not_eq RegQueryValueEx(hKey, strRegName, 0, &dwType,
+    if (ERROR_SUCCESS != RegQueryValueEx(hKey, strRegName, 0, &dwType,
                                          (BYTE*)pdwValue, &dwLength))
     {
         *pdwValue = dwDefault;
@@ -182,7 +181,7 @@ HRESULT DXUtil_ReadIntRegKey(HKEY hKey, TCHAR* strRegName, DWORD* pdwValue,
 //-----------------------------------------------------------------------------
 HRESULT DXUtil_WriteIntRegKey(HKEY hKey, TCHAR* strRegName, DWORD dwValue)
 {
-    if (ERROR_SUCCESS not_eq RegSetValueEx(hKey, strRegName, 0, REG_DWORD,
+    if (ERROR_SUCCESS != RegSetValueEx(hKey, strRegName, 0, REG_DWORD,
                                        (BYTE*)&dwValue, sizeof(DWORD)))
         return E_FAIL;
 
@@ -202,7 +201,7 @@ HRESULT DXUtil_ReadBoolRegKey(HKEY hKey, TCHAR* strRegName, BOOL* pbValue,
     DWORD dwType;
     DWORD dwLength = sizeof(BOOL);
 
-    if (ERROR_SUCCESS not_eq RegQueryValueEx(hKey, strRegName, 0, &dwType,
+    if (ERROR_SUCCESS != RegQueryValueEx(hKey, strRegName, 0, &dwType,
                                          (BYTE*)pbValue, &dwLength))
     {
         *pbValue = bDefault;
@@ -220,7 +219,7 @@ HRESULT DXUtil_ReadBoolRegKey(HKEY hKey, TCHAR* strRegName, BOOL* pbValue,
 //-----------------------------------------------------------------------------
 HRESULT DXUtil_WriteBoolRegKey(HKEY hKey, TCHAR* strRegName, BOOL bValue)
 {
-    if (ERROR_SUCCESS not_eq RegSetValueEx(hKey, strRegName, 0, REG_DWORD,
+    if (ERROR_SUCCESS != RegSetValueEx(hKey, strRegName, 0, REG_DWORD,
                                        (BYTE*)&bValue, sizeof(BOOL)))
         return E_FAIL;
 
@@ -240,7 +239,7 @@ HRESULT DXUtil_ReadGuidRegKey(HKEY hKey, TCHAR* strRegName, GUID* pGuidValue,
     DWORD dwType;
     DWORD dwLength = sizeof(GUID);
 
-    if (ERROR_SUCCESS not_eq RegQueryValueEx(hKey, strRegName, 0, &dwType,
+    if (ERROR_SUCCESS != RegQueryValueEx(hKey, strRegName, 0, &dwType,
                                          (LPBYTE) pGuidValue, &dwLength))
     {
         *pGuidValue = guidDefault;
@@ -258,7 +257,7 @@ HRESULT DXUtil_ReadGuidRegKey(HKEY hKey, TCHAR* strRegName, GUID* pGuidValue,
 //-----------------------------------------------------------------------------
 HRESULT DXUtil_WriteGuidRegKey(HKEY hKey, TCHAR* strRegName, GUID guidValue)
 {
-    if (ERROR_SUCCESS not_eq RegSetValueEx(hKey, strRegName, 0, REG_BINARY,
+    if (ERROR_SUCCESS != RegSetValueEx(hKey, strRegName, 0, REG_BINARY,
                                        (BYTE*)&guidValue, sizeof(GUID)))
         return E_FAIL;
 
@@ -312,7 +311,7 @@ FLOAT __stdcall DXUtil_Timer(TIMER_COMMAND command)
 
         // Get either the current time or the stop time, depending
         // on whether we're stopped and what command was sent
-        if (m_llStopTime not_eq 0 and command not_eq TIMER_START and command not_eq TIMER_GETABSOLUTETIME)
+        if (m_llStopTime != 0 && command != TIMER_START && command != TIMER_GETABSOLUTETIME)
             qwTime.QuadPart = m_llStopTime;
         else
             QueryPerformanceCounter(&qwTime);
@@ -389,7 +388,7 @@ FLOAT __stdcall DXUtil_Timer(TIMER_COMMAND command)
 
         // Get either the current time or the stop time, depending
         // on whether we're stopped and what command was sent
-        if (m_fStopTime not_eq 0.0 and command not_eq TIMER_START and command not_eq TIMER_GETABSOLUTETIME)
+        if (m_fStopTime != 0.0 && command != TIMER_START && command != TIMER_GETABSOLUTETIME)
             fTime = m_fStopTime;
         else
             fTime = timeGetTime() * 0.001;
@@ -467,7 +466,7 @@ FLOAT __stdcall DXUtil_Timer(TIMER_COMMAND command)
 VOID DXUtil_ConvertAnsiStringToWide(WCHAR* wstrDestination, const CHAR* strSource,
                                     int cchDestChar)
 {
-    if (wstrDestination == NULL or strSource == NULL)
+    if (wstrDestination == NULL || strSource == NULL)
         return;
 
     if (cchDestChar == -1)
@@ -491,7 +490,7 @@ VOID DXUtil_ConvertAnsiStringToWide(WCHAR* wstrDestination, const CHAR* strSourc
 VOID DXUtil_ConvertWideStringToAnsi(CHAR* strDestination, const WCHAR* wstrSource,
                                     int cchDestChar)
 {
-    if (strDestination == NULL or wstrSource == NULL)
+    if (strDestination == NULL || wstrSource == NULL)
         return;
 
     if (cchDestChar == -1)
@@ -515,7 +514,7 @@ VOID DXUtil_ConvertWideStringToAnsi(CHAR* strDestination, const WCHAR* wstrSourc
 VOID DXUtil_ConvertGenericStringToAnsi(CHAR* strDestination, const TCHAR* tstrSource,
                                        int cchDestChar)
 {
-    if (strDestination == NULL or tstrSource == NULL or cchDestChar == 0)
+    if (strDestination == NULL || tstrSource == NULL || cchDestChar == 0)
         return;
 
 #ifdef _UNICODE
@@ -547,7 +546,7 @@ VOID DXUtil_ConvertGenericStringToAnsi(CHAR* strDestination, const TCHAR* tstrSo
 VOID DXUtil_ConvertGenericStringToWide(WCHAR* wstrDestination, const TCHAR* tstrSource,
                                        int cchDestChar)
 {
-    if (wstrDestination == NULL or tstrSource == NULL or cchDestChar == 0)
+    if (wstrDestination == NULL || tstrSource == NULL || cchDestChar == 0)
         return;
 
 #ifdef _UNICODE
@@ -579,7 +578,7 @@ VOID DXUtil_ConvertGenericStringToWide(WCHAR* wstrDestination, const TCHAR* tstr
 VOID DXUtil_ConvertAnsiStringToGeneric(TCHAR* tstrDestination, const CHAR* strSource,
                                        int cchDestChar)
 {
-    if (tstrDestination == NULL or strSource == NULL or cchDestChar == 0)
+    if (tstrDestination == NULL || strSource == NULL || cchDestChar == 0)
         return;
 
 #ifdef _UNICODE
@@ -611,7 +610,7 @@ VOID DXUtil_ConvertAnsiStringToGeneric(TCHAR* tstrDestination, const CHAR* strSo
 VOID DXUtil_ConvertWideStringToGeneric(TCHAR* tstrDestination, const WCHAR* wstrSource,
                                        int cchDestChar)
 {
-    if (tstrDestination == NULL or wstrSource == NULL or cchDestChar == 0)
+    if (tstrDestination == NULL || wstrSource == NULL || cchDestChar == 0)
         return;
 
 #ifdef _UNICODE
@@ -666,7 +665,7 @@ HRESULT _DbgOut(TCHAR* strFile, DWORD dwLine, HRESULT hr, TCHAR* strMsg)
 //-----------------------------------------------------------------------------
 VOID DXUtil_Trace(TCHAR* strMsg, ...)
 {
-#if defined(DEBUG) bitor defined(_DEBUG)
+#if defined(DEBUG) | defined(_DEBUG)
     TCHAR strBuffer[512];
 
     va_list args;
@@ -695,7 +694,7 @@ BOOL DXUtil_ConvertStringToGUID(const TCHAR* strIn, GUID* pGuidOut)
                  &aiTmp[2], &aiTmp[3],
                  &aiTmp[4], &aiTmp[5],
                  &aiTmp[6], &aiTmp[7],
-                 &aiTmp[8], &aiTmp[9]) not_eq 11)
+                 &aiTmp[8], &aiTmp[9]) != 11)
     {
         ZeroMemory(pGuidOut, sizeof(GUID));
         return FALSE;

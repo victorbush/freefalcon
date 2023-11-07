@@ -4,7 +4,6 @@
  Based on DrawableShadowed, this class is used in ACMI to put altitude
  poles and extra labels on an object.
 \***************************************************************************/
-#include <cISO646>
 #include "Matrix.h"
 #include "RViewPnt.h"
 #include "RenderOW.h"
@@ -76,7 +75,7 @@ void DrawablePoled::Draw(class RenderOTW *renderer, int LOD)
         renderer->SetColor(0xffff0000);    //0xff00ffff
 
         // now we draw the data labels if enabled
-        if (drawSpeed and speedLen)
+        if (drawSpeed && speedLen)
         {
             x = labelPoint.x - speedLen; // Centers text
             renderer->ScreenText(x, y, speed);
@@ -84,35 +83,35 @@ void DrawablePoled::Draw(class RenderOTW *renderer, int LOD)
         }
 
 
-        if (drawAlt and altLen)
+        if (drawAlt && altLen)
         {
             x = labelPoint.x - altLen; // Centers text
             renderer->ScreenText(x, y, alt);
             y += 10.0f;
         }
 
-        if (drawHeading and headingLen)
+        if (drawHeading && headingLen)
         {
             x = labelPoint.x - headingLen; // Centers text
             renderer->ScreenText(x, y, heading);
             y += 10.0f;
         }
 
-        if (drawlockrange and lockrangeLen)
+        if (drawlockrange && lockrangeLen)
         {
             x = labelPoint.x - lockrangeLen; // Centers text
             renderer->ScreenText(x, y, lockrange);
             y += 10.0f;
         }
 
-        if (drawTurnRate and turnRateLen)
+        if (drawTurnRate && turnRateLen)
         {
             x = labelPoint.x - turnRateLen; // Centers text
             renderer->ScreenText(x, y, turnRate);
             y += 10.0f;
         }
 
-        if (drawTurnRadius and turnRadiusLen)
+        if (drawTurnRadius && turnRadiusLen)
         {
             x = labelPoint.x - turnRadiusLen; // Centers text
             renderer->ScreenText(x, y, turnRadius);
@@ -226,25 +225,25 @@ void DrawablePoled::DrawTargetBox(class RenderOTW *renderer, ThreeDVertex *spos)
     // not sure if clipping needed, to be safe....
     if (x1 < 0.0f)
     {
-        clip or_eq CLIP_LEFT;
+        clip |= CLIP_LEFT;
         x1 = 0.0f;
     }
 
     if (y1 < 0.0f)
     {
-        clip or_eq CLIP_TOP;
+        clip |= CLIP_TOP;
         y1 = 0.0f;
     }
 
     if (x2 >= xres)
     {
-        clip or_eq CLIP_RIGHT;
+        clip |= CLIP_RIGHT;
         x2 = xres - 1.0f;
     }
 
     if (y2 >= yres)
     {
-        clip or_eq CLIP_BOTTOM;
+        clip |= CLIP_BOTTOM;
         y2 = yres - 1.0f;
     }
 
@@ -252,22 +251,22 @@ void DrawablePoled::DrawTargetBox(class RenderOTW *renderer, ThreeDVertex *spos)
     renderer->SetColor(boxColor);
 
     // draw box
-    if ( not (clip bitand CLIP_LEFT))
+    if (!(clip & CLIP_LEFT))
     {
         renderer->Render2DLine(x1, y1, x1, y2);
     }
 
-    if ( not (clip bitand CLIP_TOP))
+    if (!(clip & CLIP_TOP))
     {
         renderer->Render2DLine(x1, y1, x2, y1);
     }
 
-    if ( not (clip bitand CLIP_RIGHT))
+    if (!(clip & CLIP_RIGHT))
     {
         renderer->Render2DLine(x2, y1, x2, y2);
     }
 
-    if ( not (clip bitand CLIP_BOTTOM))
+    if (!(clip & CLIP_BOTTOM))
     {
         renderer->Render2DLine(x2, y2, x1, y2);
     }

@@ -98,9 +98,9 @@ void MfdMenuDrawable::Display(VirtualDisplay* newDisplay)
     AircraftClass *playerAC = SimDriver.GetPlayerAircraft();
     RadarDopplerClass* theRadar = (RadarDopplerClass*)FindSensor(playerAC, SensorClass::Radar);
 
-    if ( not theRadar)
+    if (!theRadar)
     {
-        ShiWarning("Oh Oh shouldn't be here without a radar");
+        ShiWarning("Oh Oh shouldn't be here without a radar!");
         return;
     }
     else
@@ -128,7 +128,7 @@ void MfdMenuDrawable::Display(VirtualDisplay* newDisplay)
         //MI changed
         if (g_bRealisticAvionics)
         {
-            if (OTWDriver.pCockpitManager and OTWDriver.pCockpitManager->mpIcp and 
+            if (OTWDriver.pCockpitManager && OTWDriver.pCockpitManager->mpIcp &&
                 OTWDriver.pCockpitManager->mpIcp->ShowBullseyeInfo)
             {
                 DrawBullseyeCircle(display, cX, cY);
@@ -236,7 +236,7 @@ void MfdMenuDrawable::PushButton(int whichButton, int whichMFD)
         }
 
         // Check other MFD if needed;
-        if (nextMode not_eq MFDClass::MfdOff and (otherMfd < 0 or MfdDisplay[otherMfd]->mode not_eq nextMode))
+        if (nextMode != MFDClass::MfdOff && (otherMfd < 0 || MfdDisplay[otherMfd]->mode != nextMode))
             MfdDisplay[whichMFD]->SetNewMode(nextMode);
     }
 }

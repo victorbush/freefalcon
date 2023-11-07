@@ -10,7 +10,6 @@
 #ifndef _TVIEWPNT_H_
 #define _TVIEWPNT_H_
 
-#include <cISO646>
 #include "Matrix.h"
 #include "Ttypes.h"
 #include "TBlkList.h"
@@ -39,7 +38,7 @@ public:
     };
     ~TViewPoint()
     {
-        if (nLists not_eq 0)
+        if (nLists != 0)
             Cleanup();
     };
 
@@ -48,7 +47,7 @@ public:
 
     BOOL IsReady(void)
     {
-        return (nLists not_eq 0);
+        return (nLists != 0);
     };
 
     // Move the viewer and swap blocks as needed

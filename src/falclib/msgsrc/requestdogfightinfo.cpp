@@ -28,11 +28,11 @@ int UI_RequestDogfightInfo::Process(uchar autodisp)
     if (autodisp)
         return 0;
 
-    if (FalconLocalGame and FalconLocalGame->IsLocal() and FalconLocalGame->GetGameType() == game_Dogfight)
+    if (FalconLocalGame && FalconLocalGame->IsLocal() && FalconLocalGame->GetGameType() == game_Dogfight)
     {
         FalconSessionEntity* requester = (FalconSessionEntity*)vuDatabase->Find(dataBlock.requester_id);
 
-        if ( not requester)
+        if (!requester)
             return FALSE;
 
         SimDogfight.SendSettings(requester);

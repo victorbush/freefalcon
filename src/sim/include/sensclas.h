@@ -48,7 +48,7 @@ public:
     {
         isOn = state;
 
-        if ( not isOn) ClearSensorTarget();
+        if (!isOn) ClearSensorTarget();
     }
     virtual BOOL IsOn(void)
     {
@@ -91,7 +91,7 @@ public:
         return seekerElCenter;
     }
 
-#if not NO_REMOTE_BUGGED_TARGET
+#if !NO_REMOTE_BUGGED_TARGET
     FalconEntity *RemoteBuggedTarget;//me123
 #endif
 

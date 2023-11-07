@@ -5,7 +5,6 @@
 
     This code contains a bunch of generic routines
 \***************************************************************************/
-#include <cISO646>
 #include <windows.h>
 #include "f4version.h"
 #include <ddraw.h>
@@ -179,12 +178,12 @@ void Uni_Float(_TCHAR *buffer)
 
     decimal = gStringMgr->GetString(TXT_DECIMAL_PLACE);
 
-    if ( not decimal or not buffer)
+    if (!decimal || !buffer)
         return;
 
     i = 0;
 
-    while (buffer[i] and i < 20)
+    while (buffer[i] && i < 20)
     {
         if (buffer[i] == '.')
             buffer[i] = decimal[0];
@@ -203,7 +202,7 @@ _TCHAR *UI_WordWrap(C_Window *win, _TCHAR *str, long fontid, short width, BOOL *
     short i, done;
     short w;
 
-    if ( not win or (str == NULL and (WordWrap == NULL or WordPtr == NULL)))
+    if (!win || (str == NULL && (WordWrap == NULL || WordPtr == NULL)))
         return(NULL);
 
     if (str)
@@ -231,7 +230,7 @@ _TCHAR *UI_WordWrap(C_Window *win, _TCHAR *str, long fontid, short width, BOOL *
 
         if (WordPtr)
         {
-            if ( not _tcslen(WordPtr))
+            if (!_tcslen(WordPtr))
             {
                 delete WordWrap;
                 WordWrap = NULL;
@@ -246,10 +245,10 @@ _TCHAR *UI_WordWrap(C_Window *win, _TCHAR *str, long fontid, short width, BOOL *
     done = 0;
     space = NULL;
 
-    while ( not done)
+    while (!done)
     {
         // find a space
-        while (WordPtr[i] not_eq ' ' and (WordPtr[i] > 31))
+        while (WordPtr[i] != ' ' && (WordPtr[i] > 31))
             i++;
 
         if (i)
@@ -297,19 +296,19 @@ BOOL FileNameSortCB(TREELIST *list, TREELIST *newitem)
     _TCHAR *first, *second;
     C_Button *btn1, *btn2;
 
-    if ( not list or not newitem)
+    if (!list || !newitem)
         return(FALSE);
 
     btn1 = (C_Button*)list->Item_;
     btn2 = (C_Button*)newitem->Item_;
 
-    if ( not btn1 or not btn2)
+    if (!btn1 || !btn2)
         return(FALSE);
 
     first = btn1->GetText(0);
     second = btn2->GetText(0);
 
-    if ( not first or not second)
+    if (!first || !second)
         return(FALSE);
 
     if (_tcsicmp(second, first) < 0)
@@ -324,7 +323,7 @@ void GetVirtualFileList(C_Window *win, _TCHAR virtlist[200][64], long client, lo
     C_EditBox *ebox;
     short i, half;
 
-    if ( not virtlist or not win)
+    if (!virtlist || !win)
         return;
 
     half = static_cast<short>((win->ClientArea_[client].right - win->ClientArea_[client].left) / 2);
@@ -334,7 +333,7 @@ void GetVirtualFileList(C_Window *win, _TCHAR virtlist[200][64], long client, lo
 
     i = 0;
 
-    while (virtlist[i][0] and i < 200)
+    while (virtlist[i][0] && i < 200)
     {
         btn = new C_Button;
         btn->Setup(C_DONT_CARE, C_TYPE_RADIO, *startx, *starty);
@@ -353,7 +352,7 @@ void GetVirtualFileList(C_Window *win, _TCHAR virtlist[200][64], long client, lo
         btn->SetUserNumber(0, 1234); // Virtual
         win->AddControl(btn);
 
-        if ( not (*starty) and not (*startx))
+        if (!(*starty) && !(*startx))
         {
             ebox = (C_EditBox*)win->FindControl(FILE_NAME);
 
@@ -361,7 +360,7 @@ void GetVirtualFileList(C_Window *win, _TCHAR virtlist[200][64], long client, lo
                 ebox->SetText(virtlist[i]);
         }
 
-        if ( not (*startx) and half)
+        if (!(*startx) && half)
             (*startx) += half;
         else
         {
@@ -381,17 +380,17 @@ void GetVirtualFileListTree(C_TreeList *tree, _TCHAR virtlist[200][64], long gro
     TREELIST *item;
     short i, UniqueID;
 
-    if ( not virtlist or not tree)
+    if (!virtlist || !tree)
         return;
 
     UniqueID = static_cast<short>(tree->GetUserNumber(0));
 
-    if ( not UniqueID)
+    if (!UniqueID)
         UniqueID++;
 
     i = 0;
 
-    while (virtlist[i][0] and i < 200)
+    while (virtlist[i][0] && i < 200)
     {
         btn = new C_Button;
 
@@ -431,10 +430,10 @@ void GetFileList(C_Window *win, _TCHAR *fspec, _TCHAR *excludelist[], long clien
     long i;
     _TCHAR *ptr, *extension;
 
-    if ( not win or not cb) return;
+    if (!win || !cb) return;
 
     ffhnd = FindFirstFile(fspec, &filedata);
-    last = (ffhnd not_eq INVALID_HANDLE_VALUE);
+    last = (ffhnd != INVALID_HANDLE_VALUE);
 
     while (last)
     {
@@ -465,7 +464,7 @@ void GetFileList(C_Window *win, _TCHAR *fspec, _TCHAR *excludelist[], long clien
         {
             i = 0;
 
-            while (excludelist[i] and not ignore)
+            while (excludelist[i] && !ignore)
             {
                 if (stricmp(excludelist[i], filedata.cFileName) == 0)
                 {
@@ -476,7 +475,7 @@ void GetFileList(C_Window *win, _TCHAR *fspec, _TCHAR *excludelist[], long clien
             }
         }
 
-        if ( not ignore)
+        if (!ignore)
         {
             btn = new C_Button;
             btn->Setup(C_DONT_CARE, C_TYPE_RADIO, *startx, *starty);
@@ -495,7 +494,7 @@ void GetFileList(C_Window *win, _TCHAR *fspec, _TCHAR *excludelist[], long clien
             btn->SetUserNumber(0, 0); // Non virtual
             win->AddControl(btn);
 
-            if ( not (*starty))
+            if (!(*starty))
             {
                 ebox = (C_EditBox*)win->FindControl(FILE_NAME);
 
@@ -534,15 +533,15 @@ void GetFileListTree(C_TreeList *tree, _TCHAR *fspec, _TCHAR *excludelist[], lon
     long i, UniqueID;
     _TCHAR *ptr, *extension;
 
-    if ( not tree) return;
+    if (!tree) return;
 
     UniqueID = tree->GetUserNumber(0);
 
-    if ( not UniqueID)
+    if (!UniqueID)
         UniqueID++;
 
     ffhnd = FindFirstFile(fspec, &filedata);
-    last = (ffhnd not_eq INVALID_HANDLE_VALUE);
+    last = (ffhnd != INVALID_HANDLE_VALUE);
 
     while (last)
     {
@@ -573,7 +572,7 @@ void GetFileListTree(C_TreeList *tree, _TCHAR *fspec, _TCHAR *excludelist[], lon
         {
             i = 0;
 
-            while (excludelist[i] and not ignore)
+            while (excludelist[i] && !ignore)
             {
                 if (stricmp(excludelist[i], filedata.cFileName) == 0)
                 {
@@ -584,7 +583,7 @@ void GetFileListTree(C_TreeList *tree, _TCHAR *fspec, _TCHAR *excludelist[], lon
             }
         }
 
-        if ( not ignore)
+        if (!ignore)
         {
             btn = new C_Button;
 
@@ -613,7 +612,7 @@ void GetFileListTree(C_TreeList *tree, _TCHAR *fspec, _TCHAR *excludelist[], lon
         last = FindNextFile(ffhnd, &filedata);
     }
 
-    if (ffhnd not_eq INVALID_HANDLE_VALUE)
+    if (ffhnd != INVALID_HANDLE_VALUE)
         FindClose(ffhnd);
 
     tree->SetUserNumber(0, UniqueID);
@@ -668,7 +667,7 @@ static void LoadSaveSelectFileCB(long, short hittype, C_Base *control)
             {
                 btn = (C_Button*)win->FindControl(LOAD);
 
-                if (btn and not (btn->GetFlags() bitand C_BIT_INVISIBLE))
+                if (btn && !(btn->GetFlags() & C_BIT_INVISIBLE))
                 {
                     if (btn->GetCallback())
                     {
@@ -680,7 +679,7 @@ static void LoadSaveSelectFileCB(long, short hittype, C_Base *control)
 
                 btn = (C_Button*)win->FindControl(LOAD_VIRTUAL);
 
-                if (btn and not (btn->GetFlags() bitand C_BIT_INVISIBLE))
+                if (btn && !(btn->GetFlags() & C_BIT_INVISIBLE))
                 {
                     if (btn->GetCallback())
                     {
@@ -692,7 +691,7 @@ static void LoadSaveSelectFileCB(long, short hittype, C_Base *control)
 
                 btn = (C_Button*)win->FindControl(SAVE);
 
-                if (btn and not (btn->GetFlags() bitand C_BIT_INVISIBLE))
+                if (btn && !(btn->GetFlags() & C_BIT_INVISIBLE))
                 {
                     if (btn->GetCallback())
                     {
@@ -713,7 +712,7 @@ static void LoadVirtualSelectFileCB(long, short hittype, C_Base *control)
     C_Button *btn;
     TREELIST *item;
 
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     if (control)
@@ -783,7 +782,7 @@ void LoadAFile(long TitleID, _TCHAR *filespec, _TCHAR *excludelist[], void (*Yes
     C_TreeList *tree;
     C_EditBox *ebox;
 
-    if ( not YesCB or not filespec)
+    if (!YesCB || !filespec)
         return;
 
     win = gMainHandler->FindWindow(SAVE_WIN);
@@ -877,7 +876,7 @@ void LoadVirtualFile(long TitleID, _TCHAR *filespec, _TCHAR *excludelist[], void
     C_Text *txt;
     C_EditBox *ebox;
 
-    if ( not YesCB or not filespec)
+    if (!YesCB || !filespec)
         return;
 
     win = gMainHandler->FindWindow(SAVE_WIN);
@@ -975,7 +974,7 @@ void SaveAFile(long TitleID, _TCHAR *filespec, _TCHAR *excludelist[], void (*Yes
     C_EditBox *ebox;
     C_TreeList *tree;
 
-    if ( not YesCB or not filespec)
+    if (!YesCB || !filespec)
         return;
 
     win = gMainHandler->FindWindow(SAVE_WIN);
@@ -1077,7 +1076,7 @@ void AreYouSure(long TitleID, _TCHAR *text, void (*OkCB)(long, short, C_Base*), 
     C_Text *txt;
     short x, y;
 
-    if ( not text)
+    if (!text)
         return;
 
     win = gMainHandler->FindWindow(AYS_WIN);
@@ -1141,7 +1140,7 @@ BOOL CheckExclude(_TCHAR *filename, _TCHAR *directory, _TCHAR *ExcludeList[], _T
     {
         _stprintf(fname, "%s\\%s.%s", directory, ExcludeList[i], extension);
 
-        if ( not _tcsicmp(filename, fname))
+        if (!_tcsicmp(filename, fname))
             return(TRUE);
 
         i++;
@@ -1224,7 +1223,7 @@ void MakeVirtualListFromRsc(long ID, long startid)
         {
             cur = (IMAGE_RSC*)lst->GetFirst(&me, &curidx);
 
-            while (cur and i < 200)
+            while (cur && i < 200)
             {
                 _tcscpy(VirtualFileList[i++], cur->Header->ID);
                 cur = (IMAGE_RSC*)lst->GetNext(&me, &curidx);
@@ -1250,10 +1249,10 @@ void MakeOccupationMap(IMAGE_RSC *Map)
     WORD *Palette;
     long w, h;
 
-    if ( not Map)
+    if (!Map)
         return;
 
-    if ( not Map->Owner)
+    if (!Map->Owner)
         return;
 
     // HACK: Set uninitialized variables in CampMap
@@ -1261,7 +1260,7 @@ void MakeOccupationMap(IMAGE_RSC *Map)
     // MRX=Map_Max_X/MAP_RATIO;
     // MRY=Map_Max_Y/MAP_RATIO;
     // MAXOI = (sizeof(uchar)*MRX*MRY)/2;
-    ShiAssert(MRX and MRY and MAXOI);
+    ShiAssert(MRX && MRY && MAXOI);
 
     Palette = Map->GetPalette();
 
@@ -1269,11 +1268,11 @@ void MakeOccupationMap(IMAGE_RSC *Map)
     {
         Palette[0] = UI95_RGB24Bit(0);
 
-        if (TheCampaign.Flags bitand CAMP_TACTICAL)
+        if (TheCampaign.Flags & CAMP_TACTICAL)
         {
             for (i = 1; i < NUM_TEAMS; i++)
             {
-                if (TheCampaign.IsLoaded() and TeamInfo[i])
+                if (TheCampaign.IsLoaded() && TeamInfo[i])
                     Palette[i] = UI95_RGB24Bit(TeamColorList[TeamInfo[i]->GetColor()]);
                 else
                     Palette[i] = UI95_RGB24Bit(TeamColorList[TheCampaign.team_colour[i]]);
@@ -1301,17 +1300,17 @@ void MakeOccupationMap(IMAGE_RSC *Map)
     src += w / 2;
     y = 1; // Skip pixels on edges of map
 
-    while (y < (h - 2) and y < h)
+    while (y < (h - 2) && y < h)
     {
         x = 2;
         dst += 2;
         src++;
 
-        while (x < (h - 2) and x < w)
+        while (x < (h - 2) && x < w)
         {
-            ShiAssert(src >=  TheCampaign.CampMapData and 
+            ShiAssert(src >=  TheCampaign.CampMapData &&
                       src < TheCampaign.CampMapData + TheCampaign.CampMapSize);
-            *dst++ = static_cast<uchar>((*src) bitand 0x0f);
+            *dst++ = static_cast<uchar>((*src) & 0x0f);
             *dst++ = static_cast<uchar>((*src) >> 4);
             src++;
             x += 2;
@@ -1332,10 +1331,10 @@ void MakeBigOccupationMap(IMAGE_RSC *Map)
     WORD *Palette;
     long w, h;
 
-    if ( not Map)
+    if (!Map)
         return;
 
-    if ( not Map->Owner)
+    if (!Map->Owner)
         return;
 
     // HACK: Set uninitialized variables in CampMap
@@ -1343,7 +1342,7 @@ void MakeBigOccupationMap(IMAGE_RSC *Map)
     // MRX=Map_Max_X/MAP_RATIO;
     // MRY=Map_Max_Y/MAP_RATIO;
     // MAXOI = (sizeof(uchar)*MRX*MRY)/2;
-    ShiAssert(MRX and MRY and MAXOI);
+    ShiAssert(MRX && MRY && MAXOI);
 
     Palette = Map->GetPalette();
 
@@ -1351,11 +1350,11 @@ void MakeBigOccupationMap(IMAGE_RSC *Map)
     {
         Palette[0] = UI95_RGB24Bit(0);
 
-        if (TheCampaign.Flags bitand CAMP_TACTICAL)
+        if (TheCampaign.Flags & CAMP_TACTICAL)
         {
             for (i = 1; i < NUM_TEAMS; i++)
             {
-                if (TheCampaign.IsLoaded() and TeamInfo[i])
+                if (TheCampaign.IsLoaded() && TeamInfo[i])
                     Palette[i] = UI95_RGB24Bit(TeamColorList[TeamInfo[i]->GetColor()]);
                 else
                     Palette[i] = UI95_RGB24Bit(TeamColorList[TheCampaign.team_colour[i]]);
@@ -1383,20 +1382,20 @@ void MakeBigOccupationMap(IMAGE_RSC *Map)
     src += w / 2;
     y = 4; // Skip pixels on edges of map
 
-    while (y < (h - 4) and y < h)
+    while (y < (h - 4) && y < h)
     {
         x = 4;
         dst += 4;
         src++;
         prevsrc = src;
 
-        while (x < (h - 4) and x < w)
+        while (x < (h - 4) && x < w)
         {
-            ShiAssert(src >=  TheCampaign.CampMapData and 
+            ShiAssert(src >=  TheCampaign.CampMapData &&
                       src < TheCampaign.CampMapData + TheCampaign.CampMapSize);
-            *dst++ = static_cast<uchar>((*src) bitand 0x0f);
+            *dst++ = static_cast<uchar>((*src) & 0x0f);
             *dst++ = static_cast<uchar>((*src) >> 4);
-            *dst++ = static_cast<uchar>((*src) bitand 0x0f);
+            *dst++ = static_cast<uchar>((*src) & 0x0f);
             *dst++ = static_cast<uchar>((*src) >> 4);
             src++;
             x += 4;
@@ -1409,11 +1408,11 @@ void MakeBigOccupationMap(IMAGE_RSC *Map)
         x = 4;
         dst += 4;
 
-        while (x < (h - 4) and x < w)
+        while (x < (h - 4) && x < w)
         {
-            *dst++ = static_cast<uchar>((*prevsrc) bitand 0x0f);
+            *dst++ = static_cast<uchar>((*prevsrc) & 0x0f);
             *dst++ = static_cast<uchar>((*prevsrc) >> 4);
-            *dst++ = static_cast<uchar>((*prevsrc) bitand 0x0f);
+            *dst++ = static_cast<uchar>((*prevsrc) & 0x0f);
             *dst++ = static_cast<uchar>((*prevsrc) >> 4);
             prevsrc++;
             x += 4;
@@ -1469,11 +1468,11 @@ void GetMissionTarget(Package curpackage, Flight curflight, _TCHAR Buffer[])
     CampEntity ent;
     GridIndex x = 0, y = 0;
 
-    if (((curflight) and (curflight->GetUnitMission() not_eq AMIS_ABORT)) or ( not curflight))
+    if (((curflight) && (curflight->GetUnitMission() != AMIS_ABORT)) || (!curflight))
     {
         ent = FindEntity(curpackage->GetMissionRequest()->targetID);
 
-        if (ent and DisplayTarget(static_cast<short>(curflight->GetUnitMission())))
+        if (ent && DisplayTarget(static_cast<short>(curflight->GetUnitMission())))
         {
             if (ent->IsObjective())
                 ent->GetName(Buffer, 39, TRUE);
@@ -1484,7 +1483,7 @@ void GetMissionTarget(Package curpackage, Flight curflight, _TCHAR Buffer[])
         {
             wp = curflight->GetFirstUnitWP();
 
-            if ( not wp)
+            if (!wp)
             {
                 _tcscpy(Buffer, gStringMgr->GetString(TXT_NO_TARGET));
                 return;
@@ -1492,7 +1491,7 @@ void GetMissionTarget(Package curpackage, Flight curflight, _TCHAR Buffer[])
 
             while (wp)
             {
-                if (wp->GetWPFlags() bitand WPF_TARGET)
+                if (wp->GetWPFlags() & WPF_TARGET)
                 {
                     wp->GetWPLocation(&x, &y);
 
@@ -1504,7 +1503,7 @@ void GetMissionTarget(Package curpackage, Flight curflight, _TCHAR Buffer[])
                 }
             }
 
-            if ( not x and not y)
+            if (!x && !y)
             {
                 _tcscpy(Buffer, gStringMgr->GetString(TXT_NO_TARGET));
                 return;
@@ -1534,7 +1533,7 @@ void GetFlightStatus(Flight element, _TCHAR buffer[])
             found = 0;
             _tcscpy(buffer, gStringMgr->GetString(TXT_RETURNTOBASE));
 
-            while (found == 0 and wp)
+            while (found == 0 && wp)
             {
                 if (wp->GetWPAction() == WP_ASSEMBLE)
                 {
@@ -1546,7 +1545,7 @@ void GetFlightStatus(Flight element, _TCHAR buffer[])
                     _tcscpy(buffer, gStringMgr->GetString(TXT_EGRESS));
                     found = 1;
                 }
-                else if (wp->GetWPFlags() bitand WPF_TARGET)
+                else if (wp->GetWPFlags() & WPF_TARGET)
                 {
                     _tcscpy(buffer, gStringMgr->GetString(TXT_INGRESS));
                     found = 1;
@@ -1587,7 +1586,7 @@ void UpdateMissionWindow(long ID)
     FalconSessionEntity *session;
     short i, planecount;
 
-    if ( not gMainHandler)
+    if (!gMainHandler)
     {
         return;
     }
@@ -1618,7 +1617,7 @@ void UpdateMissionWindow(long ID)
                     cur->Item_->SetState(0);
 
                 if (((C_Mission*)cur->Item_)->GetVUID() == gCurrentFlightID)
-                    cur->Item_->SetState(static_cast<short>(cur->Item_->GetState() bitor 1));
+                    cur->Item_->SetState(static_cast<short>(cur->Item_->GetState() | 1));
 
                 cur = cur->Next;
             }
@@ -1628,11 +1627,11 @@ void UpdateMissionWindow(long ID)
 
         if (curflight)
         {
-            while (curflight->plane_stats[planecount] not_eq AIRCRAFT_NOT_ASSIGNED and planecount < PILOTS_PER_FLIGHT)
+            while (curflight->plane_stats[planecount] != AIRCRAFT_NOT_ASSIGNED && planecount < PILOTS_PER_FLIGHT)
                 planecount++;
         }
 
-        if (curflight and curpackage and planecount)
+        if (curflight && curpackage && planecount)
         {
             txt = (C_Text *)win->FindControl(FLIGHT_LABEL);
 
@@ -1679,7 +1678,7 @@ void UpdateMissionWindow(long ID)
                                     _stprintf(Buffer, "[%s]", session->GetPlayerName());
                                 else
                                 {
-                                    if ( not TheCampaign.MissionEvaluator->GetPilotName(i, PilotName))
+                                    if (!TheCampaign.MissionEvaluator->GetPilotName(i, PilotName))
                                     {
                                         _stprintf(Buffer, "[%s]", gStringMgr->GetString(TXT_TBD));
                                     }
@@ -1723,7 +1722,7 @@ void UpdateMissionWindow(long ID)
 
             // Get Mission string
 
-            if ((curflight not_eq NULL) and (curflight->GetUnitMission() not_eq AMIS_ABORT))
+            if ((curflight != NULL) && (curflight->GetUnitMission() != AMIS_ABORT))
             {
                 GetMissionTarget(curpackage, curflight, Buffer);
 
@@ -1735,7 +1734,7 @@ void UpdateMissionWindow(long ID)
 
                 while (wp)
                 {
-                    if (wp->GetWPFlags() bitand WPF_TARGET)
+                    if (wp->GetWPFlags() & WPF_TARGET)
                     {
                         GetTimeString(wp->GetWPArrivalTime(), TOT);
                         wp = NULL;
@@ -1937,7 +1936,7 @@ static void MakeBar(C_Line *line, long valueID, long Team)
         line->SetUserNumber(3, line->GetH());
     }
 
-    if ( not max)
+    if (!max)
         max = 1000000;
 
     w = (line->GetUserNumber(2) * value) / max;
@@ -1947,7 +1946,7 @@ static void MakeBar(C_Line *line, long valueID, long Team)
 
     line->SetW(w);
 
-    line->Parent_->update_ or_eq C_DRAW_REFRESH;
+    line->Parent_->update_ |= C_DRAW_REFRESH;
     line->Parent_->SetUpdateRect(line->GetUserNumber(0), line->GetUserNumber(1),
                                  line->GetUserNumber(0) + line->GetUserNumber(2),
                                  line->GetUserNumber(1) + line->GetUserNumber(3),
@@ -1978,8 +1977,8 @@ void UpdateIntel(long ID)
     win = gMainHandler->FindWindow(ID);
 
     //if(win) // JB 010222 CTD
-    if (win and not F4IsBadReadPtr(win, sizeof(C_Window)) // JB 010222 CTD
-       and TeamInfo[Team]) // JB 010614 CTD
+    if (win && !F4IsBadReadPtr(win, sizeof(C_Window)) // JB 010222 CTD
+        && TeamInfo[Team]) // JB 010614 CTD
     {
         if (TeamInfo[Team]->GetOffensiveAirAction()->actionType > AACTION_DCA)
             win->UnHideCluster(3);
@@ -1992,7 +1991,7 @@ void UpdateIntel(long ID)
         {
             lbox->Refresh();
 
-            if (TeamInfo[Team] and TeamInfo[Team]->GetOffensiveAirAction()->actionType)
+            if (TeamInfo[Team] && TeamInfo[Team]->GetOffensiveAirAction()->actionType)
                 lbox->SetValue(TeamInfo[Team]->GetOffensiveAirAction()->actionType);
             else
                 lbox->SetValue(0);
@@ -2006,7 +2005,7 @@ void UpdateIntel(long ID)
         {
             txt->Refresh();
 
-            if (TeamInfo[Team] and TeamInfo[Team]->GetOffensiveAirAction()->actionType)
+            if (TeamInfo[Team] && TeamInfo[Team]->GetOffensiveAirAction()->actionType)
             {
                 _TCHAR timeStr[30] = {0};
                 AddTimeToBuffer(TeamInfo[Team]->GetOffensiveAirAction()->actionStartTime, timeStr, FALSE);
@@ -2208,7 +2207,7 @@ void UpdateIntelBarCB(long ID, short hittype, C_Base *control)
     C_Window *win;
     C_ListBox *lbox;
 
-    if (hittype not_eq C_TYPE_SELECT)
+    if (hittype != C_TYPE_SELECT)
         return;
 
     lbox = (C_ListBox *)control;
@@ -2279,7 +2278,7 @@ short AddTextToWindow(C_Window *win, short x, short y, COLORREF color, _TCHAR *s
 {
     C_Text *txt;
 
-    if (win == NULL or str == NULL)
+    if (win == NULL || str == NULL)
         return(0);
 
     txt = new C_Text;
@@ -2323,7 +2322,7 @@ BOOL AddWordWrapTextToWindow(C_Window *win, short *x, short *y, short, short end
 
     retval = TRUE;
 
-    if (win == NULL or str == NULL)
+    if (win == NULL || str == NULL)
         return(0);
 
     wrap_w = static_cast<short>(max(50, endcol - *x));
@@ -2339,7 +2338,7 @@ BOOL AddWordWrapTextToWindow(C_Window *win, short *x, short *y, short, short end
         txt->SetFGColor(color);
         txt->SetFont(win->Font_);
         txt->SetUserNumber(_UI95_DELGROUP_SLOT_, _UI95_DELGROUP_ID_);
-        txt->SetFlagBitOn(C_BIT_LEFT bitor C_BIT_WORDWRAP);
+        txt->SetFlagBitOn(C_BIT_LEFT | C_BIT_WORDWRAP);
         txt->SetText(str);
         txt->SetClient(static_cast<short>(Client));
         win->AddControl(txt);
@@ -2359,7 +2358,7 @@ BOOL AddWordWrapTextToWindow(C_Window *win, short *x, short *y, short, short end
 #if 0
         wrap = UI_WordWrap(win, str, win->Font_, wrap_w, &status);
 
-        if ( not status)
+        if (!status)
             retval = status;
 
         while (wrap)
@@ -2384,7 +2383,7 @@ BOOL AddWordWrapTextToWindow(C_Window *win, short *x, short *y, short, short end
                 *y += gFontList->GetHeight(win->Font_);
             }
 
-            if ( not status)
+            if (!status)
                 retval = status;
         }
 
@@ -2404,7 +2403,7 @@ static CampUIEventElement *RetrieveEvent(short num)
     CampEnterCriticalSection();
     evt = TheCampaign.StandardEventQueue;
 
-    while (evt and i < num)
+    while (evt && i < num)
     {
         evt = evt->next;
         i++;
@@ -2441,7 +2440,7 @@ void RefreshMapEventList(long winID, long client)
         txt = (C_Text*)win->FindControl(CP_EVENT);
 
         // M.N. clear last news text from last mission
-        if ( not evt and txt)
+        if (!evt && txt)
         {
             char text[1];
             strcpy(text, "");
@@ -2555,22 +2554,22 @@ void RelocateSquadron()
     GridIndex x, y;
     ObjClassDataType *ObjPtr;
 
-    if ( not gMainHandler)
+    if (!gMainHandler)
         return;
 
     sqd = (Squadron)FalconLocalSession->GetPlayerSquadron();
 
-    if ( not sqd)
+    if (!sqd)
         return;
 
     Obj = (Objective)vuDatabase->Find(sqd->GetUnitAirbaseID());
 
-    if ( not Obj)
+    if (!Obj)
         return;
 
     ObjPtr = Obj->GetObjectiveClassData();
 
-    if ( not ObjPtr)
+    if (!ObjPtr)
         return;
 
     win = gMainHandler->FindWindow(TRANSFER_WIN);
@@ -2631,7 +2630,7 @@ void RelocateSquadron()
                 }
 
                 bmp->SetXY(x / mapratio, y / mapratio);
-                bmp->SetFlagBitOn(C_BIT_HCENTER bitor C_BIT_VCENTER);
+                bmp->SetFlagBitOn(C_BIT_HCENTER | C_BIT_VCENTER);
                 rsc = (IMAGE_RSC*)res->Find(ObjPtr->IconIndex);
 
                 if (rsc)
@@ -2648,7 +2647,7 @@ void RelocateSquadron()
 // Screen shot HACK stuff
 void CloseItCB(long, short hit, C_Base *ctrl)
 {
-    if (hit not_eq C_TYPE_LMOUSEUP)
+    if (hit != C_TYPE_LMOUSEUP)
         return;
 
     gMainHandler->HideWindow(ctrl->Parent_);
@@ -2690,7 +2689,7 @@ void SaveTargaCB(long, short hittype, C_Base *control)
     FILE *fp;
     long y, i;
 
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     gMainHandler->HideWindow(control->Parent_);
@@ -2768,7 +2767,7 @@ void EncryptBuffer(uchar startkey, uchar *buffer, long length)
     uchar *ptr;
     uchar nextkey;
 
-    if ( not buffer or length <= 0)
+    if (!buffer || length <= 0)
         return;
 
     idx = 0;
@@ -2778,8 +2777,8 @@ void EncryptBuffer(uchar startkey, uchar *buffer, long length)
 
     for (i = 0; i < length; i++)
     {
-        *ptr xor_eq MasterXOR[(idx++) % xrlen];
-        *ptr xor_eq startkey;
+        *ptr ^= MasterXOR[(idx++) % xrlen];
+        *ptr ^= startkey;
         nextkey = *ptr++;
         startkey = nextkey;
     }
@@ -2791,7 +2790,7 @@ void DecryptBuffer(uchar startkey, uchar *buffer, long length)
     uchar *ptr;
     uchar nextkey;
 
-    if ( not buffer or length <= 0)
+    if (!buffer || length <= 0)
         return;
 
     idx = 0;
@@ -2802,8 +2801,8 @@ void DecryptBuffer(uchar startkey, uchar *buffer, long length)
     for (i = 0; i < length; i++)
     {
         nextkey = *ptr;
-        *ptr xor_eq startkey;
-        *ptr++ xor_eq MasterXOR[(idx++) % xrlen];
+        *ptr ^= startkey;
+        *ptr++ ^= MasterXOR[(idx++) % xrlen];
         startkey = nextkey;
     }
 }
@@ -2812,7 +2811,7 @@ void ScrollTimerCB(long, short, C_Base *base)
 {
     C_Window *win;
 
-    if ( not base)
+    if (!base)
         return;
 
     win = base->Parent_;
@@ -2846,7 +2845,7 @@ void LoadPeopleInfo(long client)
 
     res = new C_Resmgr;
 
-    if ( not res)
+    if (!res)
         return;
 
     res->Setup(CREDITS_RES, "art\\resource\\credits", gMainParser->GetTokenHash());
@@ -2883,7 +2882,7 @@ void LoadPeopleInfo(long client)
 
     rsc = (FLAT_RSC*)res->Find(LanguageID);
 
-    if ( not rsc)
+    if (!rsc)
         return;
 
     filedata = (char*)rsc->GetData();
@@ -3233,7 +3232,7 @@ BOOL CheckSystemFiles(char *Name, char *Ext)
 
     while (DontDeleteList[i])
     {
-        if ( not stricmp(DontDeleteList[i], filename))
+        if (!stricmp(DontDeleteList[i], filename))
             return(TRUE);
 
         i++;
@@ -3246,7 +3245,7 @@ BOOL DeleteAFile(char *Path, char *Name, char *Ext)
 {
     char Filename[MAX_PATH];
 
-    if ( not Name)
+    if (!Name)
         return(FALSE);
 
     Filename[0] = 0;
@@ -3265,7 +3264,7 @@ BOOL DeleteAFile(char *Path, char *Name, char *Ext)
         strcat(Filename, Ext);
     }
 
-    if ( not CheckSystemFiles(Name, Ext))
+    if (!CheckSystemFiles(Name, Ext))
     {
         DeleteFile(Filename);
         return(TRUE);

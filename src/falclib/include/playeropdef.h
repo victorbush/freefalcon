@@ -2,7 +2,7 @@
 #define PLAYEROP_DEFINES_H
 
 // =====================
-// Defines bitand enums
+// Defines & enums
 // =====================
 
 

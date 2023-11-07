@@ -1,5 +1,4 @@
 
-#include <cISO646>
 #include "stdafx.h"
 #include "shi/ConvFtoI.h"
 #include "grmath.h"
@@ -13,7 +12,7 @@ void RotateBitmapMask(ImageBuffer *srcbuf, ImageBuffer *destbuf, int angle, RECT
     ShiAssert(srect);
     ShiAssert(drect);
 
-    if ( not startstop)
+    if (!startstop)
     {
         RotateBitmap(srcbuf, destbuf, angle, srect, drect);
         return;
@@ -22,13 +21,13 @@ void RotateBitmapMask(ImageBuffer *srcbuf, ImageBuffer *destbuf, int angle, RECT
     char *source = (char *) srcbuf ->Lock();
     ShiAssert(source);
 
-    if ( not source) // JB 011125 CTD fix when ALT Tab
+    if (!source) // JB 011125 CTD fix when ALT Tab
         return;
 
     char *dest = (char *) destbuf ->Lock();
     ShiAssert(dest);
 
-    if ( not dest) // JB 011125 CTD fix when ALT Tab
+    if (!dest) // JB 011125 CTD fix when ALT Tab
     {
         srcbuf->Unlock();
         return;
@@ -174,7 +173,7 @@ void RotateBitmapMask(ImageBuffer *srcbuf, ImageBuffer *destbuf, int angle, RECT
 
     destbuf -> Unlock();
 
-    ShiAssert(srcbuf not_eq NULL);
+    ShiAssert(srcbuf != NULL);
 
     if (srcbuf) // JB 010318 CTD
         srcbuf -> Unlock();
@@ -263,7 +262,7 @@ void RotateBitmapMaskDouble(ImageBuffer *srcbuf, ImageBuffer *destbuf, int angle
     ShiAssert(srect);
     ShiAssert(drect);
 
-    if ( not startstop)
+    if (!startstop)
     {
         RotateBitmapDouble(srcbuf, destbuf, angle, srect, drect);
         return;

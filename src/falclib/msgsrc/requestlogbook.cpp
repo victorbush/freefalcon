@@ -24,7 +24,7 @@ UI_RequestLogbook::~UI_RequestLogbook(void)
 
 int UI_RequestLogbook::Process(uchar autodisp)
 {
-    if (gCommsMgr and dataBlock.fromID not_eq FalconLocalSessionId)
+    if (gCommsMgr && dataBlock.fromID != FalconLocalSessionId)
     {
         gCommsMgr->SendLogbook(dataBlock.fromID);
     }

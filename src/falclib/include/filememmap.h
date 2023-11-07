@@ -2,7 +2,6 @@
 // Class wrapper for memory mapped files - Julian Onions
 #ifndef _FILE_MEM_MAP_H
 #define _FILE_MEM_MAP_H
-#include <cISO646>
 #include <windows.h>
 
 
@@ -27,7 +26,7 @@ public:
     BOOL ReadDataAt(DWORD offset, void *buffer, DWORD size);
     BOOL IsReady()
     {
-        return m_hFile not_eq INVALID_HANDLE_VALUE;
+        return m_hFile != INVALID_HANDLE_VALUE;
     };
 };
 

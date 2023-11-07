@@ -22,13 +22,13 @@ ListElementClass::ListElementClass(short newKey, void *newData, uchar newFlags)
 
 ListElementClass::~ListElementClass(void)
 {
-    if (flags bitand LADT_FREE_USER_DATA)
+    if (flags & LADT_FREE_USER_DATA)
         delete user_data;
 }
 
 void ListElementClass::SetUserData(void *newData)
 {
-    if (user_data and (flags bitand LADT_FREE_USER_DATA))
+    if (user_data && (flags & LADT_FREE_USER_DATA))
         delete user_data;
 
     user_data = newData;
@@ -47,19 +47,19 @@ ListClass::~ListClass(void)
 
 void ListClass::Insert(ListElementClass *newElement)
 {
-    if ( not newElement)
+    if (!newElement)
         return;
 
-    if ( not front)
+    if (!front)
     {
-        ShiAssert( not end);
+        ShiAssert(!end);
         front = newElement;
         end = newElement;
         ShiAssert(SanityCheck());
         return;
     }
 
-    if ( not flags bitand LADT_SORTED_LIST)
+    if (!flags & LADT_SORTED_LIST)
     {
         newElement->next = front;
         front->prev = newElement;
@@ -93,10 +93,10 @@ void ListClass::Insert(ListElementClass *newElement)
         {
             ListNode current = front;
 
-            while (current and current->key < newElement->key)
+            while (current && current->key < newElement->key)
                 current = current->next;
 
-            ShiAssert(current not_eq front);
+            ShiAssert(current != front);
             newElement->prev = current->prev;
             newElement->next = current;
 
@@ -112,10 +112,10 @@ void ListClass::Insert(ListElementClass *newElement)
 
 void ListClass::InsertAtEnd(ListElementClass *newElement)
 {
-    if ( not newElement)
+    if (!newElement)
         return;
 
-    if (flags bitand LADT_SORTED_LIST)
+    if (flags & LADT_SORTED_LIST)
     {
         Insert(newElement);
         return;
@@ -128,7 +128,7 @@ void ListClass::InsertAtEnd(ListElementClass *newElement)
 
     end = newElement;
 
-    if ( not front)
+    if (!front)
         front = newElement;
 
     ShiAssert(SanityCheck());
@@ -136,7 +136,7 @@ void ListClass::InsertAtEnd(ListElementClass *newElement)
 
 void ListClass::Remove(ListElementClass *oldElement)
 {
-    if ( not oldElement)
+    if (!oldElement)
         return;
 
     Detach(oldElement);
@@ -146,7 +146,7 @@ void ListClass::Remove(ListElementClass *oldElement)
 
 void ListClass::Detach(ListElementClass *oldElement)
 {
-    if ( not oldElement)
+    if (!oldElement)
         return;
 
     if (front == oldElement)
@@ -200,27 +200,27 @@ int ListClass::SanityCheck(void)
 {
     ListElementClass *cur, *next;
 
-    if ( not front and not end)
+    if (!front && !end)
         return 1;
 
-    if (front == end and (front->prev or front->next))
+    if (front == end && (front->prev || front->next))
         return 0;
 
-    if ((front and not end) or ( not front and end))
+    if ((front && !end) || (!front && end))
         return 0;
 
-    if (front == (void*)0xdddddddd or front == (void*)0xfcfcfcfc)
+    if (front == (void*)0xdddddddd || front == (void*)0xfcfcfcfc)
         return 0;
 
-    if (end == (void*)0xdddddddd or end == (void*)0xfcfcfcfc)
+    if (end == (void*)0xdddddddd || end == (void*)0xfcfcfcfc)
         return 0;
 
     cur = front;
     next = cur->next;
 
-    while (cur and next)
+    while (cur && next)
     {
-        if (next->prev not_eq cur)
+        if (next->prev != cur)
             return 0;
 
         cur = next;
@@ -230,9 +230,9 @@ int ListClass::SanityCheck(void)
     cur = end;
     next = cur->prev;
 
-    while (cur and next)
+    while (cur && next)
     {
-        if (next->next not_eq cur)
+        if (next->next != cur)
             return 0;
 
         cur = next;

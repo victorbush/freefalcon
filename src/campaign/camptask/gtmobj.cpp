@@ -43,7 +43,7 @@ void CleanupObjList(void)
         pod = (POData) lp->GetUserData();
         o = FindObjective(pod->objective);
 
-        if ( not o or not o->IsPrimary())
+        if (!o || !o->IsPrimary())
             PODataList->Remove(lp);
 
         lp = np;
@@ -57,7 +57,7 @@ void CleanupObjList(void)
     {
         pod = GetPOData(o);
 
-        if ( not pod)
+        if (!pod)
             AddPODataEntry(o);
 
         o = GetNextObjective(&poit);
@@ -205,7 +205,7 @@ UnitScoreNode* UnitScoreNode::Insert(UnitScoreNode* to_insert, int sort_by)
     }
     else
     {
-        if (to_insert not_eq this)
+        if (to_insert != this)
             to_insert->next = this;
         else
             to_insert->next = NULL;
@@ -348,16 +348,16 @@ GODNode GndObjDataType::Insert(GODNode to_insert, int sort_by)
         if (to_insert->priority_score > priority_score)
         {
             to_insert->next = this;
-            ShiAssert(this not_eq to_insert);
+            ShiAssert(this != to_insert);
             return to_insert;
         }
 
-        if ( not next or to_insert->priority_score > next->priority_score)
+        if (!next || to_insert->priority_score > next->priority_score)
         {
             to_insert->next = next;
-            ShiAssert(next not_eq to_insert);
+            ShiAssert(next != to_insert);
 
-            if (to_insert not_eq this)
+            if (to_insert != this)
                 next = to_insert;
             else
                 next = NULL;
@@ -372,7 +372,7 @@ GODNode GndObjDataType::Insert(GODNode to_insert, int sort_by)
             if (to_insert->priority_score > temp->next->priority_score)
             {
                 to_insert->next = temp->next;
-                ShiAssert(temp->next not_eq to_insert);
+                ShiAssert(temp->next != to_insert);
                 temp->next = to_insert;
                 return this;
             }
@@ -388,16 +388,16 @@ GODNode GndObjDataType::Insert(GODNode to_insert, int sort_by)
         if (to_insert->unit_options < unit_options)
         {
             to_insert->next = this;
-            ShiAssert(this not_eq to_insert);
+            ShiAssert(this != to_insert);
             return to_insert;
         }
 
-        if ( not next or to_insert->unit_options < next->unit_options)
+        if (!next || to_insert->unit_options < next->unit_options)
         {
             to_insert->next = next;
-            ShiAssert(next not_eq to_insert);
+            ShiAssert(next != to_insert);
 
-            if (to_insert not_eq this)
+            if (to_insert != this)
                 next = to_insert;
             else
                 next = NULL;
@@ -412,7 +412,7 @@ GODNode GndObjDataType::Insert(GODNode to_insert, int sort_by)
             if (to_insert->unit_options < temp->next->unit_options)
             {
                 to_insert->next = temp->next;
-                ShiAssert(temp->next not_eq to_insert);
+                ShiAssert(temp->next != to_insert);
                 temp->next = to_insert;
                 return this;
             }
@@ -424,7 +424,7 @@ GODNode GndObjDataType::Insert(GODNode to_insert, int sort_by)
     }
     else
     {
-        if (to_insert not_eq this)
+        if (to_insert != this)
             to_insert->next = this;
         else
             to_insert->next = NULL;
@@ -446,7 +446,7 @@ GODNode GndObjDataType::Remove(GODNode to_remove)
         return temp;
     }
 
-    if ( not next)
+    if (!next)
         return this;
 
     temp = this;
@@ -477,7 +477,7 @@ GODNode GndObjDataType::Remove(Objective o)
         return temp;
     }
 
-    if ( not next)
+    if (!next)
         return this;
 
     temp = this;
@@ -546,7 +546,7 @@ void GndObjDataType::InsertUnit(Unit u, int s, int d)
 {
     USNode new_node;
 
-    if (s <= 0 or d <= 0)
+    if (s <= 0 || d <= 0)
         return;
 
     new_node = new UnitScoreNode;
@@ -556,7 +556,7 @@ void GndObjDataType::InsertUnit(Unit u, int s, int d)
     new_node->next = NULL;
     unit_options += GetOptions(new_node->distance);
 
-    if ( not unit_list)
+    if (!unit_list)
         unit_list = new_node;
 
     unit_list = unit_list->Insert(new_node, USN_SORT_BY_DISTANCE);

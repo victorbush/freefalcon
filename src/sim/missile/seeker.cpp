@@ -25,8 +25,8 @@ void MissileClass::RunSeeker()
     // Shouldn't be necessary, but at this stage, lets be safe...
     // No seeker if in SAFE
     if (
- not sensorArray or not sensorArray[0] or
-        launchState == PreLaunch and parent and parent->IsAirplane() and 
+        !sensorArray || !sensorArray[0] ||
+        launchState == PreLaunch && parent && parent->IsAirplane() &&
         ((AircraftClass*)parent.get())->Sms->MasterArm() == SMSBaseClass::Safe
     )
     {
@@ -52,17 +52,17 @@ void MissileClass::RunSeeker()
     }
 
     // see if its time to go active
-    float factor = ((targetPtr and targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f);
+    float factor = ((targetPtr && targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f);
 
     if (
-        inputData->mslActiveTtg > 0 and 
+        inputData->mslActiveTtg > 0 &&
         (
-            timpct * factor < inputData->mslActiveTtg and 
-            sensorArray[0]->Type() not_eq SensorClass::Radar
-        ) or
+            timpct * factor < inputData->mslActiveTtg &&
+            sensorArray[0]->Type() != SensorClass::Radar
+        ) ||
         (
-            launchState == InFlight and sensorArray[0]->Type() not_eq SensorClass::Radar and 
-            ( not isSlave or not targetPtr) //I-Hawk - was missing the parentheses here, caused heat seeker locking problems
+            launchState == InFlight && sensorArray[0]->Type() != SensorClass::Radar &&
+            (!isSlave || !targetPtr) //I-Hawk - was missing the parentheses here, caused heat seeker locking problems
         )
     )
     {
@@ -74,17 +74,17 @@ void MissileClass::RunSeeker()
     lockedTarget = sensorArray[0]->Exec(targetList);
 
     // Make sure we don't target ourselves
-    if (lockedTarget and lockedTarget->BaseData() == parent)
+    if (lockedTarget && lockedTarget->BaseData() == parent)
     {
         lockedTarget = NULL;
     }
 
     // Deal with the case where the seeker lost lock on the intended target
-    if (lockedTarget not_eq targetPtr)
+    if (lockedTarget != targetPtr)
     {
         if (
-            (inputData->mslActiveTtg > 0) and 
-            (sensorArray[0]->Type() not_eq SensorClass::Radar) and 
+            (inputData->mslActiveTtg > 0) &&
+            (sensorArray[0]->Type() != SensorClass::Radar) &&
             launchState == InFlight
         )
         {
@@ -92,15 +92,15 @@ void MissileClass::RunSeeker()
             GoActive();
             // sfr: shouldnt we finish here
         }
-        else if (targetPtr and targetPtr->localData->range * targetPtr->localData->range <= lethalRadiusSqrd)
+        else if (targetPtr && targetPtr->localData->range * targetPtr->localData->range <= lethalRadiusSqrd)
         {
             // We were close enough to detonate, so do it
-            flags or_eq ClosestApprch;
+            flags |= ClosestApprch;
         }
         else
         {
             // Record that we lost lock on our original target
-            flags or_eq SensorLostLock;
+            flags |= SensorLostLock;
 
             // Update relative geometry on the new target (if any)
             if (lockedTarget)
@@ -141,16 +141,16 @@ void MissileClass::RunSeeker()
     // Don't come here without a sensor
     ShiAssert(sensorArray);
 
-    if ( not sensorArray) return; // Shouldn't be necessary, but at this stage, lets be safe...
+    if (!sensorArray) return; // Shouldn't be necessary, but at this stage, lets be safe...
 
     // Don't come here without a sensor
     ShiAssert(sensorArray[0]);
 
-    if ( not sensorArray[0]) return; // Shouldn't be necessary, but at this stage, lets be safe...
+    if (!sensorArray[0]) return; // Shouldn't be necessary, but at this stage, lets be safe...
 
     // No seeker if in SAFE
     if (
-        launchState == PreLaunch and parent and parent->IsAirplane() and 
+        launchState == PreLaunch && parent && parent->IsAirplane() &&
         ((AircraftClass*)parent.get())->Sms->MasterArm() == SMSBaseClass::Safe
     )
     {
@@ -180,34 +180,34 @@ void MissileClass::RunSeeker()
     // KLUDGE: 2000-08-26 MODIFIED BY S.G. SO ARH MISSILE WAIT LONGER WHEN THE TARGET IS JAMMING
     // IT DOESN'T MATTER IF targetPtr IS NULL AND newTarget IS SET BECAUSE GoActive
     // WILL BE DONE LATER IN THE ROUTINE ANYHOW IN SUCH A SCENARIO
-    // if ((timpct < inputData->mslActiveTtg) and (sensorArray[0]->Type() not_eq SensorClass::Radar))
+    // if ((timpct < inputData->mslActiveTtg) && (sensorArray[0]->Type() != SensorClass::Radar))
 
-    // ME123 WE GET A CTD HERE IF NOT MAKING THE ARH CHECK FIRST 
+    // ME123 WE GET A CTD HERE IF NOT MAKING THE ARH CHECK FIRST !
     // if (timpct *
-    // ((targetPtr and targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f) <
-    // inputData->mslActiveTtg and sensorArray[0]->Type() not_eq SensorClass::Radar)
+    // ((targetPtr && targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f) <
+    // inputData->mslActiveTtg && sensorArray[0]->Type() != SensorClass::Radar)
     // Marco edit - Also added in GoActive for 'Mad Dog' Launches
     //if (
-    // inputData->mslActiveTtg > 0 and 
-    // launchState == InFlight and 
-    // sensorArray[0]->Type() not_eq SensorClass::Radar and 
-    // not isSlave
+    // inputData->mslActiveTtg > 0 &&
+    // launchState == InFlight &&
+    // sensorArray[0]->Type() != SensorClass::Radar &&
+    // !isSlave
     //){
     // Pitbull = false;
     //}
 
-    float factor = ((targetPtr and targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f);
+    float factor = ((targetPtr && targetPtr->BaseData()->IsSPJamming()) ? 1.5f : 1.0f);
 
     if (
-        inputData->mslActiveTtg > 0 and 
+        inputData->mslActiveTtg > 0 &&
         (
-            timpct * factor < inputData->mslActiveTtg and 
-            sensorArray[0]->Type() not_eq SensorClass::Radar
-        ) or
+            timpct * factor < inputData->mslActiveTtg &&
+            sensorArray[0]->Type() != SensorClass::Radar
+        ) ||
         (
-            inputData->mslActiveTtg > 0 and 
-            launchState == InFlight and sensorArray[0]->Type() not_eq SensorClass::Radar and 
-            ( not isSlave or not targetPtr)
+            inputData->mslActiveTtg > 0 &&
+            launchState == InFlight && sensorArray[0]->Type() != SensorClass::Radar &&
+            (!isSlave || !targetPtr)
         )
     )
     {
@@ -230,7 +230,7 @@ void MissileClass::RunSeeker()
 #define ALWAYS_RELEASE_LOCAL_LIST 1
 #if ALWAYS_RELEASE_LOCAL_LIST
 
-    if (localList/* and ( not lockedTarget)*/)
+    if (localList/* && (!lockedTarget)*/)
     {
         ReleaseTargetList(newTarget);
         targetPtr = NULL;
@@ -238,7 +238,7 @@ void MissileClass::RunSeeker()
 
 #else
 
-    if (localList and ( not lockedTarget))
+    if (localList && (!lockedTarget))
     {
         ReleaseTargetList(newTarget);
         targetPtr = NULL;
@@ -250,7 +250,7 @@ void MissileClass::RunSeeker()
     // ********************************** NEW CODE - END *****************************
 
     // Make sure we don't target ourselves
-    if (newTarget and newTarget->BaseData() == parent)
+    if (newTarget && newTarget->BaseData() == parent)
     {
 #if ALWAYS_RELEASE_LOCAL_LIST
         // sfr: should we release targets??
@@ -260,26 +260,26 @@ void MissileClass::RunSeeker()
     }
 
     // Deal with the case where the seeker lost lock on the intended target
-    if (newTarget not_eq targetPtr)
+    if (newTarget != targetPtr)
     {
         if (
-            (inputData->mslActiveTtg > 0) and 
-            (sensorArray[0]->Type() not_eq SensorClass::Radar) and 
+            (inputData->mslActiveTtg > 0) &&
+            (sensorArray[0]->Type() != SensorClass::Radar) &&
             launchState == InFlight
         )
         {
             // We can switch from passive to active guidance - go active if passive fails
             GoActive();
         }
-        else if (targetPtr and targetPtr->localData->range * targetPtr->localData->range <= lethalRadiusSqrd)
+        else if (targetPtr && targetPtr->localData->range * targetPtr->localData->range <= lethalRadiusSqrd)
         {
             // We were close enough to detonate, so do it
-            flags or_eq ClosestApprch;
+            flags |= ClosestApprch;
         }
         else
         {
             // Record that we lost lock on our original target
-            flags or_eq SensorLostLock;
+            flags |= SensorLostLock;
 
             // Update relative geometry on the new target (if any)
             if (newTarget)
@@ -319,12 +319,12 @@ void MissileClass::RunSeeker()
         ata = targetPtr->localData->ata;
 
         if (
-            ata > inputData->gimlim or
-            fabs(sensorArray[0]->SeekerAz() - targetPtr->localData->az) > inputData->atamax or
+            ata > inputData->gimlim ||
+            fabs(sensorArray[0]->SeekerAz() - targetPtr->localData->az) > inputData->atamax ||
             fabs(sensorArray[0]->SeekerEl() - targetPtr->localData->el) > inputData->atamax
         )
         {
-            //flags or_eq SensorLostLock;
+            //flags |= SensorLostLock;
             //SetTarget( NULL );
         }
     }
@@ -338,7 +338,7 @@ void MissileClass::RunSeeker()
 void MissileClass::GoActive(void)
 {
     // Can't go active is we're already active
-    ShiAssert(sensorArray[0]->Type() not_eq SensorClass::Radar)
+    ShiAssert(sensorArray[0]->Type() != SensorClass::Radar)
 
     // Get rid of the old sensor
     sensorArray[0]->SetPower(FALSE);
@@ -366,9 +366,9 @@ void MissileClass::LimitSeeker(float az, float el)
     float gimbalCmd;        /* Gimbal command */
     float azCmd, elCmd;
 
-    //  if (inputData->seekerType not_eq SensorClass::RadarHoming)
+    //  if (inputData->seekerType != SensorClass::RadarHoming)
     {
-        /*     if ( targetPtr == NULL)// launchState == PreLaunch or
+        /*     if ( targetPtr == NULL)// launchState == PreLaunch ||
              {
                 azCmd = sensorArray[0]->SeekerAz();
                 elCmd = sensorArray[0]->SeekerEl();
@@ -380,7 +380,7 @@ void MissileClass::LimitSeeker(float az, float el)
             /*---------------------------*/
             /* antenna train angle limit */
             /*---------------------------*/
-            if (launchState == InFlight and runTime <= inputData->guidanceDelay)
+            if (launchState == InFlight && runTime <= inputData->guidanceDelay)
             {
                 gimbalCmd = ata;
                 azCmd = 0.0F;

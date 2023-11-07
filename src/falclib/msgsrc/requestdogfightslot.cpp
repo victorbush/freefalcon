@@ -36,12 +36,12 @@ UI_RequestDogfightSlot::~UI_RequestDogfightSlot(void)
 
 int UI_RequestDogfightSlot::Process(uchar autodisp)
 {
- if(gCommsMgr not_eq NULL)
+ if(gCommsMgr != NULL)
  {
  if (vuLocalSessionEntity->Game()->OwnerId() == vuLocalSessionEntity->Id())
  {
  FalconSessionEntity* requester = (FalconSessionEntity*)vuDatabase->Find(dataBlock.requester_id);
- if ( not requester)
+ if (!requester)
  return FALSE;
 
  UI_SendDogfightSlot *slot=new UI_SendDogfightSlot(FalconNullId,requester);

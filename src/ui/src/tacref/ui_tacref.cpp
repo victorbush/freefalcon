@@ -115,7 +115,7 @@ void StopRWRSounds()
     C_Window *win;
     C_Button *btn;
 
-    if (LastLockTone not_eq -1)
+    if (LastLockTone != -1)
     {
         if (SFX_DEF) // JB 010425
             F4StopSound(SFX_DEF[LastLockTone].handle);
@@ -123,7 +123,7 @@ void StopRWRSounds()
         LastLockTone = -1;
     }
 
-    if (LastRWRTone not_eq -1)
+    if (LastRWRTone != -1)
     {
         if (SFX_DEF) // JB 010425
             F4StopSound(SFX_DEF[LastRWRTone].handle);
@@ -155,7 +155,7 @@ void StopRWRSounds()
 
 void TACREFCloseWindowCB(long ID, short hittype, C_Base *control)
 {
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     StopRWRSounds();
@@ -165,7 +165,7 @@ void TACREFCloseWindowCB(long ID, short hittype, C_Base *control)
 
 void TACREF_PositionCamera(OBJECTINFO *Info, C_Window *win, long client)
 {
-    if ( not TAC_Viewer or not Info or not win)
+    if (!TAC_Viewer || !Info || !win)
         return;
 
     FindCameraDeltas(Info);
@@ -179,7 +179,7 @@ static void TACREF_PannerCB(long, short hittype, C_Base *control)
     float dx, dy;
     C_Panner *pnr;
 
-    if (hittype not_eq C_TYPE_LMOUSEUP and hittype not_eq C_TYPE_REPEAT)
+    if (hittype != C_TYPE_LMOUSEUP && hittype != C_TYPE_REPEAT)
         return;
 
     pnr = static_cast<C_Panner *>(control);
@@ -217,7 +217,7 @@ static void TACREF_ZoomCB(long, short hittype, C_Base *control)
     C_Panner *pnr;
 
 
-    if (hittype not_eq C_TYPE_LMOUSEUP and hittype not_eq C_TYPE_REPEAT)
+    if (hittype != C_TYPE_LMOUSEUP && hittype != C_TYPE_REPEAT)
         return;
 
 
@@ -256,7 +256,7 @@ void TACREF_ViewTimerAnimCB(long, short, C_Base *control)
             }
         }
 
-        if (control->GetFlags() bitand C_BIT_ABSOLUTE)
+        if (control->GetFlags() & C_BIT_ABSOLUTE)
         {
             control->Parent_->RefreshWindow();
         }
@@ -308,7 +308,7 @@ static void BuildStatsTree(Statistics *stats, C_TreeList *tree)
     long catval = 0; // internal... don't use for anything
     long UniqueID = 1;
 
-    if ( not stats or not tree)
+    if (!stats || !tree)
         return;
 
     tree->Parent_->ScanClientArea(tree->GetClient());
@@ -346,7 +346,7 @@ static void BuildDescTree(Description *desc, C_TreeList *tree)
     long textval = 0;
     long UniqueID = 1;
 
-    if ( not desc or not tree)
+    if (!desc || !tree)
         return;
 
     tree->Parent_->ScanClientArea(tree->GetClient());
@@ -434,7 +434,7 @@ static void BuildRWRList(RWR *rwr, C_ListBox *listbox)
     long rwrval = 0;
     long UniqueID = 1;
 
-    if ( not rwr or not listbox)
+    if (!rwr || !listbox)
         return;
 
     radar = rwr->GetFirst(&rwrval);
@@ -470,7 +470,7 @@ static void Unload3dModel()
     long i, visFlag;
     BSPLIST *obj, *Weapon;
 
-    if (CurrentWeapon and CurrentModel)
+    if (CurrentWeapon && CurrentModel)
     {
         obj = TAC_Viewer->Find(CurrentModel);
         Weapon = TAC_Viewer->Find(CurrentWeapon);
@@ -480,7 +480,7 @@ static void Unload3dModel()
 
         for (i = 0; i < HARDPOINT_MAX; i++)
         {
-            if (visFlag bitand (1 << i))
+            if (visFlag & (1 << i))
             {
                 // This is a visible weapon, so detach
                 ((DrawableBSP*)obj->object)->DetachChild(((DrawableBSP*)Weapon->object), i);
@@ -702,7 +702,7 @@ static void Load3dModel(Entity *ent)
             obj = TAC_Viewer->LoadBSP(modelid, modelid, TRUE);
 
             // if (ent->ModelID == MapVisId(VIS_F16C))
-            if (modelid == MapVisId(VIS_F16C) or ((DrawableBSP*)obj->object)->instance.ParentObject->nSwitches >= 10)
+            if (modelid == MapVisId(VIS_F16C) || ((DrawableBSP*)obj->object)->instance.ParentObject->nSwitches >= 10)
             {
                 ((DrawableBSP*)obj->object)->SetSwitchMask(10, 1); // Afterburner
                 ((DrawableBSP*)obj->object)->SetSwitchMask(31, 1); // Afterburner
@@ -737,7 +737,7 @@ static void Load3dModel(Entity *ent)
 
                     for (i = 0; i < HARDPOINT_MAX; i++)
                     {
-                        if (visFlag bitand (1 << i))
+                        if (visFlag & (1 << i))
                         {
                             // This is a visible weapon, so attach
                             ((DrawableBSP*)obj->object)->AttachChild(((DrawableBSP*)Weapon->object), i);
@@ -862,7 +862,7 @@ static long InfoToWindow(long SubGroupID)
                 ent = Reference->GetNext(&entval);
             }
 
-            if ( not lbox->GetRoot())
+            if (!lbox->GetRoot())
             {
                 lbox->AddItem(1, C_TYPE_ITEM, TXT_NONE);
                 lbox->SetValue(1);
@@ -985,7 +985,7 @@ static void SelectGroupCB(long ID, short hittype, C_Base *control)
 {
     F4CSECTIONHANDLE *Leave;
 
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     StopRWRSounds();
@@ -1010,7 +1010,7 @@ static void SelectSubGroupCB(long ID, short hittype, C_Base *control)
 {
     F4CSECTIONHANDLE *Leave;
 
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     StopRWRSounds();
@@ -1024,7 +1024,7 @@ static void SelectEntityCB(long ID, short hittype, C_Base *control)
     F4CSECTIONHANDLE *Leave;
     C_ListBox *lbox = (C_ListBox*)control;
 
-    if (hittype not_eq C_TYPE_SELECT)
+    if (hittype != C_TYPE_SELECT)
         return;
 
     StopRWRSounds();
@@ -1038,7 +1038,7 @@ static void SelectRWRCB(long ID, short hittype, C_Base *control)
 {
     C_ListBox *lbox = (C_ListBox*)control;
 
-    if (hittype not_eq C_TYPE_SELECT)
+    if (hittype != C_TYPE_SELECT)
         return;
 
     StopRWRSounds();
@@ -1048,7 +1048,7 @@ static void SelectRWRCB(long ID, short hittype, C_Base *control)
 
 static void PlaySoundCB(long, short hittype, C_Base *control)
 {
-    if (hittype not_eq C_TYPE_LMOUSEUP)
+    if (hittype != C_TYPE_LMOUSEUP)
         return;
 
     if (control->GetState())
@@ -1058,10 +1058,10 @@ static void PlaySoundCB(long, short hittype, C_Base *control)
 
         LastLockTone = control->GetUserNumber(0);
 
-        if (SFX_DEF and LastLockTone not_eq -1) // JB 010425
+        if (SFX_DEF && LastLockTone != -1) // JB 010425
             F4LoopSound(SFX_DEF[LastLockTone].handle);
     }
-    else if (LastLockTone not_eq -1)
+    else if (LastLockTone != -1)
     {
         if (SFX_DEF) // JB 010425
             F4StopSound(SFX_DEF[LastLockTone].handle);
@@ -1130,170 +1130,170 @@ static void HookupTacticalReferenceControls(long ID)
     // Hook up AIRCRAFT SELECT button
     ctrl = (C_Button *)winme->FindControl(CAT_AIRCRAFT);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectGroupCB);
 
     // Hook up VEHICLES SELECT button
     ctrl = (C_Button *)winme->FindControl(CAT_VEHICLES);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectGroupCB);
 
     // Hook up MUNITIONS SELECT button
     ctrl = (C_Button *)winme->FindControl(CAT_MUNITIONS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectGroupCB);
 
     // Hook up SUB AIRCRAFT FIGHTERS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_FIGHTERS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB AIRCRAFT ATTACK button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_ATTACK);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB AIRCRAFT BOMBERS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_BOMBERS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB AIRCRAFT HELICOPTERS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_HELICOPTERS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB AIRCRAFT SUPPORT button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_SUPPORT);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB AIRCRAFT EW button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_AIRCRAFT_EW);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES TANKS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_TANKS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES IFVS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_IFVS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES ARTILLERY button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_ARTILLERY);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES AIRDEFENSE button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_AIRDEFENSE);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES SUPPORT button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_SUPPORT);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB VEHICLES SHIPS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_VEHICLES_SHIPS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS AAM button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_AAM);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS AGM button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_AGM);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS ARM button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_ARM);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS BOMBS button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_BOMBS);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS STORES button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_STORES);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up SUB MUNITIONS GROUND button
     ctrl = (C_Button *)winme->FindControl(SUB_CAT_MUNITIONS_GROUND);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(SelectSubGroupCB);
 
     // Hook up Close Button
     ctrl = (C_Button *)winme->FindControl(CLOSE_WINDOW);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(TACREFCloseWindowCB);
 
     // for ROTATION
     panner = (C_Panner *)winme->FindControl(TACREF_PANNER);
 
-    if (panner not_eq NULL)
+    if (panner != NULL)
         panner->SetCallback(TACREF_PannerCB);
 
     // for ZOOM
     panner = (C_Panner *)winme->FindControl(TACREF_ZOOMER);
 
-    if (panner not_eq NULL)
+    if (panner != NULL)
         panner->SetCallback(TACREF_ZoomCB);
 
     lbox = (C_ListBox *)winme->FindControl(ENTITY_LIST);
 
-    if (lbox not_eq NULL)
+    if (lbox != NULL)
         lbox->SetCallback(SelectEntityCB);
 
 
     // RWR LISTBOX
     lbox = (C_ListBox *)winme->FindControl(RWR_LIST);
 
-    if (lbox not_eq NULL)
+    if (lbox != NULL)
         lbox->SetCallback(SelectRWRCB);
 
 
     // Hook up RWR Search Tone
     ctrl = (C_Button *)winme->FindControl(PLAY_SEARCH_TONE);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(PlaySoundCB);
 
     // Hook up RWR Lock Tone
     ctrl = (C_Button *)winme->FindControl(PLAY_LOCK_TONE);
 
-    if (ctrl not_eq NULL)
+    if (ctrl != NULL)
         ctrl->SetCallback(PlaySoundCB);
 
     // Help GUIDE thing
@@ -1333,7 +1333,7 @@ BOOL TacRef_Setup()
     {
         if (TAC_Viewer == NULL)
         {
-            if (TAC_Viewer not_eq NULL)
+            if (TAC_Viewer != NULL)
             {
                 TAC_Viewer->Cleanup();
                 delete TAC_Viewer;
@@ -1348,7 +1348,7 @@ BOOL TacRef_Setup()
             TAC_Viewer->Init3d(30.0f);
         }
 
-        if ( not Reference)
+        if (!Reference)
         {
             Reference = new TacticalReference;
             // RV - Biker - Load theater specific tacref

@@ -29,7 +29,7 @@ VuEntity *VuLifoQueue::Pop()
 {
     VuScopeLock l(GetMutex());
 
-    if ( not l_.empty())
+    if (!l_.empty())
     {
         VuEntity *e = Peek();
         l_.pop_front();

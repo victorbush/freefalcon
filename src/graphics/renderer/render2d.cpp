@@ -5,7 +5,6 @@
 
     This class provides 2D drawing functions.
 \***************************************************************************/
-#include <cISO646>
 #include <math.h>
 #include "falclib/include/debuggr.h"
 #include "Image.h"
@@ -102,7 +101,7 @@ void Render2D::Setup(ImageBuffer *imageBuffer)
     //result = context.Setup( (DWORD)imageBuffer->targetSurface(), (DWORD)imageBuffer->GetDisplayDevice()->GetMPRdevice());
     result = context.Setup(imageBuffer, imageBuffer->GetDisplayDevice()->GetDefaultRC());
 
-    if ( not result)
+    if (!result)
     {
         ShiError("Failed to setup rendering context");
     }
@@ -249,9 +248,9 @@ void Render2D::Render2DTri(float x1, float y1, float x2, float y2, float x3, flo
 
     //Clip test
     if (
-        (max(max(x1, x2), x3) > rightPixel) or
-        (min(min(x1, x2), x3) < leftPixel) or
-        (max(max(y1, y2), y3) > bottomPixel) or
+        (max(max(x1, x2), x3) > rightPixel) ||
+        (min(min(x1, x2), x3) < leftPixel) ||
+        (max(max(y1, y2), y3) > bottomPixel) ||
         (min(min(y1, y2), y3) < topPixel)
     )
         return;
@@ -301,7 +300,7 @@ void Render2D::Render2DBitmap(int sX, int sY, int dX, int dY, int w, int h, char
 
     // Make sure we recognize this file type
     texFile.imageType = CheckImageType(filename);
-    ShiAssert(texFile.imageType not_eq IMAGE_TYPE_UNKNOWN);
+    ShiAssert(texFile.imageType != IMAGE_TYPE_UNKNOWN);
 
     // Open the input file
     result = texFile.glOpenFileMem(filename);
@@ -311,7 +310,7 @@ void Render2D::Render2DBitmap(int sX, int sY, int dX, int dY, int w, int h, char
     texFile.glReadFileMem();
     result = ReadTextureImage(&texFile);
 
-    if (result not_eq GOOD_READ)
+    if (result != GOOD_READ)
     {
         ShiError("Failed to read bitmap.  CD Error?");
     }
@@ -356,7 +355,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
     //JAM 15Dec03
     BOOL bToggle = FALSE;
 
-    if (context.bZBuffering and DisplayOptions.bZBuffering)
+    if (context.bZBuffering && DisplayOptions.bZBuffering)
     {
         bToggle = TRUE;
         context.SetZBuffering(FALSE);
@@ -373,15 +372,15 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
     color = Color();
 
     // COBRA - RED - is forced alpha get it from the color else dafaults to 1
-    if (ForceAlpha) a = ((color bitand 0xFF000000) >> 24) / 255.0F;
+    if (ForceAlpha) a = ((color & 0xFF000000) >> 24) / 255.0F;
     else a = 1.0f;
 
     // Draw two tris to make a square;
-    if (boxed not_eq 2)
+    if (boxed != 2)
     {
-        r = (color bitand 0xFF) / 255.0F;
-        g = ((color bitand 0xFF00) >> 8) / 255.0F;
-        b = ((color bitand 0xFF0000) >> 16) / 255.0F;
+        r = (color & 0xFF) / 255.0F;
+        g = ((color & 0xFF00) >> 8) / 255.0F;
+        b = ((color & 0xFF0000) >> 16) / 255.0F;
     }
     else
     {
@@ -433,7 +432,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
 
     if (ForceAlpha)
     {
-        // force the Hud mode bitand text gets color from the Vertices
+        // force the Hud mode & text gets color from the Vertices
         context.RestoreState(STATE_CHROMA_TEXTURE_GOURAUD2); // COBRA - RED - Alpha Option
         context.TexColorDiffuse();
     }
@@ -502,16 +501,16 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
         pVtx[5].q = 1.0F;
 
         // Do a block clip
-        if ( not (pVtx[0].x <= rightPixel and pVtx[0].x >= leftPixel and pVtx[0].y <= bottomPixel and pVtx[0].y >= topPixel))
+        if (!(pVtx[0].x <= rightPixel && pVtx[0].x >= leftPixel && pVtx[0].y <= bottomPixel && pVtx[0].y >= topPixel))
             break;
 
-        if ( not (pVtx[1].x <= rightPixel and pVtx[1].x >= leftPixel and pVtx[1].y <= bottomPixel and pVtx[1].y >= topPixel))
+        if (!(pVtx[1].x <= rightPixel && pVtx[1].x >= leftPixel && pVtx[1].y <= bottomPixel && pVtx[1].y >= topPixel))
             break;
 
-        if ( not (pVtx[2].x <= rightPixel and pVtx[2].x >= leftPixel and pVtx[2].y <= bottomPixel and pVtx[2].y >= topPixel))
+        if (!(pVtx[2].x <= rightPixel && pVtx[2].x >= leftPixel && pVtx[2].y <= bottomPixel && pVtx[2].y >= topPixel))
             break;
 
-        if ( not (pVtx[5].x <= rightPixel and pVtx[5].x >= leftPixel and pVtx[5].y <= bottomPixel and pVtx[5].y >= topPixel))
+        if (!(pVtx[5].x <= rightPixel && pVtx[5].x >= leftPixel && pVtx[5].y <= bottomPixel && pVtx[5].y >= topPixel))
             break;
 
         x += pFontSet->fontData[pFontSet->fontNum][*string].pixelWidth;
@@ -523,7 +522,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
     ShiAssert(n < 256);
 
     if (n)
-        context.DrawPrimitive(MPR_PRM_TRIANGLES, MPR_VI_COLOR bitor MPR_VI_TEXTURE, n * 6, vert, sizeof(vert[0]));
+        context.DrawPrimitive(MPR_PRM_TRIANGLES, MPR_VI_COLOR | MPR_VI_TEXTURE, n * 6, vert, sizeof(vert[0]));
 
     if (ForceAlpha) context.RestoreState(STATE_ALPHA_SOLID); // COBRA - RED - Alpha Option
     else context.RestoreState(STATE_SOLID);
@@ -537,7 +536,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
         float y2 = yTop + pFontSet->fontData[pFontSet->fontNum][32].pixelHeight;
 
         // Only draw the box if it is entirely on screen
-        if ((x1 > leftPixel) and (x2 < rightPixel) and (y1 > topPixel) and (y2 < bottomPixel))
+        if ((x1 > leftPixel) && (x2 < rightPixel) && (y1 > topPixel) && (y2 < bottomPixel))
         {
             Render2DLine(x1, y1, x2, y1);
             Render2DLine(x2, y1, x2, y2);
@@ -559,7 +558,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
         x1 = max(x1, leftPixel + 1.0F);
 
         // Only draw the box if it is entirely on screen
-        if ((x1 > leftPixel) and (x2 < rightPixel) and (y1 > topPixel) and (y2 < bottomPixel))
+        if ((x1 > leftPixel) && (x2 < rightPixel) && (y1 > topPixel) && (y2 < bottomPixel))
         {
             Render2DLine(x0, y0, x1, y1);
             Render2DLine(x0, y0, x1, y2);
@@ -582,7 +581,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
         // Only draw the box if it is entirely on screen
         x1 = max(x1, leftPixel + 1.0F);
 
-        if ((x1 > leftPixel) and (x2 < rightPixel) and (y1 > topPixel) and (y2 < bottomPixel))
+        if ((x1 > leftPixel) && (x2 < rightPixel) && (y1 > topPixel) && (y2 < bottomPixel))
         {
             Render2DLine(x0, y0, x2, y1);
             Render2DLine(x0, y0, x2, y2);
@@ -593,7 +592,7 @@ void Render2D::ScreenText(float xLeft, float yTop, const char *string, int boxed
     }
 
     //JAM 15Dec03
-    if (bToggle and DisplayOptions.bZBuffering)
+    if (bToggle && DisplayOptions.bZBuffering)
     {
         context.SetZBuffering(TRUE);
         context.SetState(MPR_STA_ENABLES, MPR_SE_Z_BUFFERING);
@@ -606,16 +605,16 @@ void Render2D::Load2DFontSet()
 {
 #ifdef USE_TEXTURE_FONT
 
-    //Wombat778 12-12-2003 Added to allow fonts to be chosen based on the current resolution (code that runs under not g_bAutoScaleFonts is the original)
-    if ( not g_bAutoScaleFonts)
+    //Wombat778 12-12-2003 Added to allow fonts to be chosen based on the current resolution (code that runs under !g_bAutoScaleFonts is the original)
+    if (!g_bAutoScaleFonts)
     {
-        if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font2D.fontTexture[0].CreateTexture("6x4font.gif");
 
-        if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font2D.fontTexture[1].CreateTexture("8x6font.gif");
 
-        if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font2D.fontTexture[2].CreateTexture("10x7font.gif");
 
         Font2D.ReadFontMetrics(0, "art\\ckptart\\6x4font.rct");
@@ -623,8 +622,8 @@ void Render2D::Load2DFontSet()
         Font2D.ReadFontMetrics(2, "art\\ckptart\\10x7font.rct");
         Font2D.totalFont = 3; // JPO new font.
 
-        if (Font2D.ReadFontMetrics(3, "art\\ckptart\\warn_font.rct") and 
-            Font2D.fontTexture[3].LoadImage("art\\ckptart\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font2D.ReadFontMetrics(3, "art\\ckptart\\warn_font.rct") &&
+            Font2D.fontTexture[3].LoadImage("art\\ckptart\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
         {
             Font2D.fontTexture[3].CreateTexture("warn_font.gif");
             Font2D.totalFont = 4;
@@ -636,18 +635,18 @@ void Render2D::Load2DFontSet()
         //This should ensure that old setups arent broken if scaling is disabled
 
         // RV - Biker - Check for widescreen resolutions
-        if (DisplayOptions.DispWidth == 848 or DisplayOptions.DispWidth == 1440 or DisplayOptions.DispWidth == 1680 or DisplayOptions.DispWidth == 1920)
+        if (DisplayOptions.DispWidth == 848 || DisplayOptions.DispWidth == 1440 || DisplayOptions.DispWidth == 1680 || DisplayOptions.DispWidth == 1920)
         {
             switch (DisplayOptions.DispWidth)
             {
                 case 848:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("6x4font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\6x4font.rct");
@@ -655,8 +654,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\6x4font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font2D.totalFont = 4;
@@ -665,13 +664,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 case 1440:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("8x6font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("10x7font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("12x9font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\8x6font.rct");
@@ -679,8 +678,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\12x9font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\12warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\12warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\12warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\12warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("12warn_font.gif");
                         Font2D.totalFont = 4;
@@ -689,13 +688,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 default:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("10x7font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("12x9font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\16x12font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\16x12font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("16x12font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\10x7font.rct");
@@ -703,8 +702,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\16x12font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\16warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\16warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\16warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\16warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("16warn_font.gif");
                         Font2D.totalFont = 4;
@@ -720,13 +719,13 @@ void Render2D::Load2DFontSet()
             switch (FindBestResolution())
             {
                 case 640:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("6x4font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\6x4font.rct");
@@ -734,8 +733,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\6x4font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font2D.totalFont = 4;
@@ -744,13 +743,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 case 800:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("8x6font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\6x4font.rct");
@@ -758,8 +757,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\8x6font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font2D.totalFont = 4;
@@ -768,13 +767,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 case 1024:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("8x6font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("10x7font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\6x4font.rct");
@@ -782,8 +781,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\10x7font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font2D.totalFont = 4;
@@ -792,13 +791,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 case 1280:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("8x6font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("10x7font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("12x9font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\8x6font.rct");
@@ -806,8 +805,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\12x9font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\12warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\12warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\12warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\12warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("12warn_font.gif");
                         Font2D.totalFont = 4;
@@ -816,13 +815,13 @@ void Render2D::Load2DFontSet()
                     break;
 
                 case 1600:
-                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[0].LoadImage("art\\ckptart\\autofont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[0].CreateTexture("10x7font.gif");
 
-                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[1].LoadImage("art\\ckptart\\autofont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[1].CreateTexture("12x9font.gif");
 
-                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\16x12font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.fontTexture[2].LoadImage("art\\ckptart\\autofont\\16x12font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font2D.fontTexture[2].CreateTexture("16x12font.gif");
 
                     Font2D.ReadFontMetrics(0, "art\\ckptart\\autofont\\10x7font.rct");
@@ -830,8 +829,8 @@ void Render2D::Load2DFontSet()
                     Font2D.ReadFontMetrics(2, "art\\ckptart\\autofont\\16x12font.rct");
                     Font2D.totalFont = 3; // JPO new font.
 
-                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\16warn_font.rct") and 
-                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\16warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font2D.ReadFontMetrics(3, "art\\ckptart\\autofont\\16warn_font.rct") &&
+                        Font2D.fontTexture[3].LoadImage("art\\ckptart\\autofont\\16warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font2D.fontTexture[3].CreateTexture("16warn_font.gif");
                         Font2D.totalFont = 4;
@@ -866,15 +865,15 @@ void Render2D::Load3DFontSet()
 {
 #ifdef USE_TEXTURE_FONT
 
-    if ( not g_bAutoScaleFonts)
+    if (!g_bAutoScaleFonts)
     {
-        if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font3D.fontTexture[0].CreateTexture("6x4font.gif");
 
-        if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font3D.fontTexture[1].CreateTexture("8x6font.gif");
 
-        if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
             Font3D.fontTexture[2].CreateTexture("10x7font.gif");
 
         Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\6x4font.rct");
@@ -882,8 +881,8 @@ void Render2D::Load3DFontSet()
         Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\10x7font.rct");
         Font3D.totalFont = 3; // JPO new font.
 
-        if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") and 
-            Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+        if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") &&
+            Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
         {
             Font3D.fontTexture[3].CreateTexture("warn_font.gif");
             Font3D.totalFont = 4;
@@ -892,18 +891,18 @@ void Render2D::Load3DFontSet()
     else
     {
         // RV - Biker - Check for widescreen resolutions
-        if (DisplayOptions.DispWidth == 848 or DisplayOptions.DispWidth == 1440 or DisplayOptions.DispWidth == 1680 or DisplayOptions.DispWidth == 1920)
+        if (DisplayOptions.DispWidth == 848 || DisplayOptions.DispWidth == 1440 || DisplayOptions.DispWidth == 1680 || DisplayOptions.DispWidth == 1920)
         {
             switch (DisplayOptions.DispWidth)
             {
                 case 848:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("6x4font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\6x4font.rct");
@@ -911,8 +910,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\6x4font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font3D.totalFont = 4;
@@ -921,13 +920,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 case 1440:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("8x6font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("10x7font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("12x9font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\8x6font.rct");
@@ -935,8 +934,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\12x9font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\12warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\12warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\12warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\12warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("12warn_font.gif");
                         Font3D.totalFont = 4;
@@ -945,13 +944,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 default:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("10x7font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("12x9font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\16x12font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\16x12font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("16x12font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\10x7font.rct");
@@ -959,8 +958,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\16x12font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\16warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\16warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\16warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\16warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("16warn_font.gif");
                         Font3D.totalFont = 4;
@@ -974,13 +973,13 @@ void Render2D::Load3DFontSet()
             switch (FindBestResolution())
             {
                 case 640:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("6x4font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\6x4font.rct");
@@ -988,8 +987,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\6x4font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font3D.totalFont = 4;
@@ -998,13 +997,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 case 800:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("8x6font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\6x4font.rct");
@@ -1012,8 +1011,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\8x6font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font3D.totalFont = 4;
@@ -1022,13 +1021,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 case 1024:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\6x4font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("6x4font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("8x6font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("10x7font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\6x4font.rct");
@@ -1036,8 +1035,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\10x7font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("warn_font.gif");
                         Font3D.totalFont = 4;
@@ -1046,13 +1045,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 case 1280:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\8x6font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("8x6font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("10x7font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("12x9font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\8x6font.rct");
@@ -1060,8 +1059,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\12x9font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\12warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\12warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\12warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\12warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("12warn_font.gif");
                         Font3D.totalFont = 4;
@@ -1070,13 +1069,13 @@ void Render2D::Load3DFontSet()
                     break;
 
                 case 1600:
-                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[0].LoadImage("art\\ckptart\\3dfont\\10x7font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[0].CreateTexture("10x7font.gif");
 
-                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[1].LoadImage("art\\ckptart\\3dfont\\12x9font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[1].CreateTexture("12x9font.gif");
 
-                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\16x12font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.fontTexture[2].LoadImage("art\\ckptart\\3dfont\\16x12font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                         Font3D.fontTexture[2].CreateTexture("16x12font.gif");
 
                     Font3D.ReadFontMetrics(0, "art\\ckptart\\3dfont\\10x7font.rct");
@@ -1084,8 +1083,8 @@ void Render2D::Load3DFontSet()
                     Font3D.ReadFontMetrics(2, "art\\ckptart\\3dfont\\16x12font.rct");
                     Font3D.totalFont = 3; // JPO new font.
 
-                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\16warn_font.rct") and 
-                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\16warn_font.gif", MPR_TI_CHROMAKEY bitor MPR_TI_PALETTE, FALSE))
+                    if (Font3D.ReadFontMetrics(3, "art\\ckptart\\3dfont\\16warn_font.rct") &&
+                        Font3D.fontTexture[3].LoadImage("art\\ckptart\\3dfont\\16warn_font.gif", MPR_TI_CHROMAKEY | MPR_TI_PALETTE, FALSE))
                     {
                         Font3D.fontTexture[3].CreateTexture("16warn_font.gif");
                         Font3D.totalFont = 4;
@@ -1144,7 +1143,7 @@ int FontSet::ReadFontMetrics(int index, char*fileName) // JPO return status
     static char
     buffer[16000];
 
-    ShiAssert(index < NUM_FONT_RESOLUTIONS and index >= 0);
+    ShiAssert(index < NUM_FONT_RESOLUTIONS && index >= 0);
     ShiAssert(FALSE == IsBadStringPtr(fileName, _MAX_PATH));
 
     file = GR_OPEN(fileName, O_RDONLY);
@@ -1157,7 +1156,7 @@ int FontSet::ReadFontMetrics(int index, char*fileName) // JPO return status
 
         str = buffer;
 
-        while (str and *str)
+        while (str && *str)
         {
             int n = sscanf(str, "%d %d %d %d %d %d %d", &idx, &left, &top, &width, &height, &lead, &trail);
             ShiAssert(n == 7);
@@ -1165,7 +1164,7 @@ int FontSet::ReadFontMetrics(int index, char*fileName) // JPO return status
             //JAM 22Dec03 - Not anymore, all modern video cards do automatic biasing.
             //TODO: Add global cfg variable for older cards.
             // if(DisplayOptions.bFontTexelAlignment)
-            if (g_bOldFontTexelFix) //Wombat778 4-01-04 complete fix in drawprimitive
+            if (g_bOldFontTexelFix) //Wombat778 4-01-04  complete fix in drawprimitive
             {
                 // OW: shift u,v by a half texel. if you dont do that and the card filters it fetches the wrong texels
                 // because if you specify 1.0 you're saying that you want the far-right edge of this texel
@@ -1199,7 +1198,7 @@ int FontSet::ReadFontMetrics(int index, char*fileName) // JPO return status
 
             str = strstr(str, "\n");
 
-            while ((str) and ((*str == '\n') or (*str == '\r')))
+            while ((str) && ((*str == '\n') || (*str == '\r')))
             {
                 str ++;
             }

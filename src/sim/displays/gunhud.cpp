@@ -35,7 +35,7 @@ void HudClass::DrawGuns(void)
 
     // 2001-04-09 ADDED  BY S.G. IF WE HAVE NO GUNS ONBOARD, DON'T DO GUNS DISPLAY STUFF
     // RV - Biker - AC without guns should also have a reticle and target location line
-    if ( not ownship->Guns)
+    if (!ownship->Guns)
     {
         //return;
         tmpMode = FireControlComputer::EEGS;
@@ -52,7 +52,7 @@ void HudClass::DrawGuns(void)
         sprintf(tmpStr, "%.0f", max(min(10000.0F, -targetData->rangedot * FTPSEC_TO_KNOTS), -10000.0F));
 
         //ShiAssert (strlen(tmpStr) < 24);
-        if ( not g_bRealisticAvionics)
+        if (!g_bRealisticAvionics)
             DrawWindowString(13, tmpStr);
         else
             display->TextLeft(0.45F, -0.43F, tmpStr);
@@ -65,7 +65,7 @@ void HudClass::DrawGuns(void)
     else
         sprintf(tmpStr, "M  015");
 
-    if ( not g_bRealisticAvionics)
+    if (!g_bRealisticAvionics)
         DrawWindowString(10, tmpStr);
     else
         display->TextLeft(0.45F, -0.36F, tmpStr);
@@ -104,17 +104,17 @@ void HudClass::DrawGuns(void)
     {
         if (targetPtr)
         {
-            if ((ownship->fireGun or ownship->GunFire) and ownship->Sms->MasterArm() not_eq SMSBaseClass::Safe)
+            if ((ownship->fireGun || ownship->GunFire) && ownship->Sms->MasterArm() != SMSBaseClass::Safe)
             {
-                if ( not HideFunnel and not SetHideTimer)
+                if (!HideFunnel && !SetHideTimer)
                 {
                     HideFunnelTimer = SimLibElapsedTime + 150;
                     SetHideTimer = TRUE;
                 }
 
-                if ( not ownship->OnGround())
+                if (!ownship->OnGround())
                 {
-                    if ( not HideFunnel)
+                    if (!HideFunnel)
                     {
                         if (SimLibElapsedTime >= HideFunnelTimer)
                         {
@@ -127,7 +127,7 @@ void HudClass::DrawGuns(void)
             else
             {
                 //Make it appear again 1 second after we released the trigger
-                if (SetHideTimer and not SetShowTimer)
+                if (SetHideTimer && !SetShowTimer)
                 {
                     SetHideTimer = FALSE;
                     SetShowTimer = TRUE;
@@ -158,7 +158,7 @@ void HudClass::DrawEEGS(void)
     if (targetPtr == NULL)
     {
         //MI this IS there in reality...
-        //if ( not g_bRealisticAvionics) // JPO not real I don't think.
+        //if (!g_bRealisticAvionics) // JPO not real I don't think.
         DrawMRGS();
     }
     else
@@ -249,7 +249,7 @@ void HudClass::DrawFunnel(void)
         }
         else
         {
-            if (i not_eq 0)
+            if (i != 0)
             {
                 scale = radius / sqrt(scale);
             }
@@ -309,7 +309,7 @@ void HudClass::DrawFunnel(void)
         //MI make it dissapearn
         if (g_bRealisticAvionics)
         {
-            if ( not HideFunnel)
+            if (!HideFunnel)
             {
                 display->Line(funnel1X[i], funnel1Y[i], funnel1X[i - 1], funnel1Y[i - 1]);
                 display->Line(funnel2X[i], funnel2Y[i], funnel2X[i - 1], funnel2Y[i - 1]);
@@ -323,19 +323,19 @@ void HudClass::DrawFunnel(void)
 
         if (g_bRealisticAvionics)
         {
-            if (HideFunnel and targetPtr)
+            if (HideFunnel && targetPtr)
             {
                 DrawBATR();
             }
         }
 
         //MI in SIM we want FEDS, but only if no locked target
-        if (g_bRealisticAvionics and not targetPtr)
+        if (g_bRealisticAvionics && !targetPtr)
         {
             //document shows that we get this even when the gun is fired for real.
-            if ( not ownship->OnGround() /* and (ownship->Sms->MasterArm() == SMSBaseClass::Sim)*/)
+            if (!ownship->OnGround() /*&& (ownship->Sms->MasterArm() == SMSBaseClass::Sim)*/)
             {
-                if (ownship->fireGun and ownship->Sms->FEDS)
+                if (ownship->fireGun && ownship->Sms->FEDS)
                     FlyFEDSBullets(TRUE);
                 else if (ownship->Sms->FEDS)
                     FlyFEDSBullets(FALSE);
@@ -363,7 +363,7 @@ void HudClass::DrawMRGS(void)
     // Decide what percent of full spread to draw the angled lines
     // (For now we're just drawing arbitrary lines)
     // NOTE:  0xFFF = 4095 or 4.095 seconds since sim time is in milliseconds.
-    lineSpace = (float)fabs(1.0f - (float)(SimLibElapsedTime bitand 0xFFF) / 0x7FF);
+    lineSpace = (float)fabs(1.0f - (float)(SimLibElapsedTime & 0xFFF) / 0x7FF);
     angle = (2.0f - lineSpace) * DTR * 3.0F;
 
     for (i = 0; i < 4; i++)
@@ -395,9 +395,9 @@ void HudClass::DrawTDCircle(void)
     display->AdjustOriginInViewport(0.0F, (hudWinY[BORESIGHT_CROSS_WINDOW] +
                                            hudWinHeight[BORESIGHT_CROSS_WINDOW] * 0.5F));
 
-    if (fabs(targetData->az) > 825.0F * DTR or
-        fabs(targetData->el) > 825.0F * DTR or
-        fabs(xPos) > 0.90F or fabs(yPos + hudWinY[BORESIGHT_CROSS_WINDOW] +
+    if (fabs(targetData->az) > 825.0F * DTR ||
+        fabs(targetData->el) > 825.0F * DTR ||
+        fabs(xPos) > 0.90F || fabs(yPos + hudWinY[BORESIGHT_CROSS_WINDOW] +
                                    hudWinHeight[BORESIGHT_CROSS_WINDOW] * 0.5F) > 0.825F)
     {
         mlSinCos(&trig, 90.0F * DTR - targetData->droll);
@@ -408,7 +408,7 @@ void HudClass::DrawTDCircle(void)
         xPos = offset * trig.cos;
         yPos = offset * trig.sin;
 
-        while (fabs(xPos) < 0.825F and fabs(yPos + hudWinY[BORESIGHT_CROSS_WINDOW] +
+        while (fabs(xPos) < 0.825F && fabs(yPos + hudWinY[BORESIGHT_CROSS_WINDOW] +
                                            hudWinHeight[BORESIGHT_CROSS_WINDOW] * 0.5F) < 0.825F)
         {
             offset += 0.02F;
@@ -768,7 +768,7 @@ void HudClass::DrawLCOSForSSLC(void)
     display->Circle(0.0F, 0.0F, MRToHudUnits(10.0F));
 
     // Settling Cue
-    if (fabs(lastPipperX - hPos) > MRToHudUnits(10.0F) or
+    if (fabs(lastPipperX - hPos) > MRToHudUnits(10.0F) ||
         fabs(lastPipperY - vPos) > MRToHudUnits(10.0F))
     {
         display->Line(-(lastPipperX - hPos) * 2.0F,
@@ -847,7 +847,7 @@ void HudClass::DrawLCOS(void)
     display->Circle(0.0F, 0.0F, MRToHudUnits(10.0F));
 
     // Settling Cue
-    if (fabs(lastPipperX - hPos) > MRToHudUnits(10.0F) or
+    if (fabs(lastPipperX - hPos) > MRToHudUnits(10.0F) ||
         fabs(lastPipperY - vPos) > MRToHudUnits(10.0F))
     {
         display->Line(-(lastPipperX - hPos) * 2.0F,

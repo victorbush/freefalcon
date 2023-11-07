@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -322,7 +321,7 @@ void DrawDebugString(float x, float y, char *str)
     int len;
     float x1, y1;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     x *= ASPECT_RATIO;
@@ -346,7 +345,7 @@ void DrawDebugStringRight(float x, float y, char *str)
     int len;
     float x1, y1;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     x *= ASPECT_RATIO;
@@ -369,7 +368,7 @@ void DrawDebugStringLeft(float x, float y, char *str)
     int row, col;
     float x1, y1;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     x *= ASPECT_RATIO;
@@ -431,7 +430,7 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
     int dx, dy, ince, incne;
     int d, x, y, pixcount;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     dx = x1 - x0;
@@ -440,7 +439,7 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
     y = y0;
     pixcount = 0;
 
-    if (dy >= 0 and dy <= dx)
+    if (dy >= 0 && dy <= dx)
     {
         d = 2 * dy - dx;
         ince = 2 * dy;
@@ -461,13 +460,13 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
                 y ++;
             }
 
-            if (styles[linestyle] bitand (1 << (pixcount % 16)))
+            if (styles[linestyle] & (1 << (pixcount % 16)))
                 WriteDebugPixel(x, y);
 
             pixcount ++;
         }
     }
-    else if (dy < 0 and -dy < dx)
+    else if (dy < 0 && -dy < dx)
     {
         d = -2 * dy - dx;
         ince = -2 * dy;
@@ -487,13 +486,13 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
                 y --;
             }
 
-            if (styles[linestyle] bitand (1 << (pixcount % 16)))
+            if (styles[linestyle] & (1 << (pixcount % 16)))
                 WriteDebugPixel(x, y);
 
             pixcount ++;
         }
     }
-    else if (dx >= 0 and dy >= 0)
+    else if (dx >= 0 && dy >= 0)
     {
         d = 2 * dx - dy;
         ince = 2 * dx;
@@ -514,7 +513,7 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
                 y ++;
             }
 
-            if (styles[linestyle] bitand (1 << (pixcount % 16)))
+            if (styles[linestyle] & (1 << (pixcount % 16)))
                 WriteDebugPixel(x, y);
 
             pixcount ++;
@@ -541,7 +540,7 @@ void DisplayDebugLine(int x0, int y0, int x1, int y1)
                 x ++;
             }
 
-            if (styles[linestyle] bitand (1 << (pixcount % 16)))
+            if (styles[linestyle] & (1 << (pixcount % 16)))
                 WriteDebugPixel(x, y);
 
             pixcount ++;
@@ -569,7 +568,7 @@ void DisplayDebugCircle(int x_center, int y_center, int radius)
     int x, y, d, de , dse;
     int x2, y2;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     x = 0;
@@ -625,10 +624,10 @@ void DisplayDebugCharacter(int num, int x, int y)
     unsigned char *data;
     unsigned char c;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
-    if (num < -4 or num > MAX_CHAR_IDX)
+    if (num < -4 || num > MAX_CHAR_IDX)
         num = MAX_CHAR_IDX;
 
     data = CharList[num];
@@ -667,7 +666,7 @@ void DisplayDebugCharacter(int num, int x, int y)
 
             for (j = 0; j < 5; j++)
             {
-                if (c bitand 0x80)
+                if (c & 0x80)
                     WriteDebugPixel(x + j, y + i);
 
                 c = (char)(c << 1);
@@ -689,7 +688,7 @@ spin[] = "|/-\\";
 
 void set_spinner1(int s)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
     spinner1 = s;
@@ -703,7 +702,7 @@ void set_spinner1(int s)
     *dst;
 
     dst = (char *) MONO_TEXT;
-    dst[156] = spin[spinner1 bitand 3];;
+    dst[156] = spin[spinner1 & 3];;
     dst[157] = 7;
 #endif
 #endif
@@ -711,7 +710,7 @@ void set_spinner1(int s)
 
 void set_spinner2(int s)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
     spinner2 = s;
@@ -724,7 +723,7 @@ void set_spinner2(int s)
     *dst;
 
     dst = (char *) MONO_TEXT;
-    dst[154] = spin[spinner2 bitand 3];;
+    dst[154] = spin[spinner2 & 3];;
     dst[155] = 7;
 #endif
 #endif
@@ -732,7 +731,7 @@ void set_spinner2(int s)
 
 void set_spinner3(int s)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
     spinner3 = s;
@@ -745,7 +744,7 @@ void set_spinner3(int s)
     *dst;
 
     dst = (char *) MONO_TEXT;
-    dst[154] = spin[spinner3 bitand 3];;
+    dst[154] = spin[spinner3 & 3];;
     dst[155] = 7;
 #endif
 #endif
@@ -761,7 +760,7 @@ unsigned long WINAPI update_mono(void *ptr)
     char *src;
     CHAR_INFO *dst;
 
-    while (ptr and hStdoutDbg)
+    while (ptr && hStdoutDbg)
     {
         SMALL_RECT rc = { 0, 0, 80, 25 };
 
@@ -788,12 +787,12 @@ unsigned long WINAPI update_mono(void *ptr)
     COORD dwBufferCoord = { 0, 0 };
     DWORD cb;
 
-    while (ptr and hStdoutDbg)
+    while (ptr && hStdoutDbg)
     {
-        if ( not SetConsoleCursorPosition(hStdoutDbg, dwBufferCoord))
+        if (!SetConsoleCursorPosition(hStdoutDbg, dwBufferCoord))
             OutputDebugString("Warning: WriteConsoleOutputA failed\n");
 
-        if ( not WriteConsole(hStdoutDbg, mono_memory, 80 * 25 * 2, &cb, NULL))
+        if (!WriteConsole(hStdoutDbg, mono_memory, 80 * 25 * 2, &cb, NULL))
             OutputDebugString("Warning: WriteConsoleOutputA failed\n");
 
         Sleep(25);
@@ -818,7 +817,7 @@ unsigned long WINAPI update_mono(void *ptr)
 
         for (loop = 0; loop < 80 * 25 * 2; loop ++)
         {
-            if (*cmp not_eq *src)
+            if (*cmp != *src)
             {
                 *dst = *src;
                 *cmp = *src;
@@ -830,16 +829,16 @@ unsigned long WINAPI update_mono(void *ptr)
         }
 
         dst = (char *) MONO_TEXT;
-        dst[158] = spin[(spinner ++) bitand 3];;
+        dst[158] = spin[(spinner ++) & 3];;
         dst[159] = 7;
 
-        dst[156] = spin[spinner1 bitand 3];;
+        dst[156] = spin[spinner1 & 3];;
         dst[157] = 7;
 
-        dst[154] = spin[spinner2 bitand 3];;
+        dst[154] = spin[spinner2 & 3];;
         dst[155] = 7;
 
-        dst[152] = spin[spinner3 bitand 3];;
+        dst[152] = spin[spinner3 & 3];;
         dst[153] = 7;
 
         Sleep(25);
@@ -866,7 +865,7 @@ void InitDebug(int mode)
 
 #ifdef WRITE_FILE
 
-    if ( not debugFile)
+    if (!debugFile)
         debugFile = fopen("c:\\temp\\debug.dat", "w");
 
 #endif
@@ -880,7 +879,7 @@ void WriteDebugPixel(int x, int y)
     int the_bit;
     char *cur_val;
 
-    if (x < 0 or y < 0 or x > (int)DebugScreenWidth or y > (int)DebugScreenHeight)
+    if (x < 0 || y < 0 || x > (int)DebugScreenWidth || y > (int)DebugScreenHeight)
         return;
 
     the_byte = 0x2000 * (y % 4) + 90 * (y / 4) + x / 8;
@@ -888,7 +887,7 @@ void WriteDebugPixel(int x, int y)
 
     cur_val = (char *)(screen_buffer[page] + the_byte);
 #ifndef DISABLE_MONO_DISPLAY
-    *cur_val or_eq (char)(1 << the_bit);
+    *cur_val |= (char)(1 << the_bit);
 #endif
 }
 
@@ -896,12 +895,12 @@ void DebugSwapbuffer()
 {
     int i;
 
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
     for (i = 0; i < 0x8000; i++)
     {
-        if (*((char *)(screen_buffer[page] + i)) not_eq 
+        if (*((char *)(screen_buffer[page] + i)) !=
             *((char *)(screen_buffer[1 - page] + i)))
         {
 #ifndef DISABLE_MONO_DISPLAY
@@ -915,7 +914,7 @@ void DebugSwapbuffer()
 
 void DebugClear(void)
 {
-    if (graphicsMode not_eq DEBUGGER_GRAPHICS_MODE)
+    if (graphicsMode != DEBUGGER_GRAPHICS_MODE)
         return;
 
 #ifndef DISABLE_MONO_DISPLAY
@@ -957,10 +956,10 @@ void MonoPrint(char *string, ...)
 
     va_start(params, string);
 
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
-    if ( not string)
+    if (!string)
         return;
 
     EnterCriticalSection(&mono_critical);
@@ -995,13 +994,13 @@ void MonoPrint(char *string, ...)
 
 #elif defined _TEXT_TGT_TRACE
 
-    if (_mono_buffer[check - 1] not_eq '\n')
+    if (_mono_buffer[check - 1] != '\n')
         strcat(_mono_buffer, "\n");
 
     OutputDebugString(_mono_buffer);
 #elif defined _TEXT_TGT_FILE
 
-    if (_mono_buffer[check - 1] not_eq '\n')
+    if (_mono_buffer[check - 1] != '\n')
     {
         strcat(_mono_buffer, "\n");
         check++;
@@ -1045,7 +1044,7 @@ static unsigned char * MonoNewline(void)
     unsigned char
     *ptr;
 
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return (0);
 
     EnterCriticalSection(&mono_critical);
@@ -1089,7 +1088,7 @@ static unsigned char * MonoNewline(void)
 
 void MonoScroll(void)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
 #ifndef DISABLE_MONO_DISPLAY
@@ -1107,7 +1106,7 @@ void MonoScroll(void)
 
 void MonoLocate(unsigned char x, unsigned char y)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
     EnterCriticalSection(&mono_critical);
@@ -1124,7 +1123,7 @@ void MonoGetLoc(int* x, int* y)
 
 void MonoColor(unsigned char attribute)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
     monoPenattribute = attribute;
@@ -1137,7 +1136,7 @@ void MonoColor(unsigned char attribute)
 
 void MonoCls(void)
 {
-    if (graphicsMode not_eq DEBUGGER_TEXT_MODE)
+    if (graphicsMode != DEBUGGER_TEXT_MODE)
         return;
 
 #ifndef DISABLE_MONO_DISPLAY
@@ -1172,6 +1171,6 @@ void SetMonoGraphicsMode(int newMode)
     //      return;
 #endif
 
-    if (graphicsMode not_eq -1)
+    if (graphicsMode != -1)
         graphicsMode = newMode;
 }

@@ -5,7 +5,6 @@
 
     Provides the bank of colors used by all the BSP objects.
 \***************************************************************************/
-#include <cISO646>
 #include "stdafx.h"
 #include <io.h>
 #include "StateStack.h"
@@ -113,7 +112,7 @@ void ColorBankClass::ReadPool(int file)
         dst2->b = 0.0f;
 
         // FRB - B&W display?
-        if ((g_bGreyMFD) and ( not bNVGmode))
+        if ((g_bGreyMFD) && (!bNVGmode))
             dst2->r = dst2->b = dst2->g;
 
         *dst3 = *dst2;
@@ -150,7 +149,7 @@ void ColorBankClass::SetLight(float red, float green, float blue)
         greenTv->g = dst->g;
 
         // FRB - B&W display?
-        if ((g_bGreyMFD) and ( not bNVGmode))
+        if ((g_bGreyMFD) && (!bNVGmode))
             greenTv->r = greenTv->b = greenTv->g;
 
         src++;
@@ -184,7 +183,7 @@ void ColorBankClass::SetColorMode(ColorMode mode)
             break;
 
         default:
-            ShiWarning("Bad color mode");
+            ShiWarning("Bad color mode!");
     }
 }
 

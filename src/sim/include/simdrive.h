@@ -75,7 +75,7 @@ public:
     /** are we running TE or CA? */
     bool RunningCampaignOrTactical() const
     {
-        return RunningCampaign() or RunningTactical();
+        return RunningCampaign() || RunningTactical();
     }
 
     /** pause sim. */

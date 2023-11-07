@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 
-#include <cISO646>
 #include "capiopt.h"
 
 #include <stdio.h>
@@ -62,10 +61,10 @@ extern "C" {
     /* Mutex macros */
 #define SAY_ON(a)
 #define SAY_OFF(a)
-#define CREATE_LOCK(a,b)                { a = CreateMutex( NULL, FALSE, b ); if( not a ) DebugBreak(); }
+#define CREATE_LOCK(a,b)                { a = CreateMutex( NULL, FALSE, b ); if( !a ) DebugBreak(); }
 #define REQUEST_LOCK(a)                 { int w = WaitForSingleObject(a, INFINITE); {SAY_ON(a);} if( w == WAIT_FAILED ) DebugBreak(); }
-#define RELEASE_LOCK(a)                 { {SAY_OFF(a);} if( not ReleaseMutex(a)) DebugBreak();   }
-#define DESTROY_LOCK(a)                 { if( not CloseHandle(a)) DebugBreak();   }
+#define RELEASE_LOCK(a)                 { {SAY_OFF(a);} if( !ReleaseMutex(a)) DebugBreak();   }
+#define DESTROY_LOCK(a)                 { if( !CloseHandle(a)) DebugBreak();   }
 
 
     static struct sockaddr_in comRecvAddr;
@@ -112,7 +111,7 @@ extern "C" {
         enter_cs(); // JPO
 
         //sfr new list
-        for (curr = comListGetFirstP(CAPI_RUDP_PROTOCOL); curr not_eq NULL; curr = comListGetNextP(CAPI_RUDP_PROTOCOL))
+        for (curr = comListGetFirstP(CAPI_RUDP_PROTOCOL); curr != NULL; curr = comListGetNextP(CAPI_RUDP_PROTOCOL))
         {
             count = 0;
             rp = curr->rudp_data.sending;
@@ -162,7 +161,7 @@ extern "C" {
 
         c->buffer_size = max(parentCom->buffer_size, (int)(sizeof(ComAPIHeader) + buffersize + 16));
 
-        if ((c->max_buffer_size > 0) and (c->buffer_size > c->max_buffer_size))
+        if ((c->max_buffer_size > 0) && (c->buffer_size > c->max_buffer_size))
         {
             c->buffer_size = c->max_buffer_size;
         }
@@ -267,7 +266,7 @@ extern "C" {
         // we already setup comms, use a clone
         comRUDP = comListFindProtocolRport(CAPI_RUDP_PROTOCOL, localPort);
 
-        if (comRUDP not_eq NULL)
+        if (comRUDP != NULL)
         {
             com_API_handle ret_val;
             ret_val = ComRUDPOpenSendClone(name_in, comRUDP, buffersize, gamename, remotePort, IPaddress, id);
@@ -321,7 +320,7 @@ extern "C" {
 
         c->buffer_size = sizeof(ComAPIHeader) + buffersize;
 
-        if ((c->max_buffer_size > 0) and (c->buffer_size  > c->max_buffer_size))
+        if ((c->max_buffer_size > 0) && (c->buffer_size  > c->max_buffer_size))
         {
             c->buffer_size = c->max_buffer_size;
         }
@@ -494,38 +493,38 @@ extern "C" {
             if (now - cudp->rudp_data.last_send_time > RUDP_OOB_RESEND_TIME)
             {
                 *flags = RUDPF_RESET;
-                *flags or_eq cudp->rudp_data.reset_send;
+                *flags |= cudp->rudp_data.reset_send;
                 cudp->rudp_data.last_send_time = now;
             }
         }
         else if (cudp->rudp_data.reset_send == RUDP_RESET_OK)
         {
             *flags = RUDPF_RESET;
-            *flags or_eq cudp->rudp_data.reset_send;
+            *flags |= cudp->rudp_data.reset_send;
             cudp->rudp_data.last_send_time = now;
         }
         else if (cudp->rudp_data.reset_send == RUDP_PING)
         {
-            *flags = RUDPF_RESET bitor RUDP_PING;
+            *flags = RUDPF_RESET | RUDP_PING;
             *(long *)ptr = now;
             ptr += sizeof(long);
             size += sizeof(long);
         }
         else if (cudp->rudp_data.reset_send == RUDP_EXIT)
         {
-            *flags = RUDPF_RESET bitor RUDP_EXIT;
+            *flags = RUDPF_RESET | RUDP_EXIT;
         }
         else if (cudp->rudp_data.reset_send == RUDP_DROP)
         {
-            *flags = RUDPF_RESET bitor RUDP_DROP;
+            *flags = RUDPF_RESET | RUDP_DROP;
         }
         else
         {
             // If our last_sent_received is out of date, we need to send it
-            if (cudp->rudp_data.last_sent_received not_eq cudp->rudp_data.last_received)
+            if (cudp->rudp_data.last_sent_received != cudp->rudp_data.last_received)
             {
                 cudp->rudp_data.send_ack = FALSE;
-                *flags or_eq RUDPF_LAST;
+                *flags |= RUDPF_LAST;
                 *(unsigned short*)ptr = (unsigned short)cudp->rudp_data.last_received;
 
                 cudp->rudp_data.last_sent_received = cudp->rudp_data.last_received;
@@ -534,10 +533,10 @@ extern "C" {
             }
 
             // If our last_sent_received is out of date, we need to send it
-            if (cudp->rudp_data.last_oob_sent_received not_eq cudp->rudp_data.last_oob_received)
+            if (cudp->rudp_data.last_oob_sent_received != cudp->rudp_data.last_oob_received)
             {
                 cudp->rudp_data.send_oob_ack = FALSE;
-                *flags or_eq RUDPF_LOOB;
+                *flags |= RUDPF_LOOB;
                 *(unsigned short*)ptr = (unsigned short)cudp->rudp_data.last_oob_received;
 
                 cudp->rudp_data.last_oob_sent_received = cudp->rudp_data.last_oob_received;
@@ -550,13 +549,13 @@ extern "C" {
             //
             // while (cp)
             // {
-            // if (( not cp->acknowledged) and ((cudp->rudp_data.last_received - cp->sequence_number + 1) bitand 0x8000))
+            // if ((!cp->acknowledged) && ((cudp->rudp_data.last_received - cp->sequence_number + 1) & 0x8000))
             // {
             // cudp->rudp_data.send_ack = FALSE;
             //
             // count ++;
             // cp->acknowledged = TRUE;
-            // // *flags or_eq RUDPF_ACK;
+            // // *flags |= RUDPF_ACK;
             // *(unsigned short*)ptr = cp->sequence_number;
             // ptr += sizeof (short);
             // size += sizeof (short);
@@ -572,26 +571,26 @@ extern "C" {
             //
             // if (count)
             // {
-            // *flags or_eq (count);
+            // *flags |= (count);
             // }
 
-            // If we're sending a packet, we have a sequence number bitand data
+            // If we're sending a packet, we have a sequence number & data
             if (rp)
             {
-                *flags or_eq RUDPF_SEQ;
+                *flags |= RUDPF_SEQ;
                 *(unsigned short*)ptr = rp->sequence_number;
                 ptr += sizeof(short);
                 size += sizeof(short);
 
                 if (rp->oob)
                 {
-                    *flags or_eq RUDPF_OOB;
+                    *flags |= RUDPF_OOB;
                 }
 
                 // If we're a packetized message, send a message id, slot, etc.
                 if (rp->message_parts > 1)
                 {
-                    *flags or_eq RUDPF_MSG;
+                    *flags |= RUDPF_MSG;
                     *(unsigned short*)ptr = rp->message_number;
                     ptr += sizeof(unsigned short);
                     size += sizeof(unsigned short);
@@ -605,8 +604,8 @@ extern "C" {
 
                 assert(FALSE == IsBadWritePtr(ptr, rp->size));
 
-                //if ( not IsBadWritePtr(ptr, sizeof(unsigned char))) // JB 010223 CTD
-                if ( not IsBadWritePtr(ptr, rp->size)) // JB 010401 CTD
+                //if (!IsBadWritePtr(ptr, sizeof(unsigned char))) // JB 010223 CTD
+                if (!IsBadWritePtr(ptr, rp->size)) // JB 010401 CTD
                     memcpy(ptr, rp->data, rp->size);
 
                 size += rp->size;
@@ -712,7 +711,7 @@ extern "C" {
                 }
             }
 
-            if (*flags bitand RUDPF_RESET)
+            if (*flags & RUDPF_RESET)
             {
                 if (size)
                 {
@@ -760,7 +759,7 @@ extern "C" {
                 lp = cudp->rudp_data.sending;
                 // sfr: TODO remove JB check
 
-                while (lp and not F4IsBadReadPtrC(lp, sizeof(Reliable_Packet)))
+                while (lp && !F4IsBadReadPtrC(lp, sizeof(Reliable_Packet)))
                 {
                     count ++;
                     lp = lp->next;
@@ -768,7 +767,7 @@ extern "C" {
 
                 lp = cudp->rudp_data.oob_sending;
 
-                while (lp and not F4IsBadReadPtrC(lp, sizeof(Reliable_Packet)))  // JB 010220 CTD
+                while (lp && !F4IsBadReadPtrC(lp, sizeof(Reliable_Packet)))  // JB 010220 CTD
                 {
                     count ++;
                     lp = lp->next;
@@ -788,7 +787,7 @@ extern "C" {
                 {
                     cudp->rudp_data.message_number++;
 
-                    if ( not cudp->rudp_data.message_number)
+                    if (!cudp->rudp_data.message_number)
                     {
                         cudp->rudp_data.message_number = 1;
                     }
@@ -805,12 +804,12 @@ extern "C" {
 
                     if (oob)
                     {
-                        cudp->rudp_data.oob_sequence_number = (unsigned short)((cudp->rudp_data.oob_sequence_number + 1) bitand 0xffff);
+                        cudp->rudp_data.oob_sequence_number = (unsigned short)((cudp->rudp_data.oob_sequence_number + 1) & 0xffff);
                         rp->sequence_number = cudp->rudp_data.oob_sequence_number;
                     }
                     else
                     {
-                        cudp->rudp_data.sequence_number = (unsigned short)((cudp->rudp_data.sequence_number + 1) bitand 0xffff);
+                        cudp->rudp_data.sequence_number = (unsigned short)((cudp->rudp_data.sequence_number + 1) & 0xffff);
                         rp->sequence_number = cudp->rudp_data.sequence_number;
                     }
 
@@ -864,7 +863,7 @@ extern "C" {
                         if (oob)
                         {
                             //if (cudp->rudp_data.oob_last_sent) // JB 010221 CTD
-                            if (cudp->rudp_data.oob_last_sent and not F4IsBadReadPtrC(cudp->rudp_data.oob_last_sent, sizeof(Reliable_Packet))) // JB 010221 CTD
+                            if (cudp->rudp_data.oob_last_sent && !F4IsBadReadPtrC(cudp->rudp_data.oob_last_sent, sizeof(Reliable_Packet))) // JB 010221 CTD
                             {
                                 cudp->rudp_data.oob_last_sent->next = rp;
                             }
@@ -875,7 +874,7 @@ extern "C" {
                         else
                         {
                             //if (cudp->rudp_data.last_sent) // JB 010221 CTD
-                            if (cudp->rudp_data.last_sent and not F4IsBadReadPtrC(cudp->rudp_data.last_sent, sizeof(Reliable_Packet))) // JB 010221 CTD
+                            if (cudp->rudp_data.last_sent && !F4IsBadReadPtrC(cudp->rudp_data.last_sent, sizeof(Reliable_Packet))) // JB 010221 CTD
                             {
                                 cudp->rudp_data.last_sent->next = rp;
                             }
@@ -909,11 +908,11 @@ extern "C" {
 
                 while (lp)
                 {
-                    if (( not lp->acknowledged) and ((int)(now - lp->last_sent_at) > time)) // and ((lp->sequence_number - cudp->rudp_data.last_sequence - 8) bitand 0x8000))
+                    if ((!lp->acknowledged) && ((int)(now - lp->last_sent_at) > time)) // && ((lp->sequence_number - cudp->rudp_data.last_sequence - 8) & 0x8000))
                     {
                         lp->send_count ++;
 
-                        if (/*(lp->oob) or */(check_bandwidth(lp->size, 1, type)))
+                        if (/*(lp->oob) || */(check_bandwidth(lp->size, 1, type)))
                         {
                             return send_rudp_packet(cudp, lp, type);
                         }
@@ -936,11 +935,11 @@ extern "C" {
 
                 while (lp)
                 {
-                    if (( not lp->acknowledged) and ((int)(now - lp->last_sent_at) > time)) // and ((lp->sequence_number - cudp->rudp_data.last_sequence - 8) bitand 0x8000))
+                    if ((!lp->acknowledged) && ((int)(now - lp->last_sent_at) > time)) // && ((lp->sequence_number - cudp->rudp_data.last_sequence - 8) & 0x8000))
                     {
                         lp->send_count ++;
 
-                        if (/*(lp->oob) or */(check_bandwidth(lp->size, 1, type)))
+                        if (/*(lp->oob) || */(check_bandwidth(lp->size, 1, type)))
                         {
                             return send_rudp_packet(cudp, lp, type);
                         }
@@ -995,11 +994,11 @@ extern "C" {
 
         cudp->rudp_data.last_ping_recv_time = GetTickCount();
 
-        if (flags bitand RUDPF_RESET)
+        if (flags & RUDPF_RESET)
         {
-            // MonoPrint ("Recv %d\n", flags bitand RUDPF_MASK);
+            // MonoPrint ("Recv %d\n", flags & RUDPF_MASK);
 
-            switch (flags bitand 0x0f)
+            switch (flags & 0x0f)
             {
                 case RUDP_RESET_REQ:
                 {
@@ -1068,35 +1067,35 @@ extern "C" {
             return 0;
         }
 
-        if (cudp->rudp_data.reset_send not_eq RUDP_WORKING)
+        if (cudp->rudp_data.reset_send != RUDP_WORKING)
         {
             return 0;
         }
 
         count = 0;
 
-        if (flags bitand RUDPF_LAST)
+        if (flags & RUDPF_LAST)
         {
             count += 2;
         }
 
-        if (flags bitand RUDPF_LOOB)
+        if (flags & RUDPF_LOOB)
         {
             count += 2;
         }
 
-        // if (flags bitand RUDPF_MASK)
+        // if (flags & RUDPF_MASK)
         // {
-        // count += 2 * (flags bitand RUDPF_MASK);
+        // count += 2 * (flags & RUDPF_MASK);
         // }
         // 2003-09-27 Fix by Will Mulvihill - RUDPF_SEQ is a 2 byte message - see above line 694 - size = short = 2...
-        if (flags bitand RUDPF_SEQ)
+        if (flags & RUDPF_SEQ)
         {
             //count += 4;
             count += 2;
         }
 
-        if (flags bitand RUDPF_MSG)
+        if (flags & RUDPF_MSG)
         {
             count += 4;
         }
@@ -1107,23 +1106,23 @@ extern "C" {
         }
 
         // Trim off last_sequence number received by remote
-        if (flags bitand RUDPF_LAST)
+        if (flags & RUDPF_LAST)
         {
-            cudp->rudp_data.last_sequence = (*(unsigned short *) ptr) bitand 0xffff;
+            cudp->rudp_data.last_sequence = (*(unsigned short *) ptr) & 0xffff;
             ptr += sizeof(short);
             size -= sizeof(short);
         }
 
-        if (flags bitand RUDPF_LOOB)
+        if (flags & RUDPF_LOOB)
         {
-            cudp->rudp_data.last_oob_sequence = (*(unsigned short *) ptr) bitand 0xffff;
+            cudp->rudp_data.last_oob_sequence = (*(unsigned short *) ptr) & 0xffff;
             ptr += sizeof(short);
             size -= sizeof(short);
         }
 
-        // if (flags bitand RUDPF_MASK)
+        // if (flags & RUDPF_MASK)
         // {
-        // count = flags bitand RUDPF_MASK;
+        // count = flags & RUDPF_MASK;
         //
         // while (count)
         // {
@@ -1150,12 +1149,12 @@ extern "C" {
         // }
 
         // Trim off the sequence number
-        if (flags bitand RUDPF_SEQ)
+        if (flags & RUDPF_SEQ)
         {
             // Fail early if we've seen this packet before
-            if (flags bitand RUDPF_OOB)
+            if (flags & RUDPF_OOB)
             {
-                if ((*(unsigned short*)ptr - ((cudp->rudp_data.last_oob_received + 1) bitand 0xffff)) bitand 0x8000)
+                if ((*(unsigned short*)ptr - ((cudp->rudp_data.last_oob_received + 1) & 0xffff)) & 0x8000)
                 {
                     cudp->rudp_data.last_oob_sent_received = -1;
                     return size;
@@ -1165,7 +1164,7 @@ extern "C" {
             }
             else
             {
-                if ((*(unsigned short*)ptr - ((cudp->rudp_data.last_received + 1) bitand 0xffff)) bitand 0x8000)
+                if ((*(unsigned short*)ptr - ((cudp->rudp_data.last_received + 1) & 0xffff)) & 0x8000)
                 {
                     cudp->rudp_data.last_sent_received = -1;
                     return size;
@@ -1182,7 +1181,7 @@ extern "C" {
             rp->data = NULL;
             rp->next = NULL;
 
-            if (flags bitand RUDPF_OOB)
+            if (flags & RUDPF_OOB)
             {
                 rp->oob = TRUE;
             }
@@ -1200,7 +1199,7 @@ extern "C" {
         }
 
         // Trim off the message data, if any
-        if (flags bitand RUDPF_MSG)
+        if (flags & RUDPF_MSG)
         {
             assert(rp);
             rp->message_number = *(unsigned short *)ptr;
@@ -1221,7 +1220,7 @@ extern "C" {
         }
 
         // Trim off the data
-        if (flags bitand RUDPF_SEQ)
+        if (flags & RUDPF_SEQ)
         {
             assert(rp);
             rp->size = (unsigned short)size;
@@ -1239,7 +1238,7 @@ extern "C" {
             return 0;
         }
 
-        if ( not size or not rp)
+        if (!size || !rp)
         {
             return 0;
         }
@@ -1281,7 +1280,7 @@ extern "C" {
             }
 
             // otherwise insert it into the receiving queue.
-            if ((rp->sequence_number - cp->sequence_number) bitand 0x8000)
+            if ((rp->sequence_number - cp->sequence_number) & 0x8000)
             {
                 if (lp)
                 {
@@ -1308,7 +1307,7 @@ extern "C" {
         }
 
         // if the queue is empty or we're at the end of the list, insert it
-        if ( not cp)
+        if (!cp)
         {
             if (lp)
             {
@@ -1430,7 +1429,7 @@ extern "C" {
 
             /*// sfr: added port info
             if (
-             (((struct sockaddr_in *)(&in_addr))->sin_addr.s_addr == cudp->whoami) and 
+             (((struct sockaddr_in *)(&in_addr))->sin_addr.s_addr == cudp->whoami) &&
              ((struct sockaddr_in *)(&in_addr))->sin_port == CAPI_htons(ComAPIGetMySendPort())
             ){*/
             id = ((ComAPIHeader *)cudp->recv_buffer.buf)->id;
@@ -1521,7 +1520,7 @@ extern "C" {
 
             // Check if we should send the reset stuff
 
-            if ((cudp->rudp_data.reset_send not_eq RUDP_WORKING) and (now - cudp->rudp_data.last_send_time > RUDP_RESEND_TIME))
+            if ((cudp->rudp_data.reset_send != RUDP_WORKING) && (now - cudp->rudp_data.last_send_time > RUDP_RESEND_TIME))
             {
                 if (send_rudp_packet(cudp, NULL, 0))
                 {
@@ -1533,7 +1532,7 @@ extern "C" {
             // This will copy the packets into our receive queue
             get_rudp_packets(cudp);
 
-            if (cudp->rudp_data.reset_send not_eq RUDP_WORKING)
+            if (cudp->rudp_data.reset_send != RUDP_WORKING)
             {
                 if (did_send)
                 {
@@ -1561,22 +1560,22 @@ extern "C" {
             {
                 // Find the last received packet that is sequential, so
                 // we can do the ack back to the other side
-                if ((cp) and ((cp->sequence_number bitand 0xffff) == ((cudp->rudp_data.last_received + 1) bitand 0xffff)))
+                if ((cp) && ((cp->sequence_number & 0xffff) == ((cudp->rudp_data.last_received + 1) & 0xffff)))
                 {
                     cudp->rudp_data.last_received = cp->sequence_number;
                 }
 
-                if ((cp->sequence_number bitand 0xffff) == ((cudp->rudp_data.last_dispatched + 1) bitand 0xffff))
+                if ((cp->sequence_number & 0xffff) == ((cudp->rudp_data.last_dispatched + 1) & 0xffff))
                 {
                     // If it's the first part of a packetized message, try to build
                     // the message and copy into the receive buffer
-                    if (( not msg_size) and (cp->message_slot == 0) and ( not cp->dispatched))
+                    if ((!msg_size) && (cp->message_slot == 0) && (!cp->dispatched))
                     {
                         needed = cp->message_parts - 1;
                         np = cp->next;
 
-                        //while (np and needed) // JB 010223 CTD
-                        while (np and needed and not F4IsBadReadPtrC(np, sizeof(Reliable_Packet))) // JB 010223 CTD
+                        //while (np && needed) // JB 010223 CTD
+                        while (np && needed && !F4IsBadReadPtrC(np, sizeof(Reliable_Packet))) // JB 010223 CTD
                         {
                             if (np->message_number == cp->message_number)
                             {
@@ -1586,13 +1585,13 @@ extern "C" {
                             np = np->next;
                         }
 
-                        if ( not needed)
+                        if (!needed)
                         {
                             // We've got the entire message, copy it into the receive buffer
                             np = cp;
                             needed = cp->message_parts;
 
-                            while (np and needed)
+                            while (np && needed)
                             {
                                 if (np->message_number == cp->message_number)
                                 {
@@ -1618,7 +1617,7 @@ extern "C" {
                 // if it's been dispatched, and it's less that our sequence number,
                 // then remove this entry from the receive queue, we no longer
                 // care about it.
-                if ((cp->dispatched) and ((cp->sequence_number - (cudp->rudp_data.last_received + 1)) bitand 0x8000))
+                if ((cp->dispatched) && ((cp->sequence_number - (cudp->rudp_data.last_received + 1)) & 0x8000))
                 {
                     if (lp)
                     {
@@ -1660,21 +1659,21 @@ extern "C" {
             {
                 // Find the last received packet that is sequential, so
                 // we can do the ack back to the other side
-                if ((cp) and ((cp->sequence_number bitand 0xffff) == ((cudp->rudp_data.last_oob_received + 1) bitand 0xffff)))
+                if ((cp) && ((cp->sequence_number & 0xffff) == ((cudp->rudp_data.last_oob_received + 1) & 0xffff)))
                 {
                     cudp->rudp_data.last_oob_received = cp->sequence_number;
                 }
 
-                if ((cp->sequence_number bitand 0xffff) == ((cudp->rudp_data.last_oob_dispatched + 1) bitand 0xffff))
+                if ((cp->sequence_number & 0xffff) == ((cudp->rudp_data.last_oob_dispatched + 1) & 0xffff))
                 {
                     // If it's the first part of a packetized message, try to build
                     // the message and copy into the receive buffer
-                    if (( not msg_size) and (cp->message_slot == 0) and ( not cp->dispatched))
+                    if ((!msg_size) && (cp->message_slot == 0) && (!cp->dispatched))
                     {
                         needed = cp->message_parts - 1;
                         np = cp->next;
 
-                        while (np and needed)
+                        while (np && needed)
                         {
                             if (np->message_number == cp->message_number)
                             {
@@ -1684,13 +1683,13 @@ extern "C" {
                             np = np->next;
                         }
 
-                        if ( not needed)
+                        if (!needed)
                         {
                             // We've got the entire message, copy it into the receive buffer
                             np = cp;
                             needed = cp->message_parts;
 
-                            while (np and needed)
+                            while (np && needed)
                             {
                                 if (np->message_number == cp->message_number)
                                 {
@@ -1716,7 +1715,7 @@ extern "C" {
                 // if it's been dispatched, and it's less that our sequence number,
                 // then remove this entry from the receive queue, we no longer
                 // care about it.
-                if ((cp->dispatched) and ((cp->sequence_number - (cudp->rudp_data.last_oob_received + 1)) bitand 0x8000))
+                if ((cp->dispatched) && ((cp->sequence_number - (cudp->rudp_data.last_oob_received + 1)) & 0x8000))
                 {
                     if (lp)
                     {
@@ -1756,7 +1755,7 @@ extern "C" {
 
             while (cp)
             {
-                if ((cp->sequence_number - (cudp->rudp_data.last_sequence + 1)) bitand 0x8000)
+                if ((cp->sequence_number - (cudp->rudp_data.last_sequence + 1)) & 0x8000)
                 {
                     // this packet got through
                     // since its sequence number is less than last_sequence number
@@ -1801,7 +1800,7 @@ extern "C" {
 
             while (cp)
             {
-                if ((cp->sequence_number - (cudp->rudp_data.last_oob_sequence + 1)) bitand 0x8000)
+                if ((cp->sequence_number - (cudp->rudp_data.last_oob_sequence + 1)) & 0x8000)
                 {
                     // this packet got through
                     // since its sequence number is less than last_sequence number
@@ -1844,7 +1843,7 @@ extern "C" {
             // If we've not send them our last_received, or one second timeout for ack
             if
             (
-                (cudp->rudp_data.last_sent_received not_eq cudp->rudp_data.last_received) and 
+                (cudp->rudp_data.last_sent_received != cudp->rudp_data.last_received) &&
                 (now - cudp->rudp_data.last_send_time > RUDP_ACK_WAIT_TIME)
             )
             {
@@ -1853,14 +1852,14 @@ extern "C" {
 
             if
             (
-                (cudp->rudp_data.last_oob_sent_received not_eq cudp->rudp_data.last_oob_received) and 
+                (cudp->rudp_data.last_oob_sent_received != cudp->rudp_data.last_oob_received) &&
                 (now - cudp->rudp_data.last_oob_send_time > RUDP_OOB_ACK_WAIT_TIME)
             )
             {
                 cudp->rudp_data.last_oob_sent_received = -1;
             }
 
-            if ((cudp->rudp_data.last_sent_received == -1) or (cudp->rudp_data.last_oob_sent_received == -1))
+            if ((cudp->rudp_data.last_sent_received == -1) || (cudp->rudp_data.last_oob_sent_received == -1))
             {
                 if (send_rudp_packet(cudp, NULL, 0))
                 {
@@ -1868,7 +1867,7 @@ extern "C" {
                 }
             }
 
-            if ((cudp->rudp_data.send_ack) and (now - cudp->rudp_data.last_send_time > RUDP_ACK_WAIT_TIME))
+            if ((cudp->rudp_data.send_ack) && (now - cudp->rudp_data.last_send_time > RUDP_ACK_WAIT_TIME))
             {
                 cudp->rudp_data.send_ack = FALSE;
 
@@ -1878,7 +1877,7 @@ extern "C" {
                 }
             }
 
-            if ((cudp->rudp_data.send_oob_ack) and (now - cudp->rudp_data.last_oob_send_time > RUDP_ACK_WAIT_TIME))
+            if ((cudp->rudp_data.send_oob_ack) && (now - cudp->rudp_data.last_oob_send_time > RUDP_ACK_WAIT_TIME))
             {
                 cudp->rudp_data.send_oob_ack = FALSE;
 
@@ -2040,11 +2039,11 @@ extern "C" {
 
                     rp = cudp->rudp_data.sending;
 
-                    while (rp and not F4IsBadReadPtrC(rp, sizeof(Reliable_Packet))) // JB 010619 CTD
+                    while (rp && !F4IsBadReadPtrC(rp, sizeof(Reliable_Packet))) // JB 010619 CTD
                     {
                         time = RUDP_RESEND_TIME * 2;
 
-                        if (( not rp->acknowledged) and ((int)(now - rp->last_sent_at) > time))
+                        if ((!rp->acknowledged) && ((int)(now - rp->last_sent_at) > time))
                         {
                             size += rp->size;
                         }
@@ -2054,11 +2053,11 @@ extern "C" {
 
                     rp = cudp->rudp_data.oob_sending;
 
-                    while (rp and not F4IsBadReadPtrC(rp, sizeof(Reliable_Packet))) // JB 010619 CTD
+                    while (rp && !F4IsBadReadPtrC(rp, sizeof(Reliable_Packet))) // JB 010619 CTD
                     {
                         time = RUDP_RESEND_TIME * 2;
 
-                        if (( not rp->acknowledged) and ((int)(now - rp->last_sent_at) > time))
+                        if ((!rp->acknowledged) && ((int)(now - rp->last_sent_at) > time))
                         {
                             size += rp->size;
                         }
@@ -2118,7 +2117,7 @@ extern "C" {
             // int trueValue = 1;
             // int falseValue = 0;
 
-            if ((cudp->rudp_data.sequence_number) or (cudp->rudp_data.oob_sequence_number))
+            if ((cudp->rudp_data.sequence_number) || (cudp->rudp_data.oob_sequence_number))
             {
                 cudp->rudp_data.reset_send = RUDP_EXIT;
             }
@@ -2228,7 +2227,7 @@ extern "C" {
             windows_sockets_connections--;
 
             /* if No more connections then WSACleanup() */
-            if ( not windows_sockets_connections)
+            if (!windows_sockets_connections)
             {
                 if (sockerror = CAPI_WSACleanup())
                 {
@@ -2262,8 +2261,8 @@ extern "C" {
             }
 
             // JB 010718 remove the protocol test?
-            if (c->protocol >= 0 and c->protocol <= CAPI_LAST_PROTOCOL and // JB 010222 CTD
- not F4IsBadReadPtrC(cudp, sizeof(ComIP))) // JB 010710 CTD
+            if (c->protocol >= 0 && c->protocol <= CAPI_LAST_PROTOCOL && // JB 010222 CTD
+                !F4IsBadReadPtrC(cudp, sizeof(ComIP))) // JB 010710 CTD
             {
                 free(cudp);
             }
@@ -2306,7 +2305,7 @@ extern "C" {
             {
                 if (in[loop] == *ptr)
                 {
-                    for (run = 1; (run < 127) and (loop + run < index) and (index + run < size); run ++)
+                    for (run = 1; (run < 127) && (loop + run < index) && (index + run < size); run ++)
                     {
                         if (in[loop + run] == ptr[run])
                         {
@@ -2350,7 +2349,7 @@ extern "C" {
                     newsize --;
                 }
 
-                *out = (char)(0x80 bitor best_size);
+                *out = (char)(0x80 | best_size);
                 out ++;
                 *out = (char)(index - best);
                 out ++;
@@ -2394,9 +2393,9 @@ extern "C" {
             len = *in;
             in ++;
 
-            if (len bitand 0x80)
+            if (len & 0x80)
             {
-                len = len bitand 0x7f;
+                len = len & 0x7f;
                 index = *(unsigned char*) in;
                 in ++;
                 offset = &out[-index];

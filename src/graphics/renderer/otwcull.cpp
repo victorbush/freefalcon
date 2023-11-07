@@ -10,7 +10,6 @@
  is computed and the posts required to draw the terrain within the volume
  are identified.
 \***************************************************************************/
-#include <cISO646>
 #include <math.h>
 #include "TMap.h"
 #include "Tpost.h"
@@ -60,8 +59,8 @@ void RenderOTW::BuildRingList(void)
 
         // Determine the location of the glue row and column at the outside of this LOD region
         // NOTE:  These two must evaluate to zero or one, as they are used arithmetically
-        LODdata[LOD].glueOnBottom   = LODdata[LOD].centerRow bitand 1;
-        LODdata[LOD].glueOnLeft = LODdata[LOD].centerCol bitand 1;
+        LODdata[LOD].glueOnBottom   = LODdata[LOD].centerRow & 1;
+        LODdata[LOD].glueOnLeft = LODdata[LOD].centerCol & 1;
 
 
 #ifdef TWO_D_MAP_AVAILABLE
@@ -109,7 +108,7 @@ void RenderOTW::BuildRingList(void)
     {
 
         // Figure where to stop this LOD and move to the next
-        if (LOD not_eq viewpoint->GetHighLOD())
+        if (LOD != viewpoint->GetHighLOD())
         {
 
             // The stop ring is one ring in from the first available ring at the next LOD
@@ -166,7 +165,7 @@ void RenderOTW::BuildRingList(void)
     // Pad the end of the list to avoid overrunning the list when performing look ahead
     ShiAssert(firstEmptySpan < spanList + spanListMaxEntries);
 
-    if (firstEmptySpan not_eq spanList)
+    if (firstEmptySpan != spanList)
     {
         firstEmptySpan->ring = -1;
         firstEmptySpan->LOD = (firstEmptySpan - 1)->LOD;
@@ -280,7 +279,7 @@ void RenderOTW::ClipHorizontalSectors(void)
     LOD = -1;
 
     // Now clip the top horizontal spans to the bounding region
-    for (span = spanList; span not_eq firstEmptySpan; span++)
+    for (span = spanList; span != firstEmptySpan; span++)
     {
 
         // Spans are  empty until we get to the top corner of the bounding region
@@ -292,7 +291,7 @@ void RenderOTW::ClipHorizontalSectors(void)
         }
 
         // Restart the edge traversal since the spans can take a step backward at LOD change
-        if (span->LOD not_eq LOD)
+        if (span->LOD != LOD)
         {
             LOD = span->LOD;
             e = w = 0;
@@ -368,7 +367,7 @@ void RenderOTW::ClipHorizontalSectors(void)
         }
 
         // Restart the edge traversal since the spans can take a step backward at LOD change
-        if (span->LOD not_eq LOD)
+        if (span->LOD != LOD)
         {
             LOD = span->LOD;
             e = w = 0;
@@ -446,7 +445,7 @@ void RenderOTW::ClipVerticalSectors(void)
 
 
     // Construct the ordered edge list (horizontal span case - Y buckets (since Y is East/Right))
-    if ((Yaw() < PI_OVER_2) or (Yaw() > 3.0f * PI_OVER_2))
+    if ((Yaw() < PI_OVER_2) || (Yaw() > 3.0f * PI_OVER_2))
     {
         // Necessarily, rightY2 > leftY2
         if (rightY1 > rightY2)
@@ -532,7 +531,7 @@ void RenderOTW::ClipVerticalSectors(void)
     LOD = -1;
 
     // Now fill in the extents of spans along the right edge of the bounding region
-    for (span = spanList; span not_eq firstEmptySpan; span++)
+    for (span = spanList; span != firstEmptySpan; span++)
     {
 
         // Spans are empty until we get to the top corner of the bounding region
@@ -544,7 +543,7 @@ void RenderOTW::ClipVerticalSectors(void)
         }
 
         // Restart the edge traversal since the spans can take a step backward at LOD change
-        if (span->LOD not_eq LOD)
+        if (span->LOD != LOD)
         {
             LOD = span->LOD;
             n = s = 0;
@@ -620,7 +619,7 @@ void RenderOTW::ClipVerticalSectors(void)
         }
 
         // Restart the edge traversal since the spans can take a step backward at LOD change
-        if (span->LOD not_eq LOD)
+        if (span->LOD != LOD)
         {
             LOD = span->LOD;
             n = s = 0;
@@ -702,7 +701,7 @@ void RenderOTW::BuildCornerSet(void)
 
         // The start/stop points were computed for the inside edges of each ring of squares.
         // Make sure the outter edge doesn't dictate a larger span.
-        if (span not_eq spanList)
+        if (span != spanList)
         {
             if (span->LOD == (span - 1)->LOD)
             {
@@ -812,7 +811,7 @@ void RenderOTW::TrimCornerSet(void)
     for (span = firstEmptySpan - 1; span >= spanList; span--)
     {
 
-        if ((span < spanList + 2) or (span->LOD == (span - 2)->LOD))
+        if ((span < spanList + 2) || (span->LOD == (span - 2)->LOD))
         {
 
             // Normal Draw.
@@ -905,10 +904,10 @@ void RenderOTW::TrimCornerSet(void)
                         }
 
                         // Rounding
-                        span->Tsector.startDraw = (span->Tsector.startDraw - 1) bitor 1;
-                        span->Tsector.stopDraw  = (span->Tsector.stopDraw  - 1) bitor 1;
-                        span->Rsector.startDraw = (span->Rsector.startDraw - 1) bitor 1;
-                        span->Rsector.stopDraw  = (span->Rsector.stopDraw  - 1) bitor 1;
+                        span->Tsector.startDraw = (span->Tsector.startDraw - 1) | 1;
+                        span->Tsector.stopDraw  = (span->Tsector.stopDraw  - 1) | 1;
+                        span->Rsector.startDraw = (span->Rsector.startDraw - 1) | 1;
+                        span->Rsector.stopDraw  = (span->Rsector.stopDraw  - 1) | 1;
                     }
                     else
                     {
@@ -935,10 +934,10 @@ void RenderOTW::TrimCornerSet(void)
                         }
 
                         // Rounding
-                        span->Tsector.startDraw = span->Tsector.startDraw bitand compl 1;
-                        span->Tsector.stopDraw  = span->Tsector.stopDraw bitand compl 1;
-                        span->Lsector.startDraw = (span->Lsector.startDraw - 1) bitor 1;
-                        span->Lsector.stopDraw  = (span->Lsector.stopDraw  - 1) bitor 1;
+                        span->Tsector.startDraw = span->Tsector.startDraw & ~1;
+                        span->Tsector.stopDraw  = span->Tsector.stopDraw  & ~1;
+                        span->Lsector.startDraw = (span->Lsector.startDraw - 1) | 1;
+                        span->Lsector.stopDraw  = (span->Lsector.stopDraw  - 1) | 1;
                     }
                 }
                 else
@@ -980,10 +979,10 @@ void RenderOTW::TrimCornerSet(void)
                         }
 
                         // Rounding
-                        span->Bsector.startDraw = (span->Bsector.startDraw - 1) bitor 1;
-                        span->Bsector.stopDraw  = (span->Bsector.stopDraw  - 1) bitor 1;
-                        span->Rsector.startDraw = span->Rsector.startDraw bitand compl 1;
-                        span->Rsector.stopDraw  = span->Rsector.stopDraw bitand compl 1;
+                        span->Bsector.startDraw = (span->Bsector.startDraw - 1) | 1;
+                        span->Bsector.stopDraw  = (span->Bsector.stopDraw  - 1) | 1;
+                        span->Rsector.startDraw = span->Rsector.startDraw & ~1;
+                        span->Rsector.stopDraw  = span->Rsector.stopDraw  & ~1;
                     }
                     else
                     {
@@ -1010,10 +1009,10 @@ void RenderOTW::TrimCornerSet(void)
                         }
 
                         // Rounding
-                        span->Bsector.startDraw = span->Bsector.startDraw bitand compl 1;
-                        span->Bsector.stopDraw  = span->Bsector.stopDraw bitand compl 1;
-                        span->Lsector.startDraw = span->Lsector.startDraw bitand compl 1;
-                        span->Lsector.stopDraw  = span->Lsector.stopDraw bitand compl 1;
+                        span->Bsector.startDraw = span->Bsector.startDraw & ~1;
+                        span->Bsector.stopDraw  = span->Bsector.stopDraw  & ~1;
+                        span->Lsector.startDraw = span->Lsector.startDraw & ~1;
+                        span->Lsector.stopDraw  = span->Lsector.stopDraw  & ~1;
                     }
                 }
 
@@ -1081,10 +1080,10 @@ void RenderOTW::TrimCornerSet(void)
                         span->Rsector.stopDraw  = MAX_NEGATIVE_I;
 
                         // Rounding
-                        span->Bsector.startDraw = (span->Bsector.startDraw - 1) bitor 1;
-                        span->Bsector.stopDraw  = (span->Bsector.stopDraw  - 1) bitor 1;
-                        span->Lsector.startDraw = (span->Lsector.startDraw - 1) bitor 1;
-                        span->Lsector.stopDraw  = (span->Lsector.stopDraw  - 1) bitor 1;
+                        span->Bsector.startDraw = (span->Bsector.startDraw - 1) | 1;
+                        span->Bsector.stopDraw  = (span->Bsector.stopDraw  - 1) | 1;
+                        span->Lsector.startDraw = (span->Lsector.startDraw - 1) | 1;
+                        span->Lsector.stopDraw  = (span->Lsector.stopDraw  - 1) | 1;
                     }
                     else
                     {
@@ -1116,10 +1115,10 @@ void RenderOTW::TrimCornerSet(void)
                         span->Lsector.stopDraw  = MAX_NEGATIVE_I;
 
                         // Rounding
-                        span->Bsector.startDraw = span->Bsector.startDraw bitand compl 1;
-                        span->Bsector.stopDraw  = span->Bsector.stopDraw bitand compl 1;
-                        span->Rsector.startDraw = (span->Rsector.startDraw - 1) bitor 1;
-                        span->Rsector.stopDraw  = (span->Rsector.stopDraw  - 1) bitor 1;
+                        span->Bsector.startDraw = span->Bsector.startDraw & ~1;
+                        span->Bsector.stopDraw  = span->Bsector.stopDraw  & ~1;
+                        span->Rsector.startDraw = (span->Rsector.startDraw - 1) | 1;
+                        span->Rsector.stopDraw  = (span->Rsector.stopDraw  - 1) | 1;
                     }
                 }
                 else
@@ -1154,10 +1153,10 @@ void RenderOTW::TrimCornerSet(void)
                         span->Rsector.stopDraw  = MAX_NEGATIVE_I;
 
                         // Rounding
-                        span->Tsector.startDraw = (span->Tsector.startDraw - 1) bitor 1;
-                        span->Tsector.stopDraw  = (span->Tsector.stopDraw  - 1) bitor 1;
-                        span->Lsector.startDraw = span->Lsector.startDraw bitand compl 1;
-                        span->Lsector.stopDraw  = span->Lsector.stopDraw bitand compl 1;
+                        span->Tsector.startDraw = (span->Tsector.startDraw - 1) | 1;
+                        span->Tsector.stopDraw  = (span->Tsector.stopDraw  - 1) | 1;
+                        span->Lsector.startDraw = span->Lsector.startDraw & ~1;
+                        span->Lsector.stopDraw  = span->Lsector.stopDraw  & ~1;
                     }
                     else
                     {
@@ -1189,10 +1188,10 @@ void RenderOTW::TrimCornerSet(void)
                         span->Lsector.stopDraw  = MAX_NEGATIVE_I;
 
                         // Rounding
-                        span->Tsector.startDraw = span->Tsector.startDraw bitand compl 1;
-                        span->Tsector.stopDraw  = span->Tsector.stopDraw bitand compl 1;
-                        span->Rsector.startDraw = span->Rsector.startDraw bitand compl 1;
-                        span->Rsector.stopDraw  = span->Rsector.stopDraw bitand compl 1;
+                        span->Tsector.startDraw = span->Tsector.startDraw & ~1;
+                        span->Tsector.stopDraw  = span->Tsector.stopDraw  & ~1;
+                        span->Rsector.startDraw = span->Rsector.startDraw & ~1;
+                        span->Rsector.stopDraw  = span->Rsector.stopDraw  & ~1;
                     }
                 }
             }
@@ -1762,8 +1761,8 @@ void RenderOTW::ComputeBounds(void)
         back_edge.Normalize();
     }
 
-    ShiAssert((leftX1 == rightX1 and leftY1 == rightY1) or right_edge.RightOf(leftX1, leftY1));
-    ShiAssert((leftX1 == rightX1 and leftY1 == rightY1) or left_edge.LeftOf(rightX1, rightY1));
+    ShiAssert((leftX1 == rightX1 && leftY1 == rightY1) || right_edge.RightOf(leftX1, leftY1));
+    ShiAssert((leftX1 == rightX1 && leftY1 == rightY1) || left_edge.LeftOf(rightX1, rightY1));
     ShiAssert(right_edge.RightOf(leftX2, leftY2));
     ShiAssert(left_edge.LeftOf(rightX2, rightY2));
 #endif

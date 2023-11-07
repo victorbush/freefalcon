@@ -1,4 +1,3 @@
-#include <cISO646>
 #include "vu_iterator.h"
 #include "vu_filter.h"
 
@@ -29,7 +28,7 @@ VuGridIterator::~VuGridIterator()
 VuEntity *VuGridIterator::GetFirst()
 {
 
-    if ( not collection_)
+    if (!collection_)
     {
         return NULL;
     }
@@ -44,7 +43,7 @@ VuEntity *VuGridIterator::GetFirst()
     it_ = VuRBIterator(g->table_[rowcur_]);
     VuEntity *ret = it_.GetFirst(collow_);
 
-    if ((ret == NULL) or (bkf->Key2(ret) > colhi_))
+    if ((ret == NULL) || (bkf->Key2(ret) > colhi_))
     {
         ret =  GetNext();
     }
@@ -62,7 +61,7 @@ VuEntity *VuGridIterator::GetNext()
 #endif
     VuEntity *ret = it_.GetNext();;
 
-    while ((ret == NULL) or (bkf->Key2(ret) > colhi_))
+    while ((ret == NULL) || (bkf->Key2(ret) > colhi_))
     {
         // end of column
         if (rowcur_ + 1 > rowhi_)
@@ -85,7 +84,7 @@ VuEntity *VuGridIterator::GetFirst(VuFilter* filter)
 {
     VuEntity* retval = GetFirst();
 
-    if (retval == 0 or filter->Test(retval))
+    if (retval == 0 || filter->Test(retval))
     {
         return retval;
     }
@@ -97,7 +96,7 @@ VuEntity *VuGridIterator::GetNext(VuFilter *filter)
 {
     VuEntity* retval = 0;
 
-    while ((retval = GetNext()) not_eq 0)
+    while ((retval = GetNext()) != 0)
     {
         if (filter->Test(retval))
         {

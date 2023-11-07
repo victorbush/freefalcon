@@ -7,7 +7,6 @@ CONDITIONAL COMPILATION :
                               lookups fail after the first lookup.
 ----------------------------------------------------------------------*/
 
-#include <cISO646>
 #include "pch.h"
 #include "BugslayerUtil.h"
 #include "CrashHandler.h"
@@ -98,7 +97,7 @@ public  :
     ~CleanUpCrashHandler(void)
     {
         // Is there any outstanding memory allocations?
-        if (NULL not_eq g_ahMod)
+        if (NULL != g_ahMod)
         {
             VERIFY(HeapFree(GetProcessHeap() ,
                             0                  ,
@@ -106,7 +105,7 @@ public  :
             g_ahMod = NULL ;
         }
 
-        if (NULL not_eq g_pfnOrigFilt)
+        if (NULL != g_pfnOrigFilt)
         {
             // Set the handler back to what it originally was.
             SetUnhandledExceptionFilter(g_pfnOrigFilt) ;
@@ -127,13 +126,13 @@ BOOL __stdcall SetCrashHandlerFilter(PFNCHFILTFN pFn)
     //  callback.
     if (NULL == pFn)
     {
-        if (NULL not_eq g_pfnOrigFilt)
+        if (NULL != g_pfnOrigFilt)
         {
             // Put the original one back.
             SetUnhandledExceptionFilter(g_pfnOrigFilt) ;
             g_pfnOrigFilt = NULL ;
 
-            if (NULL not_eq g_ahMod)
+            if (NULL != g_ahMod)
             {
                 free(g_ahMod) ;
                 g_ahMod = NULL ;
@@ -161,7 +160,7 @@ BOOL __stdcall SetCrashHandlerFilter(PFNCHFILTFN pFn)
 BOOL __stdcall AddCrashHandlerLimitModule(HMODULE hMod)
 {
     // Check the obvious cases.
-    ASSERT(NULL not_eq hMod) ;
+    ASSERT(NULL != hMod) ;
 
     if (NULL == hMod)
     {
@@ -180,11 +179,11 @@ BOOL __stdcall AddCrashHandlerLimitModule(HMODULE hMod)
                                  HEAP_ZERO_MEMORY |
                                  HEAP_GENERATE_EXCEPTIONS        ,
                                  (sizeof(HMODULE) * (g_uiModCount + 1))) ;
-    ASSERT(NULL not_eq phTemp) ;
+    ASSERT(NULL != phTemp) ;
 
     if (NULL == phTemp)
     {
-        TRACE0("Serious trouble in the house - malloc failed\n");
+        TRACE0("Serious trouble in the house! - malloc failed!!!\n");
         return (FALSE) ;
     }
 
@@ -256,7 +255,7 @@ LONG __stdcall CrashHandlerExceptionFilter(EXCEPTION_POINTERS* pExPtrs)
     __try
     {
 
-        if (NULL not_eq g_pfnCallBack)
+        if (NULL != g_pfnCallBack)
         {
 
             // The symbol engine has to be initialized here so that
@@ -280,7 +279,7 @@ LONG __stdcall CrashHandlerExceptionFilter(EXCEPTION_POINTERS* pExPtrs)
                                                        ExceptionRecord->
                                                        ExceptionAddress);
 
-                if (NULL not_eq hBaseAddr)
+                if (NULL != hBaseAddr)
                 {
                     for (UINT i = 0 ; i < g_uiModCount ; i ++)
                     {
@@ -369,7 +368,7 @@ LPCTSTR __stdcall GetFaultReason(EXCEPTION_POINTERS * pExPtrs)
                  ConvertSimpleException(pExPtrs->ExceptionRecord->
                                         ExceptionCode);
 
-        if (NULL not_eq dwTemp)
+        if (NULL != dwTemp)
         {
             iCurr += wsprintf(g_szBuff + iCurr ,
                               _T("%s")      ,
@@ -397,7 +396,7 @@ LPCTSTR __stdcall GetFaultReason(EXCEPTION_POINTERS * pExPtrs)
             SymGetModuleBase((HANDLE)GetCurrentProcessId() ,
                              (DWORD)pExPtrs->ExceptionRecord->
                              ExceptionAddress) ;
-        ASSERT(NULL not_eq dwTemp) ;
+        ASSERT(NULL != dwTemp) ;
 
         if (NULL == dwTemp)
         {
@@ -558,7 +557,7 @@ BOOL __stdcall GetFaultReasonVB(EXCEPTION_POINTERS * pExPtrs ,
 
         szRet = GetFaultReason(pExPtrs) ;
 
-        ASSERT(NULL not_eq szRet) ;
+        ASSERT(NULL != szRet) ;
 
         if (NULL == szRet)
         {
@@ -574,7 +573,7 @@ BOOL __stdcall GetFaultReasonVB(EXCEPTION_POINTERS * pExPtrs ,
         szRet = NULL ;
     }
 
-    return (NULL not_eq szRet) ;
+    return (NULL != szRet) ;
 }
 
 
@@ -647,7 +646,7 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
     if (TRUE == IsBadReadPtr(pExPtrs                      ,
                              sizeof(EXCEPTION_POINTERS)))
     {
-        TRACE0("GetStackTraceString - invalid pExPtrs\n") ;
+        TRACE0("GetStackTraceString - invalid pExPtrs!\n") ;
         return (NULL) ;
     }
 
@@ -679,7 +678,7 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
                                 SymGetModuleBase                  ,
                                 NULL) ;
 
-        if ((FALSE == bSWRet) or (0 == g_stFrame.AddrFrame.Offset))
+        if ((FALSE == bSWRet) || (0 == g_stFrame.AddrFrame.Offset))
         {
             szRet = NULL ;
             __leave ;
@@ -700,7 +699,7 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
 #endif
 
         // Do the parameters?
-        if (GSTSO_PARAMS == (dwOpts bitand GSTSO_PARAMS))
+        if (GSTSO_PARAMS == (dwOpts & GSTSO_PARAMS))
         {
             iCurr += wsprintf(g_szBuff + iCurr          ,
                               _T(" (0x%08X 0x%08X "\
@@ -711,14 +710,14 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
                               g_stFrame.Params[ 3 ]) ;
         }
 
-        if (GSTSO_MODULE == (dwOpts bitand GSTSO_MODULE))
+        if (GSTSO_MODULE == (dwOpts & GSTSO_MODULE))
         {
             iCurr += wsprintf(g_szBuff + iCurr  , _T(" ")) ;
 
             dwTemp = SymGetModuleBase((HANDLE)GetCurrentProcessId(),
                                       g_stFrame.AddrPC.Offset);
 
-            ASSERT(NULL not_eq dwTemp) ;
+            ASSERT(NULL != dwTemp) ;
 
             if (NULL == dwTemp)
             {
@@ -737,7 +736,7 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
         ASSERT(iCurr < BUFF_SIZE) ;
         DWORD dwDisp ;
 
-        if (GSTSO_SYMBOL == (dwOpts bitand GSTSO_SYMBOL))
+        if (GSTSO_SYMBOL == (dwOpts & GSTSO_SYMBOL))
         {
 
             // Start looking up the exception address.
@@ -789,14 +788,14 @@ InternalGetStackTraceString(DWORD                dwOpts  ,
             else
             {
                 // If the symbol was not found, the source and line will
-                // not be found either so leave now.
+                //  not be found either so leave now.
                 szRet = g_szBuff ;
                 __leave ;
             }
 
         }
 
-        if (GSTSO_SRCLINE == (dwOpts bitand GSTSO_SRCLINE))
+        if (GSTSO_SRCLINE == (dwOpts & GSTSO_SRCLINE))
         {
             ZeroMemory(&g_stLine , sizeof(IMAGEHLP_LINE)) ;
             g_stLine.SizeOfStruct = sizeof(IMAGEHLP_LINE) ;
@@ -887,7 +886,7 @@ GetFirstStackTraceStringVB(DWORD                dwOpts  ,
         szRet = NULL ;
     }
 
-    return (NULL not_eq szRet) ;
+    return (NULL != szRet) ;
 }
 
 BOOL __stdcall
@@ -923,7 +922,7 @@ GetNextStackTraceStringVB(DWORD                dwOpts  ,
         szRet = NULL ;
     }
 
-    return (NULL not_eq szRet) ;
+    return (NULL != szRet) ;
 }
 
 LPCTSTR __stdcall GetRegisterString(EXCEPTION_POINTERS * pExPtrs)
@@ -935,7 +934,7 @@ LPCTSTR __stdcall GetRegisterString(EXCEPTION_POINTERS * pExPtrs)
     if (TRUE == IsBadReadPtr(pExPtrs                      ,
                              sizeof(EXCEPTION_POINTERS)))
     {
-        TRACE0("GetRegisterString - invalid pExPtrs\n") ;
+        TRACE0("GetRegisterString - invalid pExPtrs!\n") ;
         return (NULL) ;
     }
 
@@ -1003,7 +1002,7 @@ BOOL __stdcall GetRegisterStringVB(EXCEPTION_POINTERS * pExPtrs ,
         szRet = NULL ;
     }
 
-    return (NULL not_eq szRet) ;
+    return (NULL != szRet) ;
 
 }
 
@@ -1122,7 +1121,7 @@ BOOL InternalSymGetLineFromAddr(IN  HANDLE          hProcess        ,
                                           "SymGetLineFromAddr");
     }
 
-    if (NULL not_eq g_pfnSymGetLineFromAddr)
+    if (NULL != g_pfnSymGetLineFromAddr)
     {
 #ifdef WORK_AROUND_SRCLINE_BUG
 
@@ -1148,7 +1147,7 @@ BOOL InternalSymGetLineFromAddr(IN  HANDLE          hProcess        ,
 
         // It was found and the source line information is correct so
         //  change the displacement if it was looked up multiple times.
-        if (0 not_eq dwTempDis)
+        if (0 != dwTempDis)
         {
             *pdwDisplacement = dwTempDis ;
         }
@@ -1342,7 +1341,7 @@ BOOL BUGSUTIL_DLLINTERFACE __stdcall IsMiniDumpFunctionAvailable(void)
             hInstDBGHELP = LoadLibrary(k_DBGHELPDLLNAME) ;
         }
 
-        if (NULL not_eq hInstDBGHELP)
+        if (NULL != hInstDBGHELP)
         {
             // At least I have DBGHELP.DLL's handle.  Get the exported
             // function.
@@ -1350,7 +1349,7 @@ BOOL BUGSUTIL_DLLINTERFACE __stdcall IsMiniDumpFunctionAvailable(void)
                         GetProcAddress(hInstDBGHELP , k_MINIDUMPWRITEDUMP) ;
 
 
-            if (NULL not_eq g_pfnMDWD)
+            if (NULL != g_pfnMDWD)
             {
                 // It's good so set the last error for this function.
                 g_eIMDALastError = eDUMP_SUCCEEDED ;
@@ -1364,14 +1363,14 @@ BOOL BUGSUTIL_DLLINTERFACE __stdcall IsMiniDumpFunctionAvailable(void)
         }
         else
         {
-            // Can't find DBGHELP.DLL  Save this for the
+            // Can't find DBGHELP.DLL!  Save this for the
             // CreateCurrentProcessMiniDump function to return.
             g_eIMDALastError = eDBGHELP_NOT_FOUND ;
         }
     }
 
     // If g_pfnMDWD is not NULL, I found it.
-    return (NULL not_eq g_pfnMDWD) ;
+    return (NULL != g_pfnMDWD) ;
 }
 
 BSUMDRET BUGSUTIL_DLLINTERFACE __stdcall
@@ -1405,9 +1404,9 @@ CreateCurrentProcessMiniDumpA(MINIDUMP_TYPE        eType      ,
                                    -1              ,
                                    pWideFileName   ,
                                    iLen) ;
-    ASSERT(iRet not_eq 0) ;
+    ASSERT(iRet != 0) ;
 
-    if (iRet not_eq 0)
+    if (iRet != 0)
     {
         // The conversion worked, call the wide function.
         eRetVal = CreateCurrentProcessMiniDumpW(eType         ,
@@ -1420,7 +1419,7 @@ CreateCurrentProcessMiniDumpA(MINIDUMP_TYPE        eType      ,
         eRetVal = eBAD_PARAM ;
     }
 
-    if (NULL not_eq pWideFileName)
+    if (NULL != pWideFileName)
     {
         HeapFree(GetProcessHeap() , 0 , pWideFileName) ;
     }
@@ -1445,7 +1444,7 @@ CreateCurrentProcessMiniDumpW(MINIDUMP_TYPE        eType      ,
     }
 
     // If an exception pointer blob was passed in.
-    if (NULL not_eq pExceptInfo)
+    if (NULL != pExceptInfo)
     {
         ASSERT(FALSE ==
                IsBadReadPtr(pExceptInfo , sizeof(EXCEPTION_POINTERS)));
@@ -1459,7 +1458,7 @@ CreateCurrentProcessMiniDumpW(MINIDUMP_TYPE        eType      ,
 
     // Have I even tried to get the exported MiniDumpWriteDump function
     // yet?
-    if ((NULL == g_pfnMDWD) and (eINVALID_ERROR == g_eIMDALastError))
+    if ((NULL == g_pfnMDWD) && (eINVALID_ERROR == g_eIMDALastError))
     {
         if (FALSE == IsMiniDumpFunctionAvailable())
         {
@@ -1491,9 +1490,9 @@ CreateCurrentProcessMiniDumpW(MINIDUMP_TYPE        eType      ,
                                             &stParams   ,
                                             0           ,
                                             &dwTID) ;
-    ASSERT((HANDLE) - 1 not_eq hThread) ;
+    ASSERT((HANDLE) - 1 != hThread) ;
 
-    if ((HANDLE) - 1 not_eq hThread)
+    if ((HANDLE) - 1 != hThread)
     {
         // The thread is running.  Block until the thread ends.
         WaitForSingleObject(hThread , INFINITE) ;
@@ -1525,7 +1524,7 @@ PARAMETERS      :
 RETURNS         :
     FALSE - There was a problem dumping the data.  The DUMPTHREADPARAMS
             struct contains the problem.
-    TRUE  - All OK, Jumpmaster
+    TRUE  - All OK, Jumpmaster!
 ----------------------------------------------------------------------*/
 unsigned WINAPI DumpThread(LPVOID pData)
 {
@@ -1533,20 +1532,20 @@ unsigned WINAPI DumpThread(LPVOID pData)
 
     // Create the file first.
     HANDLE hFile = CreateFileW(pParams->szFileName             ,
-                               GENERIC_READ bitor GENERIC_WRITE    ,
+                               GENERIC_READ | GENERIC_WRITE    ,
                                0                              ,
                                NULL                           ,
                                CREATE_ALWAYS                  ,
                                FILE_ATTRIBUTE_NORMAL          ,
                                NULL) ;
-    ASSERT(INVALID_HANDLE_VALUE not_eq hFile) ;
+    ASSERT(INVALID_HANDLE_VALUE != hFile) ;
 
-    if (INVALID_HANDLE_VALUE not_eq hFile)
+    if (INVALID_HANDLE_VALUE != hFile)
     {
         MINIDUMP_EXCEPTION_INFORMATION   stMDEI ;
         MINIDUMP_EXCEPTION_INFORMATION * pMDEI = NULL ;
 
-        if (NULL not_eq pParams->pExceptInfo)
+        if (NULL != pParams->pExceptInfo)
         {
             stMDEI.ThreadId = pParams->dwThreadID ;
             stMDEI.ExceptionPointers = pParams->pExceptInfo ;
@@ -1579,7 +1578,7 @@ unsigned WINAPI DumpThread(LPVOID pData)
     }
     else
     {
-        // Could not open the file
+        // Could not open the file!
         pParams->eReturnValue = eOPEN_DUMP_FAILED ;
     }
 

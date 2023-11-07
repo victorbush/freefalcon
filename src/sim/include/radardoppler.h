@@ -1,7 +1,6 @@
 #ifndef _RADAR_MODEL_H
 #define _RADAR_MODEL_H
 
-#include <cISO646>
 #include "radar.h"
 #include "Campwp.h"  // MD -- 20040214: added for GM SP mode pseudo waypoint
 #include "alist.h"
@@ -250,8 +249,8 @@ protected:
         AzBar = 0x8000,
         Rng = 0x10000,
         Arrows = 0x20000,
-        DefaultAgDclt = Ovrd bitor Cntl bitor BupSen bitor FzSp bitor Cz bitor Dclt bitor Fmt1 bitor Fmt2 bitor Fmt3 bitor Swap bitor Arrows,
-        DefaultAaDclt = Ovrd bitor Cntl bitor Dclt bitor Fmt1 bitor Fmt2 bitor Fmt3 bitor Swap bitor Arrows,
+        DefaultAgDclt = Ovrd | Cntl | BupSen | FzSp | Cz | Dclt | Fmt1 | Fmt2 | Fmt3 | Swap | Arrows,
+        DefaultAaDclt = Ovrd | Cntl | Dclt | Fmt1 | Fmt2 | Fmt3 | Swap | Arrows,
     };
 
     class GMList
@@ -317,19 +316,19 @@ protected:
 public:
     int  IsSet(int newFlag)
     {
-        return (newFlag bitand flags) ? TRUE : FALSE;
+        return (newFlag & flags) ? TRUE : FALSE;
     }; //MI moved to public
     void SetFlagBit(int newFlag)
     {
-        flags or_eq newFlag;
+        flags |= newFlag;
     };
     void ClearFlagBit(int newFlag)
     {
-        flags and_eq compl newFlag;
+        flags &= ~newFlag;
     };
     void ToggleFlag(int flag)
     {
-        flags xor_eq flag;
+        flags ^= flag;
     };
 
     //MI
@@ -352,44 +351,44 @@ protected:
     // DCLT variables
     int  IsAADcltBit(int newFlag)
     {
-        return (newFlag bitand aadclt) ? TRUE : FALSE;
+        return (newFlag & aadclt) ? TRUE : FALSE;
     };
     int IsAADclt(int flg)
     {
-        return IsSet(AADecluttered) and IsAADcltBit(flg);
+        return IsSet(AADecluttered) && IsAADcltBit(flg);
     };
     void SetAADcltBit(int newFlag)
     {
-        aadclt or_eq newFlag;
+        aadclt |= newFlag;
     };
     void ClearAADcltBit(int newFlag)
     {
-        aadclt and_eq compl newFlag;
+        aadclt &= ~newFlag;
     };
     void ToggleAADclt(int flag)
     {
-        aadclt xor_eq flag;
+        aadclt ^= flag;
     };
 
     int IsAGDclt(int flg)
     {
-        return IsSet(AGDecluttered) and IsAGDcltBit(flg);
+        return IsSet(AGDecluttered) && IsAGDcltBit(flg);
     };
     int  IsAGDcltBit(int newFlag)
     {
-        return (newFlag bitand agdclt) ? TRUE : FALSE;
+        return (newFlag & agdclt) ? TRUE : FALSE;
     };
     void SetAGDcltBit(int newFlag)
     {
-        agdclt or_eq newFlag;
+        agdclt |= newFlag;
     };
     void ClearAGDcltBit(int newFlag)
     {
-        agdclt and_eq compl newFlag;
+        agdclt &= ~newFlag;
     };
     void ToggleAGDclt(int flag)
     {
-        agdclt xor_eq flag;
+        agdclt ^= flag;
     };
 
     void ChangeMode(int newMode);
@@ -479,25 +478,25 @@ protected :
     {
         AltTrack = 0x1,
         PmMode     = 0x2,
-        NaroBand = 0x4,
+        NaroBand     = 0x4,
         SpeedLo     = 0x8,
     };
     unsigned int radarmodeflags;
     void SetModeFlag(int flag)
     {
-        radarmodeflags or_eq flag;
+        radarmodeflags |= flag;
     };
     void ClrModeFlag(int flag)
     {
-        radarmodeflags and_eq compl flag;
+        radarmodeflags &= ~flag;
     };
     void ToggleModeFlag(int flag)
     {
-        radarmodeflags xor_eq flag;
+        radarmodeflags ^= flag;
     };
     int IsModeFlag(int flag)
     {
-        return (radarmodeflags bitand flag) ? 1 : 0;
+        return (radarmodeflags & flag) ? 1 : 0;
     };
 
     //Cobra CPL and DCPL for IFF TJL 11/24/04
@@ -509,19 +508,19 @@ protected :
     unsigned int iffmodeflags;
     void SetIFFFlags(int flag)
     {
-        iffmodeflags or_eq flag;
+        iffmodeflags |= flag;
     };
     void ClrIFFFlags(int flag)
     {
-        iffmodeflags and_eq compl flag;
+        iffmodeflags &= ~flag;
     };
     void ToggleIFFFlags(int flag)
     {
-        iffmodeflags xor_eq flag;
+        iffmodeflags ^= flag;
     };
     int IsIFFFlags(int flag)
     {
-        return (iffmodeflags bitand flag) ? 1 : 0;
+        return (iffmodeflags & flag) ? 1 : 0;
     };
 
 

@@ -30,7 +30,7 @@ int FalconRequestObject::Process(uchar autodisp)
 
     FalconSessionEntity* fromEnt = (FalconSessionEntity*)vuDatabase->Find(dataBlock.fromID);
 
-    if (fromEnt and Entity() and Entity()->IsLocal())
+    if (fromEnt && Entity() && Entity()->IsLocal())
     {
         VuMessage *resp;
         resp = new VuFullUpdateEvent(Entity(), fromEnt);

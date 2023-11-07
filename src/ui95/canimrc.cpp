@@ -103,7 +103,7 @@ ANIM_RES *C_Animation::LoadAnim(long ID, char *filename)
 
     size = UI_FILESIZE(ifp);
 
-    if ( not size)
+    if (!size)
     {
         UI_CLOSE(ifp);
         return(FALSE);
@@ -122,7 +122,7 @@ ANIM_RES *C_Animation::LoadAnim(long ID, char *filename)
         return(NULL);
     }
 
-    if (UI_READ(NewAnim->Anim, size, 1, ifp) not_eq 1)
+    if (UI_READ(NewAnim->Anim, size, 1, ifp) != 1)
     {
         delete NewAnim->Anim;
         delete NewAnim;
@@ -182,9 +182,9 @@ void C_Animation::Convert16BitRLE(ANIMATION *Data)
     {
         dptr = (WORD *)&AnimPtr->Data[0];
 
-        while ( not (*dptr bitand RLE_END))
+        while (!(*dptr & RLE_END))
         {
-            if ( not (*dptr bitand RLE_KEYMASK))
+            if (!(*dptr & RLE_KEYMASK))
             {
                 cnt = *dptr;
                 dptr++;
@@ -196,7 +196,7 @@ void C_Animation::Convert16BitRLE(ANIMATION *Data)
                     cnt--;
                 }
             }
-            else if (*dptr bitand RLE_REPEAT)
+            else if (*dptr & RLE_REPEAT)
             {
                 dptr++;
                 *dptr = UI95_RGB15Bit(*dptr);

@@ -1,11 +1,10 @@
 #ifndef VUSESS_H_
 #define VUSESS_H_
 
-#include <cISO646>
 #include <list>
 // sfr: uses list instead of map... may be faster than map
 #define SESSION_USES_LIST_FOR_PU 1
-#if not SESSION_USES_LIST_FOR_PU
+#if !SESSION_USES_LIST_FOR_PU
 #include <map>
 #endif
 #include <vector>
@@ -186,7 +185,7 @@ class VuSessionEntity : public VuTargetEntity
 {
     friend class VuMainThread;
 public:
-    // constructors bitand destructor
+    // constructors & destructor
     VuSessionEntity(ulong domainMask, const char *callsign);
     VuSessionEntity(VU_BYTE **stream, long *rem);
     VuSessionEntity(FILE *file);
@@ -404,7 +403,7 @@ class VuGroupEntity : public VuTargetEntity
     friend class VuSessionEntity;
 
 public:
-    // constructors bitand destructor
+    // constructors & destructor
     VuGroupEntity(char *groupname);
     //sfr: added rem
     VuGroupEntity(VU_BYTE **stream, long *rem);
@@ -477,7 +476,7 @@ class VuGameEntity : public VuGroupEntity
     friend class VuSessionEntity;
 
 public:
-    // constructors bitand destructor
+    // constructors & destructor
     VuGameEntity(ulong domainMask, char *gamename);
     VuGameEntity(VU_BYTE **stream, long *rem);
     VuGameEntity(FILE *file);
@@ -539,7 +538,7 @@ protected:
 class VuPlayerPoolGame : public VuGameEntity
 {
 public:
-    // constructors bitand destructor
+    // constructors & destructor
     VuPlayerPoolGame(ulong domainMask);
 
     virtual ~VuPlayerPoolGame();
@@ -565,7 +564,7 @@ protected:
 class VuGlobalGroup : public VuGroupEntity
 {
 public:
-    // constructors bitand destructor
+    // constructors & destructor
     VuGlobalGroup();
 
     virtual ~VuGlobalGroup();

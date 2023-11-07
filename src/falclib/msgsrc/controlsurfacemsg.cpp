@@ -43,14 +43,14 @@ int FalconControlSurfaceMsg::Process(uchar autodisp)
 
     if (theEntity)
     {
-        if ( not theEntity->IsLocal())
+        if (!theEntity->IsLocal())
         {
             theEntity->nonLocalData->timer3 = (float)SimLibElapsedTime / SEC_TO_MSEC;
         }
     }
     else
     {
-        if (OTWDriver.IsActive() and SimDriver.GetPlayerEntity())
+        if (OTWDriver.IsActive() && SimDriver.GetPlayerEntity())
         {
             MonoPrint("Control Surfaces for an entity I don't have\n");
         }

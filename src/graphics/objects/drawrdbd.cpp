@@ -5,7 +5,6 @@
     Derived class to do special position and containment processing for
  sections of bridges.
 \***************************************************************************/
-#include <cISO646>
 #include "DrawRdbd.h"
 
 
@@ -68,7 +67,7 @@ BOOL DrawableRoadbed::OnRoadbed(Tpoint *pos, Tpoint *normal)
 
 
     // First see if the point is too far away
-    if ((fabs(pos->x - position.x) > radius) or (fabs(pos->y - position.y) > radius))
+    if ((fabs(pos->x - position.x) > radius) || (fabs(pos->y - position.y) > radius))
     {
         return FALSE;
     }

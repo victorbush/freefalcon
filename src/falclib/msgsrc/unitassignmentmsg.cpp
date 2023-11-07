@@ -29,7 +29,7 @@ int FalconUnitAssignmentMessage::Process(uchar autodisp)
 {
     Unit u = FindUnit(EntityId());
 
-    if (autodisp or not u)
+    if (autodisp || !u)
         return -1;
 
 #ifdef KEV_DEBUG
@@ -56,7 +56,7 @@ int FalconUnitAssignmentMessage::Process(uchar autodisp)
     else
         sprintf(name3, "<none>");
 
-    if (so and po)
+    if (so && po)
         MonoPrint("Assigning Unit %d to %s, %s, objective: %s\n", u->GetCampID(), name2, name1, name3);
 
 #endif
@@ -64,7 +64,7 @@ int FalconUnitAssignmentMessage::Process(uchar autodisp)
     // Assign objectives
     u->SetUnitPrimaryObj(dataBlock.poid);
 
-    if (dataBlock.soid not_eq FalconNullId)
+    if (dataBlock.soid != FalconNullId)
         u->SetUnitSecondaryObj(dataBlock.soid);
 
     u->SetAssigned(1);
@@ -86,7 +86,7 @@ int FalconUnitAssignmentMessage::Process(uchar autodisp)
         {
             e->SetUnitPrimaryObj(dataBlock.poid);
 
-            if (dataBlock.soid not_eq FalconNullId)
+            if (dataBlock.soid != FalconNullId)
                 e->SetUnitSecondaryObj(dataBlock.soid);
 
             e->SetAssigned(1);

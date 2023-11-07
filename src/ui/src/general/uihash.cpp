@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <windows.h>
 #include "uihash.h"
 
@@ -12,7 +11,7 @@ UI_Hash::UI_Hash()
 
 UI_Hash::~UI_Hash()
 {
-    if (TableSize_ or Table_)
+    if (TableSize_ || Table_)
         Cleanup();
 }
 
@@ -32,7 +31,7 @@ void UI_Hash::Cleanup()
     unsigned long i;
     UI_HASHNODE *cur, *prev;
 
-    if (TableSize_ or Table_)
+    if (TableSize_ || Table_)
     {
         for (i = 0; i < TableSize_; i++)
         {
@@ -63,7 +62,7 @@ void *UI_Hash::Find(unsigned long ID)
     unsigned long idx;
     UI_HASHNODE *cur;
 
-    if ( not TableSize_ or not Table_) return(NULL);
+    if (!TableSize_ || !Table_) return(NULL);
 
     idx = ID % TableSize_;
     cur = Table_[idx].Root_;
@@ -86,7 +85,7 @@ void UI_Hash::Add(unsigned long ID, void *rec)
     unsigned long idx;
     UI_HASHNODE *cur, *newhash;
 
-    if ( not TableSize_ or not Table_ or not rec) return;
+    if (!TableSize_ || !Table_ || !rec) return;
 
     if (Find(ID)) return;
 
@@ -97,7 +96,7 @@ void UI_Hash::Add(unsigned long ID, void *rec)
 
     idx = ID % TableSize_;
 
-    if ( not Table_[idx].Root_)
+    if (!Table_[idx].Root_)
     {
         Table_[idx].Root_ = newhash;
     }
@@ -117,11 +116,11 @@ void UI_Hash::Remove(unsigned long ID)
     unsigned long idx;
     UI_HASHNODE *cur, *prev;
 
-    if ( not TableSize_ or not Table_) return;
+    if (!TableSize_ || !Table_) return;
 
     idx = ID % TableSize_;
 
-    if ( not Table_[idx].Root_) return;
+    if (!Table_[idx].Root_) return;
 
     Table_[idx].Root_;
 
@@ -171,7 +170,7 @@ void *UI_Hash::GetFirst(UI_HASHNODE **current, unsigned long *curidx)
 
     cur = Table_[*curidx].Root_;
 
-    while ( not cur and *curidx < (TableSize_ - 1))
+    while (!cur && *curidx < (TableSize_ - 1))
     {
         (*curidx)++;
         cur = Table_[*curidx].Root_;
@@ -193,12 +192,12 @@ void *UI_Hash::GetNext(UI_HASHNODE **current, unsigned long *curidx)
 {
     UI_HASHNODE *cur;
 
-    if ( not *current)
+    if (!*current)
         return(NULL);
 
     cur = (*current)->Next;
 
-    while ( not cur and *curidx < (TableSize_ - 1))
+    while (!cur && *curidx < (TableSize_ - 1))
     {
         (*curidx)++;
         cur = Table_[*curidx].Root_;

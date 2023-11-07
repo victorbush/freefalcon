@@ -42,13 +42,13 @@ public:
     };
     ~FarTexDB()
     {
-        ShiAssert( not IsReady());
+        ShiAssert(!IsReady());
     };
 
     BOOL Setup(DXContext *hrc, const char* texturePath);
     BOOL IsReady(void)
     {
-        return (texArray not_eq NULL);
+        return (texArray != NULL);
     };
     void Cleanup(void);
 

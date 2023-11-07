@@ -191,20 +191,20 @@ int SIMLIB_IO_CLASS::ReadFile(void)
 
     fp = fopen(path, "rb");
 
-    if ( not fp)
+    if (!fp)
         return FALSE;
 
     fseek(fp, 0, SEEK_END);
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    if (size not_eq sizeof(SIMLIB_ANALOG_TYPE)*SIMLIB_MAX_ANALOG)
+    if (size != sizeof(SIMLIB_ANALOG_TYPE)*SIMLIB_MAX_ANALOG)
         return FALSE;
 
     success = fread(temp, sizeof(SIMLIB_ANALOG_TYPE), SIMLIB_MAX_ANALOG, fp);
     fclose(fp);
 
-    if (success not_eq SIMLIB_MAX_ANALOG)
+    if (success != SIMLIB_MAX_ANALOG)
         return FALSE;
 
     for (int i = 0; i < SIMLIB_MAX_ANALOG; i++)
@@ -234,13 +234,13 @@ int SIMLIB_IO_CLASS::SaveFile(void)
 
     fp = fopen(path, "wb");
 
-    if ( not fp)
+    if (!fp)
         return FALSE;
 
     success = fwrite(analog, sizeof(SIMLIB_ANALOG_TYPE), SIMLIB_MAX_ANALOG, fp);
     fclose(fp);
 
-    if (success not_eq SIMLIB_MAX_ANALOG)
+    if (success != SIMLIB_MAX_ANALOG)
         return FALSE;
 
     return TRUE;
@@ -263,20 +263,20 @@ int SIMLIB_IO_CLASS::ReadAxisMappingFile()
 
     fp = fopen(path, "rb");
 
-    if ( not fp)
+    if (!fp)
         return FALSE;
 
     fseek(fp, 0, SEEK_END);
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    if (size not_eq sizeof(AxisMapping))
+    if (size != sizeof(AxisMapping))
         return FALSE;
 
     success = fread(&temp, sizeof(AxisMapping), 1, fp);
     fclose(fp);
 
-    if (success not_eq 1)
+    if (success != 1)
         return FALSE;
 
     AxisMap = temp;
@@ -298,7 +298,7 @@ int SIMLIB_IO_CLASS::WriteAxisMappingFile()
 
     fp = fopen(path, "wb");
 
-    if ( not fp)
+    if (!fp)
         return FALSE;
 
     SaveGUIDAndCount();
@@ -306,7 +306,7 @@ int SIMLIB_IO_CLASS::WriteAxisMappingFile()
     success = fwrite(&AxisMap, sizeof(AxisMapping), 1, fp);
     fclose(fp);
 
-    if (success not_eq 1)
+    if (success != 1)
         return FALSE;
 
     return TRUE;
@@ -402,7 +402,7 @@ void SIMLIB_IO_CLASS::ResetAllInputs()
 /*****************************************************************************/
 void SIMLIB_IO_CLASS::SaveGUIDAndCount()
 {
-    if (AxisMap.FlightControlDevice not_eq -1)
+    if (AxisMap.FlightControlDevice != -1)
     {
         HRESULT hres;
         DIDEVICEINSTANCE devinst;
@@ -427,20 +427,20 @@ int SIMLIB_IO_CLASS::LoadAxisCalibrationFile()
 
     fp = fopen(path, "rb");
 
-    if ( not fp)
+    if (!fp)
         return FALSE;
 
     fseek(fp, 0, SEEK_END);
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    if (size not_eq sizeof(AxisCalibration))
+    if (size != sizeof(AxisCalibration))
         return FALSE;
 
     success = fread(&temp, sizeof(AxisCalibration), 1, fp);
     fclose(fp);
 
-    if (success not_eq 1)
+    if (success != 1)
         return FALSE;
 
     AxisShapes = temp;
@@ -449,7 +449,7 @@ int SIMLIB_IO_CLASS::LoadAxisCalibrationFile()
 }
 
 // this global array glues all properties of a real axis to an in-game axis
-// THE ORDERING IN THIS ARRAY HAS TO BE THE SAME AS IN THE GameAxis_t ENUM 
+// THE ORDERING IN THIS ARRAY HAS TO BE THE SAME AS IN THE GameAxis_t ENUM !!!
 GameAxisSetup_t AxisSetup[AXIS_MAX] =
 {
     // device axis deadzone saturation unipolar?

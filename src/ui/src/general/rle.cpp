@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <windows.h>
 
 // Test Headers
@@ -19,7 +18,7 @@ long CompressRLE8Bit(uchar *Src, uchar *Dest, long srcsize)
     uchar run;
 
     start = Src;
-    data = static_cast<uchar>((*Src) + 1); // Just make data not_eq *Src
+    data = static_cast<uchar>((*Src) + 1); // Just make data != *Src
     srcsize;
     count = 0xff;
     run = 0;
@@ -45,14 +44,14 @@ long CompressRLE8Bit(uchar *Src, uchar *Dest, long srcsize)
             run = 1;
             count = 1;
 
-            while (*Src == data and count < 127 and srcsize)
+            while (*Src == data && count < 127 && srcsize)
             {
                 count++;
                 Src++;
                 srcsize--;
             }
 
-            *Dest++ = static_cast<uchar>(count xor 0xff);
+            *Dest++ = static_cast<uchar>(count ^ 0xff);
             *Dest++ = data;
             Size += 2;
             run = 0;
@@ -77,7 +76,7 @@ long CompressRLE8Bit(uchar *Src, uchar *Dest, long srcsize)
         {
             if (run)
             {
-                *Dest++ = static_cast<uchar>(count xor 0xff);
+                *Dest++ = static_cast<uchar>(count ^ 0xff);
                 *Dest++ = data;
                 Size += 2;
             }
@@ -103,7 +102,7 @@ long CompressRLE8Bit(uchar *Src, uchar *Dest, long srcsize)
     {
         if (run)
         {
-            *Dest++ = static_cast<uchar>(count xor 0xff);
+            *Dest++ = static_cast<uchar>(count ^ 0xff);
             *Dest++ = data;
             Size += 2;
         }
@@ -135,9 +134,9 @@ long DecompressRLE8Bit(uchar *Src, uchar *Dest, long Size)
         count = *Src++;
         Size--;
 
-        if (count bitand 0x80)
+        if (count & 0x80)
         {
-            count xor_eq 0xff;
+            count ^= 0xff;
             OutSize += count;
 
             while (count)
@@ -153,7 +152,7 @@ long DecompressRLE8Bit(uchar *Src, uchar *Dest, long Size)
         {
             OutSize += count;
 
-            while (count and Size)
+            while (count && Size)
             {
                 *Dest++ = *Src++;
                 count--;
@@ -201,14 +200,14 @@ long CompressRLE16Bit(WORD *Src, WORD *Dest, long srcsize)
             run = 1;
             count = 1;
 
-            while (*Src == data and count < 0xFFFF and srcsize)
+            while (*Src == data && count < 0xFFFF && srcsize)
             {
                 count++;
                 Src++;
                 srcsize -= sizeof(WORD);
             }
 
-            *Dest++ = static_cast<unsigned short>(count xor 0xFFFF);
+            *Dest++ = static_cast<unsigned short>(count ^ 0xFFFF);
             *Dest++ = data;
             Size += 2 * sizeof(WORD);
             run = 0;
@@ -233,7 +232,7 @@ long CompressRLE16Bit(WORD *Src, WORD *Dest, long srcsize)
         {
             if (run)
             {
-                *Dest++ = static_cast<unsigned short>(count xor 0xFFFF);
+                *Dest++ = static_cast<unsigned short>(count ^ 0xFFFF);
                 *Dest++ = data;
                 Size += 2 * sizeof(WORD);
             }
@@ -259,7 +258,7 @@ long CompressRLE16Bit(WORD *Src, WORD *Dest, long srcsize)
     {
         if (run)
         {
-            *Dest++ = static_cast<unsigned short>(count xor 0xFFFF);
+            *Dest++ = static_cast<unsigned short>(count ^ 0xFFFF);
             *Dest++ = data;
             Size += 2 * sizeof(WORD);
         }
@@ -290,9 +289,9 @@ long DecompressRLE16Bit(WORD *Src, WORD *Dest, long Size)
         count = *Src++;
         Size -= sizeof(WORD);
 
-        if (count bitand 0x8000)
+        if (count & 0x8000)
         {
-            count xor_eq 0xFFFF;
+            count ^= 0xFFFF;
             OutSize += count * sizeof(WORD);
 
             while (count)
@@ -308,7 +307,7 @@ long DecompressRLE16Bit(WORD *Src, WORD *Dest, long Size)
         {
             OutSize += count * sizeof(WORD);
 
-            while (count and Size)
+            while (count && Size)
             {
                 *Dest++ = *Src++;
                 count--;
@@ -328,7 +327,7 @@ void main(int argc,char **argv)
  char *oBuf;
  long iSize,oSize;
 
- if(argc not_eq 3)
+ if(argc != 3)
  {
  printf("Usage: test ifp ofp\n");
  exit(0);

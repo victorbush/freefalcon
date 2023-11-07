@@ -230,15 +230,15 @@ public:
     void ClearTarget(void);
     void SetFlag(int val)
     {
-        flags or_eq val;
+        flags |= val;
     };
     void ClearFlag(int val)
     {
-        flags and_eq compl val;
+        flags &= ~val;
     };
     int IsSetFlag(int val)
     {
-        return (flags bitand val ? TRUE : FALSE);
+        return (flags & val ? TRUE : FALSE);
     };
 
     // 2001-11-29 ADDED BY S.G. HELP FUNCTION TO SEARCH FOR A GROUND TARGET

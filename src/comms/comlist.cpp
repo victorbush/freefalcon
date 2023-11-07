@@ -3,7 +3,6 @@
 * @author sfr
 */
 
-#include <cISO646>
 #include "ComList.h"
 
 // global variable
@@ -75,7 +74,7 @@ ComIP *ComList::iterBegin(int protocol)
 {
     for (
         iterator = comList.begin();
-        iterator not_eq comList.end();
+        iterator != comList.end();
         ++iterator
     )
     {
@@ -83,7 +82,7 @@ ComIP *ComList::iterBegin(int protocol)
         ComIP *com = *iterator;
 
         if (
-            (protocol == -1) or // matches all
+            (protocol == -1) || // matches all
             (com_API_get_protocol((com_API_handle)(com)) == protocol)
         )
         {
@@ -104,12 +103,12 @@ ComIP *ComList::iterGetNext(int protocol)
 
     // find next
     // we begin incrementing the old position
-    for (++iterator; iterator not_eq comList.end(); ++iterator)
+    for (++iterator; iterator != comList.end(); ++iterator)
     {
         ComIP *com = *iterator;
 
         if (
-            (protocol == -1) or
+            (protocol == -1) ||
             (com_API_get_protocol((com_API_handle)(com)) == protocol)
         )
         {
@@ -123,7 +122,7 @@ ComIP *ComList::iterGetNext(int protocol)
 // search functions
 ComIP *ComList::findProtRport(int protocol, unsigned short port)
 {
-    for (ComIP *comIP = iterBegin(protocol); comIP not_eq NULL; comIP = iterGetNext(protocol))
+    for (ComIP *comIP = iterBegin(protocol); comIP != NULL; comIP = iterGetNext(protocol))
     {
         unsigned short pport = port;
         unsigned short cport = com_API_get_receive_port((com_API_handle)comIP);
@@ -140,7 +139,7 @@ ComIP *ComList::findProtRport(int protocol, unsigned short port)
 
 ComIP *ComList::findProtId(int protocol, unsigned long id)
 {
-    for (ComIP *comIP = iterBegin(protocol); comIP not_eq NULL; comIP = iterGetNext(protocol))
+    for (ComIP *comIP = iterBegin(protocol); comIP != NULL; comIP = iterGetNext(protocol))
     {
         if (
             (com_API_get_peer_ID((com_API_handle)comIP) == id)
@@ -157,7 +156,7 @@ ComIP *ComList::findProtId(int protocol, unsigned long id)
 
 ComIP *ComList::findProtDangling(int protocol)
 {
-    for (ComIP *comIP = iterBegin(protocol); comIP not_eq NULL; comIP = iterGetNext(protocol))
+    for (ComIP *comIP = iterBegin(protocol); comIP != NULL; comIP = iterGetNext(protocol))
     {
         if (
             (com_API_get_peer_IP((com_API_handle)comIP) == CAPI_DANGLING_IP)

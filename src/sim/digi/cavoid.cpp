@@ -21,13 +21,13 @@ void DigitalBrain::CollisionCheck(void)
     Falcon4EntityClassType* classPtr;
     SimObjectLocalData* localData;
 
-    if ( not targetPtr)
+    if (!targetPtr)
     {
         return;
     }
 
     /*----------------------------------------------------------*/
-    /* Reaction time is a function of gs available and */
+    /* Reaction time is a function of gs available and          */
     /* agression level (gs allowed). 2 seconds is the bare      */
     /* minimum for most situations. Modify with reaction factor */
     /*----------------------------------------------------------*/
@@ -38,7 +38,7 @@ void DigitalBrain::CollisionCheck(void)
     /*---------------*/
     /* check objects */
     /*---------------*/
-    if ( not targetPtr->BaseData()->IsSim())
+    if (!targetPtr->BaseData()->IsSim())
     {
         return;
     }
@@ -60,7 +60,7 @@ void DigitalBrain::CollisionCheck(void)
         /*---------------*/
         /* not a problem */
         /*---------------*/
-        if (timeToImpact > reactTime and 
+        if (timeToImpact > reactTime &&
             localData->range > hRange)
         {
             return;
@@ -109,7 +109,7 @@ void DigitalBrain::CollisionCheck(void)
         /*------------------------------*/
         if (collision)
         {
-            if (curMode not_eq CollisionAvoidMode)
+            if (curMode != CollisionAvoidMode)
             {
                 /*------------------------------------*/
                 /* Find a point in the maneuver plane */

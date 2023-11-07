@@ -119,27 +119,27 @@ public:
     };
     void SetFlag(int flag)
     {
-        flags or_eq flag;
+        flags |= flag;
     };
     void UnSetFlag(int flag)
     {
-        flags and_eq compl flag;
+        flags &= ~flag;
     };
     int  IsSetFlag(int flag)
     {
-        return (flags bitand flag) ? 1 : 0;
+        return (flags & flag) ? 1 : 0;
     };
     void SetLocalFlag(int flag)
     {
-        localFlags or_eq flag;
+        localFlags |= flag;
     };
     void UnSetLocalFlag(int flag)
     {
-        localFlags and_eq compl flag;
+        localFlags &= ~flag;
     };
     int  IsSetLocalFlag(int flag)
     {
-        return (localFlags bitand flag) ? 1 : 0;
+        return (localFlags & flag) ? 1 : 0;
     };
 
     DogfightType GetGameType(void)
@@ -156,7 +156,7 @@ public:
     };
     int GameStarted(void)
     {
-        if (gameStatus not_eq dog_Waiting) return TRUE;
+        if (gameStatus != dog_Waiting) return TRUE;
 
         return FALSE;
     };

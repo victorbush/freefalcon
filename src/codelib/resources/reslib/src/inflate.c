@@ -28,7 +28,7 @@
    c1   30 Mar 92  M. Adler        removed lbits, dbits environment variables.
    changed BMAX to 16 for explode.  Removed
    OUTB usage, and replaced it with flush()--
-   this was a 20% speed improvement  Added
+   this was a 20% speed improvement!  Added
    an explode.c (to replace unimplod.c) that
    uses the huft routines here.  Removed
    register union.
@@ -44,7 +44,7 @@
    c6   31 May 92  M. Adler        added some typecasts to eliminate warnings
    c7   27 Jun 92  G. Roelofs      added some more typecasts (444:  MSC bug).
    c8    5 Oct 92  J-l. Gailly     added ifdef'd code to deal with PKZIP bug.
-   c9    9 Oct 92  M. Adler        removed a memory error message (compl line 416).
+   c9    9 Oct 92  M. Adler        removed a memory error message (~line 416).
    c10  17 Oct 92  G. Roelofs      changed ULONG/UWORD/byte to ulg/ush/uch,
    removed old inflate, renamed inflate_entry
    to inflate, added Mark's fix to a comment.
@@ -73,7 +73,7 @@
 
          04 Jun 96  KevRay          regretably massive enema
                                     encapsulated compressed file entries so
-                                    functions are re-entrant bitand thread safe.
+                                    functions are re-entrant & thread safe.
    EOF check.
  */
 
@@ -168,7 +168,6 @@
  */
 
 
-#include <cISO646>
 #define PKZIP_BUG_WORKAROUND    /* PKZIP 1.93a problem--live with it */
 
 #define INFMOD                  /* tell inflate.h to include code to be compiled */
@@ -258,7 +257,7 @@ int   inflate_free(void);
 /* The inflate algorithm uses a sliding 32K byte window on the uncompressed
    stream to find repeated byte strings.  This is implemented here as a
    circular buffer.  The index is updated simply by incrementing and then
-  and'ing with 0x7fff (32K-1). */
+   and'ing with 0x7fff (32K-1). */
 
 /* It is left to other modules to supply the 32K area.  It is assumed
    to be usable as if it were declared "uch slide[32768];" or as just
@@ -313,7 +312,7 @@ ush   mask[] =
    The usage is:
 
    NEEDBITS(j)
-   x = b bitand mask[j];
+   x = b & mask[j];
    DUMPBITS(j)
 
    where NEEDBITS makes sure that b has at least j bits in it, and
@@ -333,10 +332,10 @@ ush   mask[] =
 //#define CHECK_EOF
 
 #ifndef CHECK_EOF
-#define NEEDBITS(n) {while(k<(n)){b or_eq ((ulg)NEXTBYTE)<<k;k+=8;}}
+#define NEEDBITS(n) {while(k<(n)){b|=((ulg)NEXTBYTE)<<k;k+=8;}}
 #else
 #define NEEDBITS(n) {while(k<(n)){int c=NEXTBYTE;if(c==EOF)return 1;\
-    b or_eq ((ulg)c)<<k;k+=8;}}
+    b|=((ulg)c)<<k;k+=8;}}
 #endif /* Piet Plomp:  change "return 1" to "break" */
 
 #define DUMPBITS(n) {b>>=(n);k-=(n);}
@@ -514,7 +513,7 @@ int huft_build(unsigned * b, unsigned n, unsigned s, ush * d, ush * e, struct hu
 
     do
     {
-        if ((j = *p++) not_eq 0)
+        if ((j = *p++) != 0)
             v[x[j]++] = i;
     }
     while (++i < n);
@@ -560,7 +559,7 @@ int huft_build(unsigned * b, unsigned n, unsigned s, ush * d, ush * e, struct hu
                     }
                 }
 
-                if (w + j > el and (unsigned)w < el)
+                if (w + j > el && (unsigned)w < el)
                     j = el - w;           /* make EOB code end at table */
 
                 z = 1 << j;             /* table entries for j-bit table */
@@ -602,7 +601,7 @@ int huft_build(unsigned * b, unsigned n, unsigned s, ush * d, ush * e, struct hu
                     r.b = (uch)l[h - 1];  /* bits to dump before this table */
                     r.e = (uch)(16 + j);  /* bits in this table */
                     r.v.t = q;            /* pointer to this table */
-                    j = (i bitand ((1 << w) - 1)) >> (w - l[h - 1]);
+                    j = (i & ((1 << w) - 1)) >> (w - l[h - 1]);
                     u[h - 1][j] = r;      /* connect to last table */
                 }
             }
@@ -630,13 +629,13 @@ int huft_build(unsigned * b, unsigned n, unsigned s, ush * d, ush * e, struct hu
                 q[j] = r;
 
             /* backwards increment the k-bit code i */
-            for (j = 1 << (k - 1); i bitand j; j >>= 1)
-                i xor_eq j;
+            for (j = 1 << (k - 1); i & j; j >>= 1)
+                i ^= j;
 
-            i xor_eq j;
+            i ^= j;
 
             /* backup over finished tables */
-            while ((i bitand ((1 << w) - 1)) not_eq x[h])
+            while ((i & ((1 << w) - 1)) != x[h])
                 w -= l[--h];            /* don't need to update q */
         }
     }
@@ -647,7 +646,7 @@ int huft_build(unsigned * b, unsigned n, unsigned s, ush * d, ush * e, struct hu
 
 
     /* Return true (1) if we were given an incomplete table */
-    return y not_eq 0 and g not_eq 1;
+    return y != 0 && g != 1;
 }
 
 
@@ -676,7 +675,7 @@ int huft_free(struct huft * t)
 
     p = t;
 
-    while (p not_eq (struct huft *)NULL)
+    while (p != (struct huft *)NULL)
     {
         q = (--p)->v.t;
 #ifdef USE_SH_POOLS
@@ -734,7 +733,7 @@ int inflate_codes(struct huft * tl, struct huft * td, int bl, int bd, COMPRESSED
     {
         NEEDBITS((unsigned)bl)
 
-        if ((e = (t = tl + ((unsigned)b bitand ml))->e) > 16)
+        if ((e = (t = tl + ((unsigned)b & ml))->e) > 16)
             do
             {
                 if (e == 99)
@@ -745,7 +744,7 @@ int inflate_codes(struct huft * tl, struct huft * td, int bl, int bd, COMPRESSED
                 NEEDBITS(e)
             }
 
-            while ((e = (t = t->v.t + ((unsigned)b bitand mask[e]))->e) > 16) ;
+            while ((e = (t = t->v.t + ((unsigned)b & mask[e]))->e) > 16) ;
 
         DUMPBITS(t->b)
 
@@ -767,13 +766,13 @@ int inflate_codes(struct huft * tl, struct huft * td, int bl, int bd, COMPRESSED
 
             /* get length of block to copy */
             NEEDBITS(e)
-            n = t->v.n + ((unsigned)b bitand mask[e]);
+            n = t->v.n + ((unsigned)b & mask[e]);
             DUMPBITS(e);
 
             /* decode distance of block to copy */
             NEEDBITS((unsigned)bd)
 
-            if ((e = (t = td + ((unsigned)b bitand md))->e) > 16)
+            if ((e = (t = td + ((unsigned)b & md))->e) > 16)
                 do
                 {
                     if (e == 99)
@@ -784,17 +783,17 @@ int inflate_codes(struct huft * tl, struct huft * td, int bl, int bd, COMPRESSED
                     NEEDBITS(e)
                 }
 
-                while ((e = (t = t->v.t + ((unsigned)b bitand mask[e]))->e) > 16) ;
+                while ((e = (t = t->v.t + ((unsigned)b & mask[e]))->e) > 16) ;
 
             DUMPBITS(t->b)
             NEEDBITS(e)
-            d = w - t->v.n - ((unsigned)b bitand mask[e]);
+            d = w - t->v.n - ((unsigned)b & mask[e]);
             DUMPBITS(e)
 
             /* do the copy */
             do
             {
-                n -= (e = (e = WSIZE - ((d and_eq WSIZE - 1) > w ? d : w)) > n ? n : e);
+                n -= (e = (e = WSIZE - ((d &= WSIZE - 1) > w ? d : w)) > n ? n : e);
 #ifndef NOMEMCPY
 
                 if (w - d >= e) /* (this test assumes unsigned comparison) */
@@ -804,7 +803,7 @@ int inflate_codes(struct huft * tl, struct huft * td, int bl, int bd, COMPRESSED
                     d += e;
                 }
                 else            /* do it slow to avoid memcpy() overlap */
-#endif  /* not NOMEMCPY */
+#endif  /* !NOMEMCPY */
                     do
                     {
                         cmp->slide[w++] = cmp->slide[d++];
@@ -863,18 +862,18 @@ int inflate_stored(COMPRESSED_FILE * cmp)
     w = cmp->wp;                /* initialize window position */
 
     /* go to byte boundary */
-    n = k bitand 7;
+    n = k & 7;
     DUMPBITS(n);
 
 
     /* get the length and its complement */
     NEEDBITS(16)
-    n = ((unsigned)b bitand 0xffff);
+    n = ((unsigned)b & 0xffff);
     DUMPBITS(16)
 
     NEEDBITS(16)
 
-    if (n not_eq (unsigned)((compl b) bitand 0xffff))
+    if (n != (unsigned)((~b) & 0xffff))
         return 1;               /* error in compressed data */
 
     DUMPBITS(16)
@@ -951,7 +950,7 @@ int inflate_fixed(COMPRESSED_FILE * cmp)
 
         fixed_bl = 7;
 
-        if ((i = huft_build(l, 288, 257, cplens, cplext, &fixed_tl, &fixed_bl)) not_eq 0)
+        if ((i = huft_build(l, 288, 257, cplens, cplext, &fixed_tl, &fixed_bl)) != 0)
         {
             fixed_tl = NULL;
             return i;
@@ -972,7 +971,7 @@ int inflate_fixed(COMPRESSED_FILE * cmp)
     }
 
     /* decompress until an end-of-block code */
-    return inflate_codes(fixed_tl, fixed_td, fixed_bl, fixed_bd, cmp) not_eq 0;
+    return inflate_codes(fixed_tl, fixed_td, fixed_bl, fixed_bd, cmp) != 0;
 }
 
 
@@ -1017,16 +1016,16 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
 
     /* read in table lengths */
     NEEDBITS(5)
-    nl = 257 + ((unsigned)b bitand 0x1f);      /* number of literal/length codes */
+    nl = 257 + ((unsigned)b & 0x1f);      /* number of literal/length codes */
     DUMPBITS(5)
     NEEDBITS(5)
-    nd = 1 + ((unsigned)b bitand 0x1f);        /* number of distance codes */
+    nd = 1 + ((unsigned)b & 0x1f);        /* number of distance codes */
     DUMPBITS(5)
     NEEDBITS(4)
-    nb = 4 + ((unsigned)b bitand 0xf);         /* number of bit length codes */
+    nb = 4 + ((unsigned)b & 0xf);         /* number of bit length codes */
     DUMPBITS(4)
 
-    if (nl > 288 or nd > 32)
+    if (nl > 288 || nd > 32)
         return 1;                   /* bad lengths */
 
 
@@ -1034,7 +1033,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
     for (j = 0; j < nb; j++)
     {
         NEEDBITS(3)
-        ll[border[j]] = (unsigned)b bitand 7;
+        ll[border[j]] = (unsigned)b & 7;
         DUMPBITS(3)
     }
 
@@ -1045,7 +1044,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
     /* build decoding table for trees--single level, 7 bit lookup */
     bl = 7;
 
-    if ((i = huft_build(ll, 19, 19, NULL, NULL, &tl, &bl)) not_eq 0)
+    if ((i = huft_build(ll, 19, 19, NULL, NULL, &tl, &bl)) != 0)
     {
         if (i == 1)
             huft_free(tl);
@@ -1062,7 +1061,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
     while ((unsigned)i < n)
     {
         NEEDBITS((unsigned)bl)
-        j = (td = tl + ((unsigned)b bitand m))->b;
+        j = (td = tl + ((unsigned)b & m))->b;
         DUMPBITS(j)
         j = td->v.n;
 
@@ -1071,7 +1070,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
         else if (j == 16)           /* repeat last length 3 to 6 times */
         {
             NEEDBITS(2)
-            j = 3 + ((unsigned)b bitand 3);
+            j = 3 + ((unsigned)b & 3);
             DUMPBITS(2)
 
             if ((unsigned)i + j > n)
@@ -1083,7 +1082,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
         else if (j == 17)           /* 3 to 10 zero length codes */
         {
             NEEDBITS(3)
-            j = 3 + ((unsigned)b bitand 7);
+            j = 3 + ((unsigned)b & 7);
             DUMPBITS(3)
 
             if ((unsigned)i + j > n)
@@ -1097,7 +1096,7 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
         else                        /* j == 18: 11 to 138 zero length codes */
         {
             NEEDBITS(7)
-            j = 11 + ((unsigned)b bitand 0x7f);
+            j = 11 + ((unsigned)b & 0x7f);
             DUMPBITS(7)
 
             if ((unsigned)i + j > n)
@@ -1123,9 +1122,9 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
     /* build the decoding tables for literal/length and distance codes */
     bl = lbits;
 
-    if ((i = huft_build(ll, nl, 257, cplens, cplext, &tl, &bl)) not_eq 0)
+    if ((i = huft_build(ll, nl, 257, cplens, cplext, &tl, &bl)) != 0)
     {
-        //    if (i == 1 and not qflag) {
+        //    if (i == 1 && !qflag) {
         //      fprintf(stderr, "(incomplete l-tree)  ");
         //      huft_free(tl);
         //    }
@@ -1134,9 +1133,9 @@ int inflate_dynamic(COMPRESSED_FILE * cmp)
 
     bd = dbits;
 
-    if ((i = huft_build(ll + nl, nd, 0, cpdist, cpdext, &td, &bd)) not_eq 0)
+    if ((i = huft_build(ll + nl, nd, 0, cpdist, cpdext, &td, &bd)) != 0)
     {
-        //    if (i == 1 and not qflag) {
+        //    if (i == 1 && !qflag) {
         //      fprintf(stderr, "(incomplete d-tree)  ");
         //      i = 0;
         //    }
@@ -1183,13 +1182,13 @@ int inflate_block(int *e, COMPRESSED_FILE * cmp)
 
     /* read in last block bit */
     NEEDBITS(1)
-    * e = (int)b bitand 1;
+    * e = (int)b & 1;
     DUMPBITS(1)
 
 
     /* read in block type */
     NEEDBITS(2)
-    t = (unsigned)b bitand 3;
+    t = (unsigned)b & 3;
     DUMPBITS(2)
 
 
@@ -1253,14 +1252,14 @@ int inflate(COMPRESSED_FILE * cmp)
     {
         hufts = 0;
 
-        if ((r = inflate_block(&e, cmp)) not_eq 0)
+        if ((r = inflate_block(&e, cmp)) != 0)
             return(r);
 
         if (hufts > h)
             h = hufts;
 
     }
-    while ( not e);
+    while (!e);
 
 
     /* flush out slide */
@@ -1288,7 +1287,7 @@ int inflate(COMPRESSED_FILE * cmp)
 
 int inflate_free(void)
 {
-    if (fixed_tl not_eq NULL)
+    if (fixed_tl != NULL)
     {
         huft_free(fixed_td);
         huft_free(fixed_tl);

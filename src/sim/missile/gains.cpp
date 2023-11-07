@@ -14,7 +14,7 @@ void MissileClass::Gains(void)
     float yfreq2;
     float yradcl;
 
-    if ( not ifd)
+    if (!ifd)
         return; // JB 010720
 
     /*----------------------------------------*/

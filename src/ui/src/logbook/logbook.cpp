@@ -1,4 +1,3 @@
-#include <cISO646>
 #include "SIM/INCLUDE/stdhdr.h"
 #include <tchar.h>
 #include <time.h>
@@ -44,7 +43,7 @@ int LogBookData::Load(void)
     HKEY theKey;
     long retval;
 
-    if (strlen(g_strLgbk) not_eq 0)
+    if (strlen(g_strLgbk) != 0)
     {
         sprintf(Pilot.Callsign, "%s", g_strLgbk);
     }
@@ -58,7 +57,7 @@ int LogBookData::Load(void)
         retval = RegQueryValueEx(theKey, "PilotCallsign", 0, &type, (LPBYTE)Pilot.Callsign, &size);
         RegCloseKey(theKey);
 
-        if (retval not_eq ERROR_SUCCESS)
+        if (retval != ERROR_SUCCESS)
         {
             MonoPrint(_T("Failed to get registry entries.\n"));
             Initialize();
@@ -66,7 +65,7 @@ int LogBookData::Load(void)
         }
     }
 
-    if ( not LoadData(Callsign()))
+    if (!LoadData(Callsign()))
     {
         return FALSE;
     }
@@ -127,7 +126,7 @@ void LogBookData::Initialize(void)
     // german hack... no time
     GetSystemTime(&systime);
 
-    if (gLangIDNum not_eq F4LANG_ENGLISH)
+    if (gLangIDNum != F4LANG_ENGLISH)
     {
         _stprintf(Pilot.Commissioned, "%02d.%02d.%02d", systime.wDay, systime.wMonth, systime.wYear % 100);
     }
@@ -194,7 +193,7 @@ int LogBookData::LoadData(_TCHAR *callsign)
 
     fp = _tfopen(path, _T("rb"));
 
-    if ( not fp)
+    if (!fp)
     {
         MonoPrint(_T("Couldn't open %s's logbook.\n"), callsign);
         Initialize();
@@ -205,7 +204,7 @@ int LogBookData::LoadData(_TCHAR *callsign)
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    if (size not_eq sizeof(LB_PILOT))
+    if (size != sizeof(LB_PILOT))
     {
         MonoPrint(_T("%s's logbook is old file format.\n"), callsign);
         fclose(fp);
@@ -216,7 +215,7 @@ int LogBookData::LoadData(_TCHAR *callsign)
     success = fread(&Pilot, sizeof(LB_PILOT), 1, fp);
     fclose(fp);
 
-    if (success not_eq 1)
+    if (success != 1)
     {
         MonoPrint(_T("Failed to read %s's logbook.\n"), callsign);
         Initialize();
@@ -248,7 +247,7 @@ int LogBookData::LoadData(_TCHAR *callsign)
         FalconLocalSession->SetVoiceID(static_cast<uchar>(Voice()));
         PlayerOptions.LoadOptions();
         LoadAllRules(Callsign());
-        LogState or_eq LB_LOADED_ONCE;
+        LogState |= LB_LOADED_ONCE;
     }
 
     return TRUE;
@@ -269,7 +268,7 @@ int LogBookData::LoadData(LB_PILOT *NewPilot)
             FalconLocalSession->SetVoiceID(static_cast<uchar>(Voice()));
             PlayerOptions.LoadOptions();
             LoadAllRules(Callsign());
-            LogState or_eq LB_LOADED_ONCE;
+            LogState |= LB_LOADED_ONCE;
         }
 
         return TRUE;
@@ -350,8 +349,8 @@ short LogBookData::TotalKilled(void)
     return static_cast<short>(Pilot.Campaign.Killed + Pilot.Dogfight.Killed);
 }
 
-//static char XorMask[]="FreeFalcon Fun for the whole Family";
-//static char YorMask[]="Makes other sims look like shit";
+//static char XorMask[]="FreeFalcon Fun for the whole Family!!!";
+//static char YorMask[]="Makes other sims look like shit!";
 
 void LogBookData::Encrypt(void)
 {
@@ -363,16 +362,16 @@ void LogBookData::Encrypt(void)
 
     for (i = 0; i < sizeof(LB_PILOT); i++)
     {
-        *ptr xor_eq XorMask[i % strlen(XorMask)];
-        *ptr xor_eq YorMask[i % strlen(YorMask)];
+        *ptr ^= XorMask[i % strlen(XorMask)];
+        *ptr ^= YorMask[i % strlen(YorMask)];
         ptr++;
     }
 
 #endif
 }
 
-static char PwdMask[] = "Who needs a password";
-static char PwdMask2[] = "Repent, FreeFalcon is coming";
+static char PwdMask[] = "Who needs a password!";
+static char PwdMask2[] = "Repent, FreeFalcon is coming!";
 
 void LogBookData::EncryptPwd(void)
 {
@@ -383,8 +382,8 @@ void LogBookData::EncryptPwd(void)
 
     for (i = 0; i < PASSWORD_LEN; i++)
     {
-        *ptr xor_eq PwdMask[i % strlen(PwdMask)];
-        *ptr xor_eq PwdMask2[i % strlen(PwdMask2)];
+        *ptr ^= PwdMask[i % strlen(PwdMask)];
+        *ptr ^= PwdMask2[i % strlen(PwdMask2)];
         ptr++;
     }
 }
@@ -485,16 +484,16 @@ void LogBookData::UpdateCampaign(CAMP_MISS_STRUCT *MissStats)
 
     UpdateFlightHours(MissStats->FlightHours);
 
-    if (MissStats->Flags bitand CRASH_UNDAMAGED and not g_bDisableCrashEjectCourtMartials) // JB 010118
+    if (MissStats->Flags & CRASH_UNDAMAGED && !g_bDisableCrashEjectCourtMartials) // JB 010118
     {
         Pilot.Campaign.TotalScore -= 25;
-        MissionResult or_eq CM_CRASH bitor COURT_MARTIAL;
+        MissionResult |= CM_CRASH | COURT_MARTIAL;
     }
 
-    if (MissStats->Flags bitand EJECT_UNDAMAGED and not g_bDisableCrashEjectCourtMartials) // JB 010118
+    if (MissStats->Flags & EJECT_UNDAMAGED && !g_bDisableCrashEjectCourtMartials) // JB 010118
     {
         Pilot.Campaign.TotalScore -= 50;
-        MissionResult or_eq CM_EJECT bitor COURT_MARTIAL;
+        MissionResult |= CM_EJECT | COURT_MARTIAL;
     }
 
     short FrKills = static_cast<short>(MissStats->FriendlyFireKills);
@@ -504,40 +503,40 @@ void LogBookData::UpdateCampaign(CAMP_MISS_STRUCT *MissStats)
         if (Pilot.Campaign.FriendliesKilled == 0)
         {
             Pilot.Campaign.TotalScore -= 100;
-            MissionResult or_eq CM_FR_FIRE1 bitor COURT_MARTIAL;
+            MissionResult |= CM_FR_FIRE1 | COURT_MARTIAL;
         }
         else if (Pilot.Campaign.FriendliesKilled == 1)
         {
             Pilot.Campaign.TotalScore -= 200;
-            MissionResult or_eq CM_FR_FIRE2 bitor COURT_MARTIAL;
+            MissionResult |= CM_FR_FIRE2 | COURT_MARTIAL;
         }
         else
         {
             Pilot.Campaign.TotalScore -= 200;
 
-            if (MissStats->Flags bitand FR_HUMAN_KILLED)
+            if (MissStats->Flags & FR_HUMAN_KILLED)
             {
                 Pilot.Campaign.TotalScore = 0;
                 Pilot.Rank = SEC_LT;
-                MissionResult or_eq CM_FR_FIRE3 bitor COURT_MARTIAL;
+                MissionResult |= CM_FR_FIRE3 | COURT_MARTIAL;
             }
             else
-                MissionResult or_eq CM_FR_FIRE2 bitor COURT_MARTIAL;
+                MissionResult |= CM_FR_FIRE2 | COURT_MARTIAL;
         }
 
         Pilot.Campaign.FriendliesKilled++;
         FrKills--;
     }
 
-    //calculate new score using complexity, no mission pts if you get court martialed
-    if ( not (MissionResult bitand COURT_MARTIAL))
+    //calculate new score using complexity, no mission pts if you get court martialed!
+    if (!(MissionResult & COURT_MARTIAL))
         Pilot.Campaign.TotalScore += FloatToInt32(MissStats->Score * MissionComplexity(MissStats) * CampaignDifficulty() *
                                      PlayerOptions.Realism / 30.0F + MissStats->FlightHours);
 
     if (Pilot.Campaign.TotalScore < 0)
         Pilot.Campaign.TotalScore = 0;
 
-    if ( not (MissStats->Flags bitand DONT_SCORE_MISSION))
+    if (!(MissStats->Flags & DONT_SCORE_MISSION))
     {
         Pilot.Campaign.Missions++;
 
@@ -610,7 +609,7 @@ void LogBookData::UpdateCampaign(CAMP_MISS_STRUCT *MissStats)
         if (Pilot.Campaign.Naval < 0)
             Pilot.Campaign.Naval = 0;
 
-        if ( not (MissionResult bitand COURT_MARTIAL))
+        if (!(MissionResult & COURT_MARTIAL))
             AwardMedals(MissStats);
     }
 
@@ -623,17 +622,17 @@ void LogBookData::CalcRank(void)
 {
     LB_RANK NewRank = SEC_LT;
 
-    if ((Pilot.Campaign.TotalScore > 3200) and Pilot.Campaign.GamesWon)
+    if ((Pilot.Campaign.TotalScore > 3200) && Pilot.Campaign.GamesWon)
     {
         NewRank = COLONEL;
     }
-    else if ((Pilot.Campaign.TotalScore > 1600) and \
-             (Pilot.Campaign.GamesWon or Pilot.Campaign.GamesTied))
+    else if ((Pilot.Campaign.TotalScore > 1600) && \
+             (Pilot.Campaign.GamesWon || Pilot.Campaign.GamesTied))
     {
         NewRank = LT_COL;
     }
-    else if ((Pilot.Campaign.TotalScore > 800) and \
-             (Pilot.Campaign.GamesWon or Pilot.Campaign.GamesTied or Pilot.Campaign.GamesLost))
+    else if ((Pilot.Campaign.TotalScore > 800) && \
+             (Pilot.Campaign.GamesWon || Pilot.Campaign.GamesTied || Pilot.Campaign.GamesLost))
     {
         NewRank = MAJOR;
     }
@@ -652,7 +651,7 @@ void LogBookData::CalcRank(void)
 
     if (NewRank > Pilot.Rank)
     {
-        MissionResult or_eq PROMOTION;
+        MissionResult |= PROMOTION;
         Pilot.Rank = NewRank;
     }
 }
@@ -702,13 +701,13 @@ void LogBookData::AwardMedals(CAMP_MISS_STRUCT *MissStats)
     {
         int MedalPts = 0;
 
-        if (MissStats->Flags bitand DESTROYED_PRIMARY)
+        if (MissStats->Flags & DESTROYED_PRIMARY)
             MedalPts += 2;
 
-        if (MissStats->Flags bitand LANDED_AIRCRAFT)
+        if (MissStats->Flags & LANDED_AIRCRAFT)
             MedalPts++;
 
-        if ( not MissStats->WingmenLost)
+        if (!MissStats->WingmenLost)
             MedalPts++;
 
         MedalPts += MissStats->NavalUnitsKilled + MissStats->Kills +
@@ -716,46 +715,46 @@ void LogBookData::AwardMedals(CAMP_MISS_STRUCT *MissStats)
 
         MedalPts = FloatToInt32(PlayerOptions.Realism * MedalPts * CampaignDifficulty() * MissStats->Score * MissionComplexity(MissStats));
 
-        if ((MedalPts > 9600) and (PlayerOptions.Realism > 0.9f) and MissStats->Score >= 4)
+        if ((MedalPts > 9600) && (PlayerOptions.Realism > 0.9f) && MissStats->Score >= 4)
         {
-            MissionResult or_eq AWARD_MEDAL bitor MDL_AFCROSS;
+            MissionResult |= AWARD_MEDAL | MDL_AFCROSS;
             Pilot.Medals[AIR_FORCE_CROSS]++;
             Pilot.Campaign.TotalScore += 20;
         }
-        else if ((MedalPts > 7800) and (PlayerOptions.Realism > 0.7f))
+        else if ((MedalPts > 7800) && (PlayerOptions.Realism > 0.7f))
         {
-            MissionResult or_eq AWARD_MEDAL bitor MDL_SILVERSTAR;
+            MissionResult |= AWARD_MEDAL | MDL_SILVERSTAR;
             Pilot.Medals[SILVER_STAR]++;
             Pilot.Campaign.TotalScore += 15;
         }
-        else if (MedalPts > 6000 and (PlayerOptions.Realism > 0.5f))
+        else if (MedalPts > 6000 && (PlayerOptions.Realism > 0.5f))
         {
-            MissionResult or_eq AWARD_MEDAL bitor MDL_DIST_FLY;
+            MissionResult |= AWARD_MEDAL | MDL_DIST_FLY;
             Pilot.Medals[DIST_FLY_CROSS]++;
             Pilot.Campaign.TotalScore += 10;
         }
         else if (MedalPts > 4800)
         {
-            MissionResult or_eq AWARD_MEDAL bitor MDL_AIR_MDL;
+            MissionResult |= AWARD_MEDAL | MDL_AIR_MDL;
             Pilot.Medals[AIR_MEDAL]++;
             Pilot.Campaign.TotalScore += 5;
         }
     }
 
 
-    if (MissStats->Killed or MissStats->KilledByHuman or MissStats->KilledBySelf)
+    if (MissStats->Killed || MissStats->KilledByHuman || MissStats->KilledBySelf)
     {
         Pilot.Campaign.ConsecMissions = 0;
     }
     else
     {
-        if ( not PlayerOptions.InvulnerableOn())
+        if (!PlayerOptions.InvulnerableOn())
             Pilot.Campaign.ConsecMissions++;
     }
 
     if (Pilot.Campaign.ConsecMissions >= 100)
     {
-        MissionResult or_eq AWARD_MEDAL bitor MDL_LONGEVITY;
+        MissionResult |= AWARD_MEDAL | MDL_LONGEVITY;
         Pilot.Campaign.ConsecMissions = 0;
         Pilot.Medals[LONGEVITY]++;
     }
@@ -770,7 +769,7 @@ void LogBookData::FinishCampaign(short WonLostTied)
         Pilot.Campaign.GamesWon++;
         Pilot.Campaign.TotalScore += 10;
         Pilot.Medals[KOREA_CAMPAIGN]++;
-        MissionResult or_eq AWARD_MEDAL bitor MDL_KOR_CAMP;
+        MissionResult |= AWARD_MEDAL | MDL_KOR_CAMP;
     }
     else if (WonLostTied < 0)
     {

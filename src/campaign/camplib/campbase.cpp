@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <stddef.h>
 #include <fcntl.h>
 #include <io.h>
@@ -66,7 +65,7 @@ VU_ID_NUMBER lastVolatileId = FIRST_VOLATILE_VU_ID_NUMBER;*/
 #define FIRST_FLIGHT_ID_NUMBER            (LAST_PACKAGE_ID_NUMBER + 1)
 #define LAST_FLIGHT_ID_NUMBER             (FIRST_PACKAGE_ID_NUMBER + MAX_NUMBER_OF_VOLATILE_UNITS)
 #define FIRST_VOLATILE_VU_ID_NUMBER   (LAST_FLIGHT_ID_NUMBER+1)
-#define LAST_VOLATILE_VU_ID_NUMBER   (compl ((VU_ID_NUMBER)0))
+#define LAST_VOLATILE_VU_ID_NUMBER   (~((VU_ID_NUMBER)0))
 
 IdNamespace ObjectiveNS(FIRST_OBJECTIVE_VU_ID_NUMBER, LAST_OBJECTIVE_VU_ID_NUMBER);
 IdNamespace NonVolatileNS(FIRST_NON_VOLATILE_VU_ID_NUMBER, LAST_NON_VOLATILE_VU_ID_NUMBER);
@@ -148,7 +147,7 @@ CampBaseClass::CampBaseClass(VU_BYTE **stream, long *rem) : FalconEntity(VU_LAST
 
         for (int i = 0; i < MAX_CAMP_ENTITIES; i++)
         {
-            if ( not CampIDRenameTable[i])
+            if (!CampIDRenameTable[i])
             {
                 CampIDRenameTable[i] = camp_id;
                 break;
@@ -286,7 +285,7 @@ int CampBaseClass::Handle(VuFullUpdateEvent *event)
     // In the case of force on force TE, this is actually ok -
     // The host will receive the full update and MAKE this entity
     // local in the line above
-    // ShiAssert ( not IsLocal() );
+    // ShiAssert ( !IsLocal() );
 
     memcpy(&share_.entityType_, &tmp_ent->share_.entityType_, sizeof(ushort));
     tmp_ent->GetLocation(&x, &y);
@@ -362,7 +361,7 @@ VU_ERRCODE CampBaseClass::Remove()
 // Getters
 int CampBaseClass::GetSpotted(Team t)
 {
-    if ( not this)
+    if (!this)
         return 1;
 
     // same team always spotted and identified
@@ -373,17 +372,17 @@ int CampBaseClass::GetSpotted(Team t)
 
     MoveType mt = GetMovementType();
 
-    if (mt > 8 or mt <= 0)
+    if (mt > 8 || mt <= 0)
         return 1;
 
-    // sfr: bad usage here use sum instead, since in MP clients can receive future updates
+    // sfr: bad usage here! use sum instead, since in MP clients can receive future updates
     // also, in MP, messages take time to get, this is reseting spot, so added IsLocal()
-    if (IsLocal() and Camp_GetCurrentTime()  > ReconLossTime[mt] + spotTime)
+    if (IsLocal() && Camp_GetCurrentTime()  > ReconLossTime[mt] + spotTime)
     {
         spotted = 0;
     }
 
-    if ((spotted >> t) bitand 0x01)
+    if ((spotted >> t) & 0x01)
     {
         return 1;
     }
@@ -403,7 +402,7 @@ int CampBaseClass::GetSpotted(Team t)
             break;
 
         case Naval:
-            if (TeamInfo[t] and TeamInfo[t]->HasSatelites()) // 2002-03-06 MN CTD fix
+            if (TeamInfo[t] && TeamInfo[t]->HasSatelites()) // 2002-03-06 MN CTD fix
             {
                 // Check for cloud cover
                 GridIndex x, y;
@@ -424,7 +423,7 @@ int CampBaseClass::GetSpotted(Team t)
             // KCK: Experimental - Autospotted during first 12 hours of combat
             if (Camp_GetCurrentTime() < CampaignDay / 2)
                 return 1;
-            else if (TeamInfo[t] and TeamInfo[t]->HasSatelites()) // 2002-03-06 MN CTD fix
+            else if (TeamInfo[t] && TeamInfo[t]->HasSatelites()) // 2002-03-06 MN CTD fix
             {
                 // Check for cloud cover
                 GridIndex x, y;
@@ -452,12 +451,12 @@ void CampBaseClass::SetLocation(GridIndex x, GridIndex y)
     // Check if flight has moved, and evaluate current situation if so
     GetLocation(&cx, &cy);
 
-    if (cx not_eq x or cy not_eq y)
+    if (cx != x || cy != y)
     {
         vector v;
 
-        //ShiAssert (x >= 0 and y >= 0 and x < Map_Max_X and y < Map_Max_Y)
-        if ((x < 1) or (x >= Map_Max_X - 1) or (y < 1) or (y >= Map_Max_Y - 1))
+        //ShiAssert (x >= 0 && y >= 0 && x < Map_Max_X && y < Map_Max_Y)
+        if ((x < 1) || (x >= Map_Max_X - 1) || (y < 1) || (y >= Map_Max_Y - 1))
         {
             // KCK Hack: Teleport units off map back onto map
             if (x < 1)
@@ -502,12 +501,12 @@ void CampBaseClass::SetSpotted(Team t, CampaignTime time, int identified)
 {
     // Make this dirty if we wern't previously spotted or our time has expired
     // 2002-02-11 MODIFIED BY S.G. Or we were not identified and now we are
-    if (ReSpot() or not ((spotted >> t) bitand 0x01) or ( not ((spotted >> (t + 8)) bitand 0x01) and identified))
+    if (ReSpot() || !((spotted >> t) & 0x01) || (!((spotted >> (t + 8)) & 0x01) && identified))
     {
         spotTime = time;
 
         // 2002-04-02 ADDED BY S.G. Need to send sooner if it gets identified.
-        if ( not ((spotted >> (t + 8)) bitand 0x01) and identified)
+        if (!((spotted >> (t + 8)) & 0x01) && identified)
         {
             //MakeCampBaseDirty (DIRTY_SPOTTED, DDP[2].priority);
             MakeCampBaseDirty(DIRTY_SPOTTED, SEND_RELIABLE);
@@ -520,12 +519,12 @@ void CampBaseClass::SetSpotted(Team t, CampaignTime time, int identified)
         }
     }
 
-    spotted or_eq (0x01 << t);
+    spotted |= (0x01 << t);
 
     // 2002-02-11 ADDED BY S.G.
     // The upper 8 bits of spotted is now used to know if the target has been identified by that team.
     // The only time you lose your identification is when you lose your spotting
-    spotted or_eq ((identified bitand 0x01) << (t + 8));
+    spotted |= ((identified & 0x01) << (t + 8));
 }
 
 void CampBaseClass::SetEmitting(int e)
@@ -539,22 +538,22 @@ void CampBaseClass::SetEmitting(int e)
     // }
     if (e)
     {
-        if ( not IsEmitting())
+        if (!IsEmitting())
         {
-            base_flags or_eq CBC_EMITTING;
+            base_flags |= CBC_EMITTING;
             //MakeCampBaseDirty (DIRTY_BASE_FLAGS, DDP[4].priority);
             MakeCampBaseDirty(DIRTY_BASE_FLAGS, SEND_SOMETIME);
         }
 
         if (
 #if VU_ALL_FILTERED
- not EmitterList->Find(this)
+            !EmitterList->Find(this)
 #else
- not EmitterList->Find(Id())
+            !EmitterList->Find(Id())
 #endif
         )
         {
-            if (IsBattalion() or IsObjective())
+            if (IsBattalion() || IsObjective())
             {
                 EmitterList->ForcedInsert(this);
             }
@@ -568,9 +567,9 @@ void CampBaseClass::SetEmitting(int e)
     }
     else if (IsEmitting())
     {
-        base_flags and_eq compl CBC_EMITTING;
+        base_flags &= ~CBC_EMITTING;
 
-        if (IsBattalion() or IsObjective())
+        if (IsBattalion() || IsObjective())
         {
             EmitterList->Remove(this);
         }
@@ -586,36 +585,36 @@ void CampBaseClass::SetAggregate(bool agg)
 {
     if (agg)
     {
-        local_flags or_eq CBC_AGGREGATE;
+        local_flags |= CBC_AGGREGATE;
     }
     else
     {
-        local_flags and_eq (compl CBC_AGGREGATE);
+        local_flags &= (~CBC_AGGREGATE);
     }
 }
 /*void CampBaseClass::SetAggregate (int a)
 {
- local_flags or_eq CBC_AGGREGATE;
- if ( not a)
- local_flags xor_eq CBC_AGGREGATE;
+ local_flags |= CBC_AGGREGATE;
+ if (!a)
+ local_flags ^= CBC_AGGREGATE;
 }
 */
 void CampBaseClass::SetJammed(int j)
 {
     if (j)
     {
-        if ( not (base_flags bitand CBC_JAMMED))
+        if (!(base_flags & CBC_JAMMED))
         {
-            base_flags or_eq CBC_JAMMED;
+            base_flags |= CBC_JAMMED;
             //MakeCampBaseDirty (DIRTY_BASE_FLAGS, DDP[6].priority);
             MakeCampBaseDirty(DIRTY_BASE_FLAGS, SEND_SOMETIME);
         }
     }
     else
     {
-        if (base_flags bitand CBC_JAMMED)
+        if (base_flags & CBC_JAMMED)
         {
-            base_flags and_eq compl CBC_JAMMED;
+            base_flags &= ~CBC_JAMMED;
             //MakeCampBaseDirty (DIRTY_BASE_FLAGS, DDP[7].priority);
             MakeCampBaseDirty(DIRTY_BASE_FLAGS, SEND_SOMETIME);
         }
@@ -625,81 +624,81 @@ void CampBaseClass::SetJammed(int j)
 void CampBaseClass::SetTacan(int t)
 {
 
-    if ( not t and IsTacan() and gTacanList)
+    if (!t && IsTacan() && gTacanList)
     {
-        if (IsObjective() and GetType() == TYPE_AIRBASE)
+        if (IsObjective() && GetType() == TYPE_AIRBASE)
         {
             gTacanList->RemoveTacan(Id(), NavigationSystem::AIRBASE);
         }
-        else if (EntityType()->classInfo_[VU_CLASS] == CLASS_UNIT and EntityType()->classInfo_[VU_TYPE] == TYPE_FLIGHT)
+        else if (EntityType()->classInfo_[VU_CLASS] == CLASS_UNIT && EntityType()->classInfo_[VU_TYPE] == TYPE_FLIGHT)
         {
             gTacanList->RemoveTacan(Id(), NavigationSystem::TANKER);
         }
-        else if (EntityType()->classInfo_[VU_CLASS] == CLASS_UNIT and EntityType()->classInfo_[VU_TYPE] == TYPE_TASKFORCE and EntityType()->classInfo_[VU_STYPE])
+        else if (EntityType()->classInfo_[VU_CLASS] == CLASS_UNIT && EntityType()->classInfo_[VU_TYPE] == TYPE_TASKFORCE && EntityType()->classInfo_[VU_STYPE])
         {
             gTacanList->RemoveTacan(Id(), NavigationSystem::CARRIER);
         }
     }
-    else if (t and ( not IsTacan() or (IsObjective() and GetType() == TYPE_AIRBASE)) and gTacanList)
+    else if (t && (!IsTacan() || (IsObjective() && GetType() == TYPE_AIRBASE)) && gTacanList)
     {
         gTacanList->AddTacan(this);
     }
 
-    local_flags or_eq CBC_HAS_TACAN;
+    local_flags |= CBC_HAS_TACAN;
 
-    if ( not t)
-        local_flags xor_eq CBC_HAS_TACAN;
+    if (!t)
+        local_flags ^= CBC_HAS_TACAN;
 }
 /*
    void CampBaseClass::SetChecked (int t)
    {
-   local_flags or_eq CBC_CHECKED;
-   if ( not t)
-   local_flags xor_eq CBC_CHECKED;
+   local_flags |= CBC_CHECKED;
+   if (!t)
+   local_flags ^= CBC_CHECKED;
    }
  */
 void CampBaseClass::SetAwake(int d)
 {
-    local_flags or_eq CBC_AWAKE;
+    local_flags |= CBC_AWAKE;
 
-    if ( not d)
+    if (!d)
     {
-        local_flags xor_eq CBC_AWAKE;
+        local_flags ^= CBC_AWAKE;
     }
 }
 
 void CampBaseClass::SetInPackage(int p)
 {
-    local_flags or_eq CBC_IN_PACKAGE;
+    local_flags |= CBC_IN_PACKAGE;
 
-    if ( not p)
+    if (!p)
     {
-        local_flags xor_eq CBC_IN_PACKAGE;
+        local_flags ^= CBC_IN_PACKAGE;
     }
 }
 
 void CampBaseClass::SetDelta(int d)
 {
-    local_flags or_eq CBC_HAS_DELTA;
+    local_flags |= CBC_HAS_DELTA;
 
-    if ( not d)
-        local_flags xor_eq CBC_HAS_DELTA;
+    if (!d)
+        local_flags ^= CBC_HAS_DELTA;
 }
 
 void CampBaseClass::SetInSimLists(int l)
 {
-    local_flags or_eq CBC_IN_SIM_LIST;
+    local_flags |= CBC_IN_SIM_LIST;
 
-    if ( not l)
-        local_flags xor_eq CBC_IN_SIM_LIST;
+    if (!l)
+        local_flags ^= CBC_IN_SIM_LIST;
 }
 
 void CampBaseClass::SetReserved(int r)
 {
-    local_flags or_eq CBC_RESERVED_ONLY;
+    local_flags |= CBC_RESERVED_ONLY;
 
-    if ( not r)
-        local_flags xor_eq CBC_RESERVED_ONLY;
+    if (!r)
+        local_flags ^= CBC_RESERVED_ONLY;
 }
 
 int CampBaseClass::ReSpot()
@@ -716,7 +715,7 @@ int CampBaseClass::ReSpot()
 // Component accessers (Sim Flight emulators)
 int CampBaseClass::GetComponentIndex(VuEntity* me) // My call
 {
-    if ( not components)
+    if (!components)
         return 0;
     else
     {
@@ -726,7 +725,7 @@ int CampBaseClass::GetComponentIndex(VuEntity* me) // My call
 
         cur = cit.GetFirst();
 
-        while (cur and cur not_eq me)
+        while (cur && cur != me)
         {
             idx ++;
             cur = cit.GetNext();
@@ -772,7 +771,7 @@ SimBaseClass* CampBaseClass::GetComponentLead(void) // My call
 
 SimBaseClass* CampBaseClass::GetComponentNumber(int component)
 {
-    // components shouldn't be null if this camp unit is deagg'd
+    // components shouldn't be null if this camp unit is deagg'd!
     if (components)
     {
         VuListIterator cit(components);
@@ -839,8 +838,8 @@ CampEntity GetFirstEntity(F4LIt l)
 
     while (e)
     {
-        //if (e->VuState() not_eq VU_MEM_DELETED)
-        if (GetEntityClass(e) == CLASS_UNIT or GetEntityClass(e) == CLASS_OBJECTIVE)
+        //if (e->VuState() != VU_MEM_DELETED)
+        if (GetEntityClass(e) == CLASS_UNIT || GetEntityClass(e) == CLASS_OBJECTIVE)
         {
             return (CampEntity)e;
         }
@@ -859,8 +858,8 @@ CampEntity GetNextEntity(F4LIt l)
 
     while (e)
     {
-        //if (e->VuState() not_eq VU_MEM_DELETED)
-        if (GetEntityClass(e) == CLASS_UNIT or GetEntityClass(e) == CLASS_OBJECTIVE)
+        //if (e->VuState() != VU_MEM_DELETED)
+        if (GetEntityClass(e) == CLASS_UNIT || GetEntityClass(e) == CLASS_OBJECTIVE)
         {
             return (CampEntity)e;
         }
@@ -873,7 +872,7 @@ CampEntity GetNextEntity(F4LIt l)
 
 int Real(int type)
 {
-    if (type == TYPE_BATTALION or type == TYPE_FLIGHT or type == TYPE_TASKFORCE)
+    if (type == TYPE_BATTALION || type == TYPE_FLIGHT || type == TYPE_TASKFORCE)
         return 1;
 
     return 0;
@@ -881,7 +880,7 @@ int Real(int type)
 
 short GetEntityClass(VuEntity* e)
 {
-    if ( not e)
+    if (!e)
         return 0;
 
     return (e->EntityType())->classInfo_[VU_CLASS];
@@ -889,7 +888,7 @@ short GetEntityClass(VuEntity* e)
 
 short GetEntityDomain(VuEntity* e)
 {
-    if ( not e)
+    if (!e)
         return 0;
 
     return (e->EntityType())->classInfo_[VU_DOMAIN];
@@ -954,11 +953,11 @@ short FindUniqueID()
 
         for (id = 1; id < MAX_CAMP_ENTITIES; id++)
         {
-            if ( not CampSearch[id])
+            if (!CampSearch[id])
                 return id;
         }
 
-        MonoPrint("Error Exceeded max entity count\n");
+        MonoPrint("Error! Exceeded max entity count!\n");
     }
 
     return 0;
@@ -988,7 +987,7 @@ VU_ID_NUMBER GetIdFromNamespace(IdNamespace &ns)
     {
         tryId.num_ = ns.GetId();
     }
-    while (vuDatabase->Find(tryId) not_eq NULL);
+    while (vuDatabase->Find(tryId) != NULL);
 
     return tryId.num_;
 }
@@ -1004,7 +1003,7 @@ int GetVisualDetectionRange(int mt)
     SIM_ULONG timer = 0;
     static int tod = 0;
 
-    if ((timer == 0) or (SimLibElapsedTime > timer))
+    if ((timer == 0) || (SimLibElapsedTime > timer))
     {
         tod = TimeOfDayGeneral();
         timer = SimLibElapsedTime + 900000;//15 minutes
@@ -1065,7 +1064,7 @@ void CampBaseClass::SetCampId(short new_camp_id)
 
 void CampBaseClass::SetBaseFlags(short flags)
 {
-    if (base_flags not_eq flags)
+    if (base_flags != flags)
     {
         base_flags = flags;
         //MakeCampBaseDirty (DIRTY_BASE_FLAGS, DDP[8].priority);
@@ -1075,17 +1074,17 @@ void CampBaseClass::SetBaseFlags(short flags)
 
 void CampBaseClass::MakeCampBaseDirty(Dirty_Campaign_Base bits, Dirtyness score)
 {
-    if (( not IsLocal()) or (VuState() not_eq VU_MEM_ACTIVE))
+    if ((!IsLocal()) || (VuState() != VU_MEM_ACTIVE))
     {
         return;
     }
 
-    if ( not IsAggregate() and (score not_eq SEND_RELIABLEANDOOB))
+    if (!IsAggregate() && (score != SEND_RELIABLEANDOOB))
     {
         score = static_cast<Dirtyness>(score << 4);
     }
 
-    dirty_camp_base or_eq bits;
+    dirty_camp_base |= bits;
     MakeDirty(DIRTY_CAMPAIGN_BASE, score);
 }
 
@@ -1099,7 +1098,7 @@ void CampBaseClass::WriteDirty(unsigned char **stream)
     *ptr = (unsigned char) dirty_camp_base;
     ptr += sizeof(unsigned char);
 
-    if (dirty_camp_base bitand DIRTY_POSITION)
+    if (dirty_camp_base & DIRTY_POSITION)
     {
         GridIndex x, y;
 
@@ -1110,13 +1109,13 @@ void CampBaseClass::WriteDirty(unsigned char **stream)
         ptr += sizeof(short);
     }
 
-    if (dirty_camp_base bitand DIRTY_ALTITUDE)
+    if (dirty_camp_base & DIRTY_ALTITUDE)
     {
         *(float*)ptr = ZPos();
         ptr += sizeof(float);
     }
 
-    if (dirty_camp_base bitand DIRTY_SPOTTED)
+    if (dirty_camp_base & DIRTY_SPOTTED)
     {
         *(short*)ptr = spotted;
         ptr += sizeof(short);
@@ -1124,7 +1123,7 @@ void CampBaseClass::WriteDirty(unsigned char **stream)
         ptr += sizeof(CampaignTime);
     }
 
-    if (dirty_camp_base bitand DIRTY_BASE_FLAGS)
+    if (dirty_camp_base & DIRTY_BASE_FLAGS)
     {
         *(short*)ptr = base_flags;
         ptr += sizeof(short);
@@ -1141,7 +1140,7 @@ void CampBaseClass::ReadDirty(VU_BYTE **stream, long *rem)
 
     memcpychk(&bits, stream, sizeof(char), rem);
 
-    if (bits bitand DIRTY_POSITION)
+    if (bits & DIRTY_POSITION)
     {
         GridIndex x, y;
 
@@ -1159,7 +1158,7 @@ void CampBaseClass::ReadDirty(VU_BYTE **stream, long *rem)
         }
     }
 
-    if (bits bitand DIRTY_ALTITUDE)
+    if (bits & DIRTY_ALTITUDE)
     {
         float z;
 
@@ -1173,13 +1172,13 @@ void CampBaseClass::ReadDirty(VU_BYTE **stream, long *rem)
         }
     }
 
-    if (bits bitand DIRTY_SPOTTED)
+    if (bits & DIRTY_SPOTTED)
     {
         memcpychk(&spotted, stream, sizeof(short), rem);
         memcpychk(&spotTime, stream, sizeof(CampaignTime), rem);
     }
 
-    if (bits bitand DIRTY_BASE_FLAGS)
+    if (bits & DIRTY_BASE_FLAGS)
     {
         memcpychk((void*)(&base_flags), stream, sizeof(short), rem);
     }

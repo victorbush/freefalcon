@@ -88,14 +88,14 @@ int FalconSendObjData::Process(uchar autodisp)
     uchar *bufptr;
     FalconSessionEntity *session = (FalconSessionEntity*) vuDatabase->Find(dataBlock.owner);
 
-    if (autodisp or not TheCampaign.IsPreLoaded() or not session)
+    if (autodisp || !TheCampaign.IsPreLoaded() || !session)
         return -1;
 
-    if (TheCampaign.Flags bitand CAMP_NEED_OBJ_DELTAS)
+    if (TheCampaign.Flags & CAMP_NEED_OBJ_DELTAS)
     {
         CampaignJoinKeepAlive();
 
-        if (dataBlock.set not_eq session->objDataReceiveSet)
+        if (dataBlock.set != session->objDataReceiveSet)
         {
             // New data - toss the old stuff
             delete session->objDataReceiveBuffer;
@@ -104,32 +104,32 @@ int FalconSendObjData::Process(uchar autodisp)
             memset(session->objDataReceived, 0, FS_MAXBLK / 8);
         }
 
-        if ( not session->objDataReceiveBuffer)
+        if (!session->objDataReceiveBuffer)
             session->objDataReceiveBuffer = new uchar[dataBlock.totalSize];
 
         // Find the block size, if we havn't already
-        if ( not gObjBlockSize)
+        if (!gObjBlockSize)
             gObjBlockSize = F4VuMaxTCPMessageSize - (Size() - dataBlock.size);
 
         bufptr = session->objDataReceiveBuffer + dataBlock.block * gObjBlockSize;
         memcpy(bufptr, dataBlock.objData, dataBlock.size);
 
 #ifdef DEBUG_STARTUP
-        MonoPrint("Got Obj Block #%d\n", dataBlock.block);
+        MonoPrint("Got Obj Block #%d!\n", dataBlock.block);
 #endif
 
         // Mark this block as being received.
-        session->objDataReceived[dataBlock.block / 8] or_eq (1 << (dataBlock.block % 8));
+        session->objDataReceived[dataBlock.block / 8] |= (1 << (dataBlock.block % 8));
 
         // Check if we've gotten all our blocks
         for (int i = 0; i < dataBlock.totalBlocks; i++)
         {
-            if ( not (session->objDataReceived[i / 8] bitand (1 << (i % 8))))
+            if (!(session->objDataReceived[i / 8] & (1 << (i % 8))))
                 return 0;
         }
 
         // If we get here, it's because all blocks are read
-        TheCampaign.Flags and_eq compl CAMP_NEED_OBJ_DELTAS;
+        TheCampaign.Flags &= ~CAMP_NEED_OBJ_DELTAS;
         bufptr = session->objDataReceiveBuffer;
 
         CampEnterCriticalSection();
@@ -179,11 +179,11 @@ void SendObjectiveDeltas(FalconSessionEntity *session, VuTargetEntity *target, u
     uchar *buffer, *bufptr;
     FalconSendObjData *msg;
 
-    if ( not blocksNeeded)
+    if (!blocksNeeded)
     {
         int set = rand();
 
-        if ( not set)
+        if (!set)
             set++;
 
         // Encode the objective data
@@ -193,7 +193,7 @@ void SendObjectiveDeltas(FalconSessionEntity *session, VuTargetEntity *target, u
     }
 
     // Find the block size, if we havn't already
-    if ( not gObjBlockSize)
+    if (!gObjBlockSize)
     {
         // This is a temporary message, purely for sizing purposes
         FalconSendObjData msg(session->Id(), target);
@@ -205,7 +205,7 @@ void SendObjectiveDeltas(FalconSessionEntity *session, VuTargetEntity *target, u
 
 #ifdef DEBUG_STARTUP
 
-    if ( not blocksNeeded)
+    if (!blocksNeeded)
         MonoPrint("Sending objective data (%d of %d blocks): ", needed, blocks);
     else
         MonoPrint("Resending objective data (%d of %d blocks): ", needed, blocks);
@@ -229,7 +229,7 @@ void SendObjectiveDeltas(FalconSessionEntity *session, VuTargetEntity *target, u
             sizeleft -= gObjBlockSize;
         }
 
-        if ( not blocksNeeded or not (blocksNeeded[curBlock / 8] bitand (1 << (curBlock % 8))))
+        if (!blocksNeeded || !(blocksNeeded[curBlock / 8] & (1 << (curBlock % 8))))
         {
             msg = new FalconSendObjData(session->Id(), target);
             msg->dataBlock.size = (short)blocksize;

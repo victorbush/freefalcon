@@ -1,7 +1,6 @@
 #ifndef _3DEJ_FILEIO_H_
 #define _3DEJ_FILEIO_H_
 
-#include <cISO646>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -27,7 +26,7 @@ public:
     }
     virtual ~CFileIO()
     {
-        if (file not_eq -1)
+        if (file != -1)
         {
             closefile();
         }

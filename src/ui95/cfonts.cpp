@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "chandler.h"
 
-#ifdef _UI95_PARSER_ // List of Keywords bitand functions to handle them
+#ifdef _UI95_PARSER_ // List of Keywords & functions to handle them
 
 enum
 {
@@ -70,7 +70,7 @@ static LOGFONT DefaultFont =
     OUT_DEFAULT_PRECIS,
     CLIP_DEFAULT_PRECIS,
     PROOF_QUALITY,
-    VARIABLE_PITCH bitor FF_SWISS,
+    VARIABLE_PITCH | FF_SWISS,
     "",
 };
 
@@ -96,7 +96,7 @@ C_Font::C_Font()
 
 C_Font::~C_Font()
 {
-    if (Root_ or Fonts_)
+    if (Root_ || Fonts_)
         Cleanup();
 }
 
@@ -159,15 +159,15 @@ BOOL C_Font::AddFont(long , LOGFONT *)
     GetTextMetrics(hdc, &newfont->Metrics_);
     newfont->Widths_ = new INT[newfont->Metrics_.tmLastChar + 1];
 
-    if ( not GetCharWidth(hdc, 0, newfont->Metrics_.tmLastChar, &newfont->Widths_[0]))
+    if (!GetCharWidth(hdc, 0, newfont->Metrics_.tmLastChar, &newfont->Widths_[0]))
     {
         VOID *lpMsgBuf;
 
-        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER bitor FORMAT_MESSAGE_FROM_SYSTEM,
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
                       NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0, NULL);
 
         // Display the string.
-        MessageBox(NULL, (char *)lpMsgBuf, "GetLastError", MB_OK bitor MB_ICONINFORMATION);
+        MessageBox(NULL, (char *)lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
 
         // Free the buffer.
         LocalFree(lpMsgBuf);
@@ -260,7 +260,7 @@ C_Fontmgr *C_Font::Find(long ID)
     {
         cur = (C_Fontmgr*)Fonts_->Find(ID);
 
-        if ( not cur)
+        if (!cur)
             cur = (C_Fontmgr*)Fonts_->Find(1);
 
         return(cur);
@@ -279,7 +279,7 @@ void C_Font::LoadFont(long ID, char *filename)
     newfont = new C_Fontmgr;
     newfont->Setup(ID, filename);
 
-    if ( not newfont->Height())
+    if (!newfont->Height())
     {
         delete newfont;
         return;
@@ -341,7 +341,7 @@ int C_Font::StrWidth(long fontID, _TCHAR *Str, int len)
     {
         i = 0;
 
-        while (Str[i] and i < len)
+        while (Str[i] && i < len)
         {
             c = Str[i];
 
@@ -394,79 +394,79 @@ void C_Font::FontFunction(short ID, long P[], _TCHAR *str, LOGFONT *lgfnt, long 
 
         case CFNT_lfHeight:
             if (lgfnt)
-                lgfnt->lfHeight or_eq P[0];
+                lgfnt->lfHeight |= P[0];
 
             break;
 
         case CFNT_lfWidth:
             if (lgfnt)
-                lgfnt->lfWidth or_eq P[0];
+                lgfnt->lfWidth |= P[0];
 
             break;
 
         case CFNT_lfEscapement:
             if (lgfnt)
-                lgfnt->lfEscapement or_eq P[0];
+                lgfnt->lfEscapement |= P[0];
 
             break;
 
         case CFNT_lfOrientation:
             if (lgfnt)
-                lgfnt->lfOrientation or_eq P[0];
+                lgfnt->lfOrientation |= P[0];
 
             break;
 
         case CFNT_lfWeight:
             if (lgfnt)
-                lgfnt->lfWeight or_eq P[0];
+                lgfnt->lfWeight |= P[0];
 
             break;
 
         case CFNT_lfItalic:
             if (lgfnt)
-                lgfnt->lfItalic or_eq (BYTE)P[0];
+                lgfnt->lfItalic |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfUnderline:
             if (lgfnt)
-                lgfnt->lfUnderline or_eq (BYTE)P[0];
+                lgfnt->lfUnderline |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfStrikeOut:
             if (lgfnt)
-                lgfnt->lfStrikeOut or_eq (BYTE)P[0];
+                lgfnt->lfStrikeOut |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfCharSet:
             if (lgfnt)
-                lgfnt->lfCharSet or_eq (BYTE)P[0];
+                lgfnt->lfCharSet |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfOutPrecision:
             if (lgfnt)
-                lgfnt->lfOutPrecision or_eq (BYTE)P[0];
+                lgfnt->lfOutPrecision |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfClipPrecision:
             if (lgfnt)
-                lgfnt->lfClipPrecision or_eq (BYTE)P[0];
+                lgfnt->lfClipPrecision |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfQuality:
             if (lgfnt)
-                lgfnt->lfQuality or_eq (BYTE)P[0];
+                lgfnt->lfQuality |= (BYTE)P[0];
 
             break;
 
         case CFNT_lfPitchAndFamily:
             if (lgfnt)
-                lgfnt->lfPitchAndFamily or_eq (BYTE)P[0];
+                lgfnt->lfPitchAndFamily |= (BYTE)P[0];
 
             break;
 

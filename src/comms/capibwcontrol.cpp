@@ -4,7 +4,6 @@
 * @author sfr
 */
 
-#include <cISO646>
 #include <assert.h>
 #include <time.h>
 #include "capibwcontrol.h"
@@ -48,7 +47,7 @@ public:
     /** this structure holds BW types. If changed here, also adjust ComAPI (look for BWTYPE) */
     typedef enum
     {
-        BW_POSITIONAL = 0,   ///< positional update (MUST BE ZERO)
+        BW_POSITIONAL = 0,   ///< positional update (MUST BE ZERO!!)
         BW_DIRTY,            ///< dirty data
         BW_OTHER,            ///< other stuff
         BW_COMMON,           ///< common pool
@@ -176,7 +175,7 @@ public:
         // if we have any spare bw of that type, ok
         // this avoids starvation for low bw connections
         if (
-            (used_by_type[type] < bytes_by_type[type]) or
+            (used_by_type[type] < bytes_by_type[type]) ||
             (used_by_type[BW_COMMON] < bytes_by_type[BW_COMMON])
         )
         {
@@ -198,7 +197,7 @@ public:
         used_by_type[type] += size;
 
         // see if used exceed amount for that type
-        if ((used_by_type[type] > bytes_by_type[type]) and (type not_eq BW_COMMON))
+        if ((used_by_type[type] > bytes_by_type[type]) && (type != BW_COMMON))
         {
             // consume common
             int common = used_by_type[type] - bytes_by_type[type];

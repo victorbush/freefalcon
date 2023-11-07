@@ -1,7 +1,6 @@
 ////////////////////////////////////////////////
 // Falcon4.cfg stuff
 
-#include <cISO646>
 #include <stdio.h>
 #include <windows.h>
 #include "../../SIM/INCLUDE/Phyconst.h" //JAM 19Sep03
@@ -29,7 +28,7 @@ bool g_bWakeTurbulence = true;
 bool g_bDrawWakeTurbulence = false;
 bool g_bWeaponLaunchUsesDrawPointerPos = false; // MLR 2/19/2004 - when weapons are launched, they are launched for
 // where thier 3d graphics were positioned, this will allow the F-111's
-// weapons to be launched from the right spot ** DOESN'T WORK
+// weapons to be launched from the right spot ** DOESN'T WORK!!!
 
 bool g_bExtViewOnGround = false; // RAS -5Dec04- allow ext view if on ground
 bool g_bForceDXMultiThreadedCoopLevel = true; // JB 010401 Safer according to e
@@ -68,7 +67,7 @@ int g_nAIVisualRetentionSkill =  2 * 1000; // 2002-03-12 S.G. Time before AI loo
 float g_fBiasFactorForFlaks = 100000.0f; // 2002-03-12 S.G. Defaults bias for flaks. See guns.cpp
 bool g_bUseSkillForFlaks = true; // 2002-03-12 S.G. If flaks uses the skill of the ground troop or not
 float g_fTracerAccuracyFactor = 0.1f; // 2002-03-12 S.G. For tracers, multiply the dispersion (tracerError) by this value
-bool g_bToggleAAAGunFlag = false; // 2002-03-12 S.G. RP5 have set the AAA flag for NONE AAA guns and have reset it for AAA guns This flag toggle the AAA gun check in the code
+bool g_bToggleAAAGunFlag = false; // 2002-03-12 S.G. RP5 have set the AAA flag for NONE AAA guns and have reset it for AAA guns! This flag toggle the AAA gun check in the code
 bool g_bUseComplexBVRForPlayerAI = false; // 2002-03-13 S.G. If false, Player's wingman will perform RP5 BVR code instead of the SP2 BVR code
 float g_fFuelBaseProp = 100.0f; // 2002-03-14 S.G. For better fuel consomption tweaking
 float g_fFuelMultProp = 0.008f; // 2002-03-14 S.G. For better fuel consomption tweaking
@@ -82,8 +81,8 @@ bool g_bUseAggresiveIncompleteA2G = true; // 2002-03-22 S.G. If false, AI on inc
 float g_fHotNoseAngle = 50.0f;  // 2002-03-22 S.G. Default angle (in degrees) before considering the target pointing at us
 float g_fMaxMARNoIdA = 10.0f;  // 2002-03-22 ADDED BY S.G. Max Start MAR for this type of aicraft when target is NOT ID'ed, fast
 float g_fMinMARNoId5kA = 5.0f;  // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, fast and below 5K
-float g_fMinMARNoId18kA = 12.0f; // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, fast and below 18K
-float g_fMinMARNoId28kA = 17.0f; // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, fast and below 28K
+float g_fMinMARNoId18kA = 12.0f; // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, fast  and below 18K
+float g_fMinMARNoId28kA = 17.0f; // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, fast  and below 28K
 float g_fMaxMARNoIdB = 5.0f;  // 2002-03-22 ADDED BY S.G. Max Start MAR for this type of aicraft when target is NOT ID'ed, medium
 float g_fMinMARNoId5kB = 3.0f;  // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, medium and below 5K
 float g_fMinMARNoId18kB = 5.0f;  // 2002-03-22 ADDED BY S.G. MinMAR for this type of aicraft when target is NOT ID'ed, medium and below 18K
@@ -106,7 +105,7 @@ bool g_bUseDefinedGunDomain = FALSE; // 2002-04-17 ADDED BY S.G. Instead of 'fud
 #define PLockModeNoSnap 2
 #define PLockModeBreakLock 4
 #define PLockNoTrees 8
-int g_nPadlockMode = PLockModeNoSnap bitor PLockModeBreakLock bitor PLockNoTrees;
+int g_nPadlockMode = PLockModeNoSnap | PLockModeBreakLock | PLockNoTrees;
 
 // 2001-08-31 ADDED BY S.G. FOR AIRBASE RELOCATION CHOICE
 #define AirBaseRelocTeamOnly 1
@@ -312,7 +311,7 @@ bool g_bAWACSFuel = false; // for debug, shows fuel of flight in UI when AWACSSu
 //bool g_bShowManeuverLabels = true; // for debug, shows currently performed BVR/WVR maneuver in SIM
 bool g_bFullScreenNVG = true; // a NVG makes tunnel vision, but a pilot can turn around his head...
 bool g_bLogUiErrors = false; // debug UI
-bool g_bLoadoutSquadStoreResupply = true; // code checked bitand working
+bool g_bLoadoutSquadStoreResupply = true; // code checked & working
 bool g_bDisplayTrees = false; // if true, loads falcon4tree.fed/ocd instead of falcon4.fed/ocd. If tree version not available, loads falcon4.fed/ocd
 bool g_bRequestHelp = true; // enable RequestHelp in DLOGIC.cpp
 bool g_bLightsKC135 = true; // once we have the KC-135 with director lights...
@@ -524,7 +523,7 @@ int g_nSessionTimeout = 30; // 30 seconds to timeout a disconnected session (mig
 int g_nSessionUpdateRate = 15; // 15 seconds session update
 int g_nMaxInterceptDistance = 60; // only divert flights within 60 nm distance to the target
 bool g_bNewSensorPrecision = true;
-bool g_bSAM2D3DHandover = false; // 2D-3D target handover to SAMs doesn't really work this way - turn off
+bool g_bSAM2D3DHandover = false; // 2D-3D target handover to SAMs doesn't really work this way - turn off!
 int g_nChooseBullseyeFix = 0; // theater fix for finding best bullseye position
 /* 0x01 = use bullseye central position from campaign trigger files
    0x02 = change bullseye at each new day (should be tested before activated - what happens in flight, Multiplayer ?)
@@ -548,7 +547,7 @@ int g_nMissileFix = 0x7f; // several missile fixes:
      of lethalradius detonation
  0x02 also check if range*range > lethalRadiusSqrd at "closestApprch" flag
  0x04 Use ArmingDelay MissileEndMessage instead of MinTime if warhead is
- not armed (fixes missiles being able to apply proximity damage while
+     not armed (fixes missiles being able to apply proximity damage while
  warhead is unarmed)
  0x08 Do Proximity damage to the missile's target if we didn't hit it directly
      (for example if missile lost seeker track and hits the dirt)
@@ -924,7 +923,7 @@ static ConfigOption<bool> BoolOpts[] =
     { "FireOntheMove", &g_bFireOntheMove},
     { "SAM2D3DHandover", &g_bSAM2D3DHandover},
     { "MavFix2", &g_bMavFix2},
-    { "DisableMissileEngGlow", &g_bDisableMissleEngGlow}, // MLR 2003/10/11 - get rid of that ugly star
+    { "DisableMissileEngGlow", &g_bDisableMissleEngGlow}, // MLR 2003/10/11 - get rid of that ugly star!
     { "HUDFix", &g_bHUDFix}, //Smeghead 14-Oct-2003
     { "SMSPylonLoadingFix", &g_bSMSPylonLoadingFix}, // MLR 2003/10/16
 
@@ -1315,7 +1314,7 @@ NextLine:
 
     while (fgets(strLine, sizeof(strLine) / sizeof(strLine[0]), file))
     {
-        if ((strlen(strLine) <= 1) or (strstr(strLine, "//") == strLine))
+        if ((strlen(strLine) <= 1) || (strstr(strLine, "//") == strLine))
             continue;
 
         if (sscanf(strLine, "set %s \"%s\"", strID, &strVal) == 2)
@@ -1407,18 +1406,18 @@ void ReadFalcon4Config()
     int nBufLen = 1024;
     char *strAppPath = new char[nBufLen];
 
-    if ( not strAppPath) return;
+    if (!strAppPath) return;
 
     char *strDir = new char[nBufLen];
 
-    if ( not strDir) return;
+    if (!strDir) return;
 
     // sprintf(strDir, "%s\\FalconBMS.cfg", FalconDataDirectory);
     // sprintf(strDir, "%s\\Cobra.cfg", FalconDataDirectory);
     sprintf(strDir, "%s\\FFViper.cfg", FalconDataDirectory);
     FILE *file = fopen(strDir, "r");
 
-    if ( not file)
+    if (!file)
     {
         // strcpy(strDir, "FalconBMS.cfg");
         // strcpy(strDir, "Cobra.cfg");
@@ -1426,12 +1425,12 @@ void ReadFalcon4Config()
         file = fopen(strDir, "r");
     }
 
-    if ( not file)
+    if (!file)
     {
         // Investigate program directory
         HMODULE Module = ::GetModuleHandle(NULL);
 
-        if ( not ::GetModuleFileName(Module, strAppPath, nBufLen)) return;
+        if (!::GetModuleFileName(Module, strAppPath, nBufLen)) return;
 
         int nAppPathLen = strlen(strAppPath);
 
@@ -1439,7 +1438,7 @@ void ReadFalcon4Config()
 
         char *p = &strAppPath[nAppPathLen - 1];
 
-        while (p > strAppPath and *p not_eq '\\') p--;
+        while (p > strAppPath && *p != '\\') p--;
 
         if (p == strAppPath) return;
 
@@ -1470,7 +1469,7 @@ void ReadFalcon4Config()
     }
 
     //JB 010104 Cobra 11/20/04
-    /*if ( not g_bwoeir)
+    /*if (!g_bwoeir)
     { g_bMLU = false;
       g_bIFF = false;}*/
 

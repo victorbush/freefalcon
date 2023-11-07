@@ -5,7 +5,6 @@
 
     This class provides the ground mapping radar terrain display.
 \***************************************************************************/
-#include <cISO646>
 #include <math.h>
 #include "Tmap.h"
 #include "TViewPnt.h"
@@ -241,12 +240,12 @@ void RenderGMRadar::TransformScene(void)
 
             if (x < -1.0f)
             {
-                vert->clipFlag or_eq CLIP_LEFT;
+                vert->clipFlag |= CLIP_LEFT;
                 ShiAssert(viewportXtoPixel(x) <= leftPixel);
             }
             else if (x > 1.0f)
             {
-                vert->clipFlag or_eq CLIP_RIGHT;
+                vert->clipFlag |= CLIP_RIGHT;
                 ShiAssert(viewportXtoPixel(x) >= rightPixel);
             }
             else
@@ -322,7 +321,7 @@ void RenderGMRadar::DrawScene(void)
 
 // Called to draw roads and rivers into the radar scene.
 // Can only be used when the LOD is at or better than the last near textured level.
-// NOTE:  We trash this renderer's 2D transformation matrix
+// NOTE:  We trash this renderer's 2D transformation matrix!
 void RenderGMRadar::DrawFeatures(void)
 {
     Tpost *post;
@@ -360,7 +359,7 @@ void RenderGMRadar::DrawFeatures(void)
     SetColor(0xFF000000);
 
     // Construct the mask to test if a post falls on a texture boundry
-    mask = compl ((compl 0 >> levelDifference) << levelDifference);
+    mask = ~((~0 >> levelDifference) << levelDifference);
 
     // Load the display's 2D transformation matrix
     // Note that we're swapping x and y to get into the system VirtualDisplay expects
@@ -376,14 +375,14 @@ void RenderGMRadar::DrawFeatures(void)
     for (r = boxCenterRow - drawRadius; r < boxCenterRow + drawRadius; r++)
     {
 
-        if (r bitand mask)  continue; // Could take care of this in loop control
+        if (r & mask)  continue; // Could take care of this in loop control
 
         scene_x = LEVEL_POST_TO_WORLD(r, LOD) - centerPos.x;
 
         for (c = boxCenterCol - drawRadius; c < boxCenterCol + drawRadius; c++)
         {
 
-            if (c bitand mask)  continue; // Could take care of this in loop control
+            if (c & mask)  continue; // Could take care of this in loop control
 
             scene_y = LEVEL_POST_TO_WORLD(c, LOD) - centerPos.y;
 
@@ -514,9 +513,9 @@ void RenderGMRadar::DrawBlip(float worldX, float worldY)
     y = viewportYtoPixel(y);
 
     //Clip test
-    if ((x + 1.0f <= rightPixel)  and 
-        (x      >= leftPixel)   and 
-        (y + 1.0f <= bottomPixel) and 
+    if ((x + 1.0f <= rightPixel)  &&
+        (x      >= leftPixel)   &&
+        (y + 1.0f <= bottomPixel) &&
         (y      >= topPixel))
     {
         SetColor(0xFF00FF00);
@@ -544,7 +543,7 @@ void RenderGMRadar::DrawBlip(DrawableObject* drawable, float GainScale, bool Sha
         r = drawable->GetRadarSign() * worldToUnitScale * scaleX; // +/-1 * scale to pixels
 
     // Decide if a spot will suffice or if we need to do a full render
-    if ( not Shaped or r < 2.0f)
+    if (!Shaped || r < 2.0f)
     {
 
         // Compute the rotated and scaled location of the points
@@ -561,9 +560,9 @@ void RenderGMRadar::DrawBlip(DrawableObject* drawable, float GainScale, bool Sha
 
         //Clip test
         if (
-            (x + 1.0f >= rightPixel)  or
-            (x      <= leftPixel)   or
-            (y + 1.0f >= bottomPixel) or
+            (x + 1.0f >= rightPixel)  ||
+            (x      <= leftPixel)   ||
+            (y + 1.0f >= bottomPixel) ||
             (y      <= topPixel)
         )
             return;
@@ -572,11 +571,11 @@ void RenderGMRadar::DrawBlip(DrawableObject* drawable, float GainScale, bool Sha
 
         if (BlitColor > 255.0f) BlitColor = 255.0f;
 
-        SetColor(0xFF000000 bitor (F_I32(BlitColor) << 8));
+        SetColor(0xFF000000 | (F_I32(BlitColor) << 8));
         Render2DPoint(x,      y);
 
         BlitColor /= 4.0f; //r * 64.0f * gain;
-        SetColor(0xFF000000 bitor (F_I32(BlitColor) << 8));
+        SetColor(0xFF000000 | (F_I32(BlitColor) << 8));
 
         if (r > 1.0f)
         {
@@ -643,7 +642,7 @@ BOOL RenderGMRadar::SetRange(float newRange, int newLOD)
     TViewPoint *oldViewpoint;
 
     // Quit now if we don't need to make a change (really shouldn't happen)
-    if ((LOD == newLOD) and (newRange == range))
+    if ((LOD == newLOD) && (newRange == range))
     {
         // No change.  We didn't have to refresh our viewpoint
         return FALSE;
@@ -651,7 +650,7 @@ BOOL RenderGMRadar::SetRange(float newRange, int newLOD)
 
     // We check this to make sure we're not doing too much work as a result
     // of a floating point miscompare
-    ShiAssert((LOD not_eq newLOD) or (fabs(newRange - range) > 1.0f))
+    ShiAssert((LOD != newLOD) || (fabs(newRange - range) > 1.0f))
 
 
     // Get us to a known starting state (constructed but uninitialized TViewPoint)
@@ -717,7 +716,7 @@ float RenderGMRadar::ComputeReflectedIntensity(Tpost *post)
     float cosAngle;
     float I;
 
-    if ( not post)
+    if (!post)
         return 0.0f;
 
     cosAngle = (float)sin(lightPhi) * (float)sin(post->phi);
@@ -774,7 +773,7 @@ void RenderGMRadar::DrawGMsquare(GroundMapVertex *v0, GroundMapVertex *v1, Groun
     ShiAssert(v2);
     ShiAssert(v3);
 
-    if (v0->clipFlag bitor v1->clipFlag bitor v2->clipFlag bitor v3->clipFlag)
+    if (v0->clipFlag | v1->clipFlag | v2->clipFlag | v3->clipFlag)
     {
 
         // Convert the structure format

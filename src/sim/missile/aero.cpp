@@ -27,7 +27,7 @@ void MissileClass::Aerodynamics(void)
     ShiAssert(FALSE == F4IsBadReadPtr(aeroData, sizeof * aeroData));
     ShiAssert(FALSE == F4IsBadReadPtr(ifd, sizeof * ifd));
 
-    if ( not aeroData or not ifd)
+    if (!aeroData || !ifd)
         return; // JB 010803
 
     /*--------------------------*/

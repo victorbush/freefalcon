@@ -1,4 +1,3 @@
-#include <cISO646>
 #include <stdlib.h>
 #include "alloc.h"
 #include "xmmintrin.h"
@@ -24,7 +23,7 @@ static alloc_hdr_t *root = 0UL;
 char *AllocSetToAlignment(char *c)
 {
     unsigned int i = (unsigned int)c;
-    i = (i + ALIGN_BYTES - 1) bitand -ALIGN_BYTES;
+    i = (i + ALIGN_BYTES - 1) & -ALIGN_BYTES;
     return(char*)i;
 }
 
@@ -58,13 +57,13 @@ char *Alloc(int size)
     char *mem;
 
     blk = root->curr;
-    size = (size + ALIGN_BYTES - 1) bitand -ALIGN_BYTES;
+    size = (size + ALIGN_BYTES - 1) & -ALIGN_BYTES;
     mem = blk->free;
     blk->free += size;
 
     if ((unsigned int)(blk->free) > (unsigned int)(blk->end))
     {
-        if (blk->next not_eq 0UL)
+        if (blk->next != 0UL)
         {
             blk = blk->next;
             blk->free = AllocSetToAlignment(blk->start);
@@ -105,7 +104,7 @@ void AllocFreePool(void)
     alloc_block_t *next, *curr;
     curr = root->first;
 
-    while (curr not_eq NULL)
+    while (curr != NULL)
     {
         next = curr->next;
         free(curr->start);

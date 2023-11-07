@@ -63,7 +63,7 @@ public:
 
     void SetName(short x, short y, long ID)
     {
-        if (Name_ and gStringMgr)
+        if (Name_ && gStringMgr)
         {
             Name_->SetXY(x, y);
             Name_->SetText(gStringMgr->GetText(ID));
@@ -81,7 +81,7 @@ public:
     }
     void SetStatus(short x, short y, long ID)
     {
-        if (Status_ and gStringMgr)
+        if (Status_ && gStringMgr)
         {
             Status_->SetXY(x, y);
             Status_->SetText(gStringMgr->GetString(ID));
@@ -99,7 +99,7 @@ public:
     }
     void SetValue(short x, short y, long ID)
     {
-        if (Value_ and gStringMgr)
+        if (Value_ && gStringMgr)
         {
             Value_->SetXY(x, y);
             Value_->SetText(gStringMgr->GetString(ID));
@@ -118,7 +118,7 @@ public:
 
     void SetName(long ID)
     {
-        if (Name_ and gStringMgr)
+        if (Name_ && gStringMgr)
         {
             Name_->SetText(gStringMgr->GetText(ID));
             Name_->SetInfo();
@@ -134,7 +134,7 @@ public:
     }
     void SetStatus(long ID)
     {
-        if (Status_ and gStringMgr)
+        if (Status_ && gStringMgr)
         {
             Status_->SetText(gStringMgr->GetString(ID));
             Status_->SetInfo();
@@ -150,7 +150,7 @@ public:
     }
     void SetValue(long ID)
     {
-        if (Value_ and gStringMgr)
+        if (Value_ && gStringMgr)
         {
             Value_->SetText(gStringMgr->GetString(ID));
             Value_->SetInfo();

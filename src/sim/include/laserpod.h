@@ -61,7 +61,7 @@ public :
     bool BHOT, MenuMode;
     void TogglePolarity(void)
     {
-        BHOT = not BHOT;
+        BHOT = !BHOT;
     };
 
 protected :

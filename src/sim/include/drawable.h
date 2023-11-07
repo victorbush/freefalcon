@@ -141,7 +141,7 @@ public:
 
     virtual void Display(VirtualDisplay*)
     {
-        ShiWarning("No Display");
+        ShiWarning("No Display!");
     };
     virtual void DisplayInit(ImageBuffer*) {};
     virtual void DisplayExit(void);
@@ -152,12 +152,12 @@ public:
 
     int IsSOI(void)
     {
-        return (drawFlags bitand SOI ? TRUE : FALSE);
+        return (drawFlags & SOI ? TRUE : FALSE);
     };
     void SetSOI(int newVal)
     {
-        if (newVal) drawFlags or_eq SOI;
-        else drawFlags and_eq compl SOI;
+        if (newVal) drawFlags |= SOI;
+        else drawFlags &= ~SOI;
     };
 
     void SetMFD(int newMFD)

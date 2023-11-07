@@ -166,7 +166,7 @@ void _wgprintf(HDC DC, int x, int y, char *string, ...)
 
     va_start(params, string);
 
-    if ( not string) return;
+    if (!string) return;
 
     check = vsprintf(_buffer, string, params);
     va_end(params);
@@ -182,7 +182,7 @@ void _wprintf(HDC DC, char *string, ...)
 
     va_start(params, string);
 
-    if ( not string) return;
+    if (!string) return;
 
     check = vsprintf(_buffer, string, params);
     va_end(params);

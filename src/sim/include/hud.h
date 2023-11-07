@@ -70,15 +70,15 @@ public:
     int flags;
     int IsSet(int testFlag)
     {
-        return (flags bitand testFlag ? TRUE : FALSE);
+        return (flags & testFlag ? TRUE : FALSE);
     };
     void Set(int testFlag)
     {
-        flags or_eq testFlag;
+        flags |= testFlag;
     };
     void Clear(int testFlag)
     {
-        flags and_eq compl testFlag;
+        flags &= ~testFlag;
     };
 };
 
@@ -272,7 +272,7 @@ private:
     // int curColorIdx;
     static Pcolor hudColor;
     DWORD curHudColor;
-    float HudBrightness, HudContrast, AutoHudCx; // COBRA - RED - Hud Brightness bitand Contrast
+    float HudBrightness, HudContrast, AutoHudCx; // COBRA - RED - Hud Brightness & Contrast
 
     bool CheckGhostHorizon(float radius, float xOffset, float yOffset,
                               float horizX1, float horizY1, float horizX2, float horizY2);

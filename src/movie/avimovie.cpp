@@ -16,7 +16,6 @@
    Programmed by Kuswara Pranawahadi               September 5, 1996
 */
 
-#include <cISO646>
 #include <windows.h>
 #include "fsound.h" //psound
 #include "avimovie.h"
@@ -146,7 +145,7 @@ static void doFrame(PMOVIE item)
 
     double diff;
 
-    if ( not once)
+    if (!once)
     {
 
         _ftime(&now);
@@ -169,7 +168,7 @@ static void doFrame(PMOVIE item)
 
     streams = &(item->aviStreams);
 
-    if (item->sbType bitand SURFACE_TYPE_SYSTEM)
+    if (item->sbType & SURFACE_TYPE_SYSTEM)
     {
         width = item->aviStreams.bihIn.biWidth *
                 item->pixelSize;          // width in bytes
@@ -181,8 +180,8 @@ static void doFrame(PMOVIE item)
         /*
            Lock surface.
         */
-        if ((sa->lockStatus == SURFACE_IS_UNLOCKED) and 
- not (item->sbType bitand SURFACE_TRY_FAST))
+        if ((sa->lockStatus == SURFACE_IS_UNLOCKED) &&
+            !(item->sbType & SURFACE_TRY_FAST))
         {
             surfaceGetPointer(item->ddSurface, sa);
 
@@ -272,13 +271,13 @@ int movieInit(int numMovies, LPVOID lpDD)
     if (numOfMovies)
         return MOVIE_HAS_BEEN_INITIALIZED;
 
-    if ( not numMovies or numMovies > MAX_MOVIES)
+    if (!numMovies || numMovies > MAX_MOVIES)
         return MOVIE_INVALID_NUMBER;
 
     //   move = AVI_MALLOC( numMovies * sizeof( MOVIE ) );
     movie = new MOVIE[numMovies];
 
-    if ( not movie)
+    if (!movie)
         return MOVIE_MALLOC_FAILED;
 
     abortMovie = 0;
@@ -309,7 +308,7 @@ void movieUnInit(void)
 {
     DWORD    i;
 
-    if ( not numOfMovies)
+    if (!numOfMovies)
         return;
 
     EnterCriticalSection(&movieCriticalSection);
@@ -317,7 +316,7 @@ void movieUnInit(void)
     LeaveCriticalSection(&movieCriticalSection);
 
     for (i = 0; i < numOfMovies; i++)
-        if (movie[i].status bitand (MOVIE_STATUS_IN_USE bitor MOVIE_STATUS_PLAYING))
+        if (movie[i].status & (MOVIE_STATUS_IN_USE | MOVIE_STATUS_PLAYING))
             movieClose(i);
 
     delete [] movie;
@@ -388,7 +387,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
     int retval;
 
     buf = (char *)malloc(CD_CACHE_SIZE);
-    hnd = open(aviFileName, _O_BINARY bitor _O_RDONLY);
+    hnd = open(aviFileName, _O_BINARY | _O_RDONLY);
     retval = read(hnd, buf, CD_CACHE_SIZE);
     close(hnd);
     free(buf);
@@ -400,7 +399,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
     */
 
     for (handle = 0; handle < numOfMovies; handle++)
-        if ( not movie[handle].status)
+        if (!movie[handle].status)
             break;
 
     /*
@@ -422,23 +421,23 @@ int movieOpen(char *aviFileName, char *audioFileName,
     item->status = MOVIE_STATUS_IN_USE;
     LeaveCriticalSection(&movieCriticalSection);
 
-    if (videoMode bitand MOVIE_MODE_HURRY)
+    if (videoMode & MOVIE_MODE_HURRY)
         item->sbType = SURFACE_TRY_FAST;
     else
         item->sbType = 0;
 
-    videoMode and_eq 0xffff;             // Clear high word
+    videoMode &= 0xffff;             // Clear high word
 
-    if ( not (audioFlag bitand MOVIE_NO_AUDIO))
+    if (!(audioFlag & MOVIE_NO_AUDIO))
     {
-        item->aviStreams.audioFlag or_eq STREAM_AUDIO_ON;
+        item->aviStreams.audioFlag |= STREAM_AUDIO_ON;
 
         if (audioFileName)
         {
-            item->aviStreams.audioFlag or_eq STREAM_AUDIO_EXTERNAL;
+            item->aviStreams.audioFlag |= STREAM_AUDIO_EXTERNAL;
 
-            if (audioFlag bitand MOVIE_PRELOAD_AUDIO)
-                item->aviStreams.audioFlag or_eq STREAM_AUDIO_PRELOAD;
+            if (audioFlag & MOVIE_PRELOAD_AUDIO)
+                item->aviStreams.audioFlag |= STREAM_AUDIO_PRELOAD;
         }
     }
 
@@ -449,7 +448,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
     status = aviOpen(aviFileName, audioFileName,
                      &(item->aviStreams));
 
-    if (status not_eq RIFF_OK)
+    if (status != RIFF_OK)
     {
         aviClose(&(item->aviStreams));
         item->status = 0;
@@ -479,7 +478,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
        Set the decompression output format.
 
        If it's in 16 bit pixel-depth mode, check if it is 555 or 565
-      and set the color format of the decompression output accordingly.
+       and set the color format of the decompression output accordingly.
        Default is BI_RGB for 555.
     */
 
@@ -488,7 +487,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
 
     if (sd.bitCount == HICOLOR)
     {
-        if ((sd.redMask bitand 0x8000))
+        if ((sd.redMask & 0x8000))
         {
             /*
                HICOLOR 565 mode.
@@ -525,13 +524,13 @@ int movieOpen(char *aviFileName, char *audioFileName,
     item->hIC = ICDecompressOpen(ICTYPE_VIDEO,
                                  item->aviStreams.strh1.fccHandler,
                                  &(item->aviStreams.bihIn),
-                                 (LPBITMAPINFOHEADER) bitand (item->bihOut));
+                                 (LPBITMAPINFOHEADER) & (item->bihOut));
 
     /*
        Exit if unable to find the decompressor.
     */
 
-    if ( not item->hIC)
+    if (!item->hIC)
     {
         PF("Compressor open() failed.\n");
         aviClose(&(item->aviStreams));
@@ -545,7 +544,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
 
     if (ICDecompressQuery(item->hIC, &(item->aviStreams.bihIn),
                           (LPBITMAPINFOHEADER)
- bitand (item->bihOut)) not_eq ICERR_OK)
+                          & (item->bihOut)) != ICERR_OK)
     {
         aviClose(&(item->aviStreams));
         item->status = 0;
@@ -554,7 +553,7 @@ int movieOpen(char *aviFileName, char *audioFileName,
 
     if (ICDecompressBegin(item->hIC, &(item->aviStreams.bihIn),
                           (LPBITMAPINFOHEADER)
- bitand (item->bihOut)) not_eq ICERR_OK)
+                          & (item->bihOut)) != ICERR_OK)
     {
         aviClose(&(item->aviStreams));
         item->status = 0;
@@ -639,10 +638,10 @@ int movieOpen(char *aviFileName, char *audioFileName,
     */
 
     // OW
-    //   if ( ddPointer and ( videoMode not_eq MOVIE_MODE_INTERLACE ) )
+    //   if ( ddPointer && ( videoMode != MOVIE_MODE_INTERLACE ) )
     if (1)
     {
-        item->sbType or_eq SURFACE_TYPE_DDRAW;
+        item->sbType |= SURFACE_TYPE_DDRAW;
         item->surfaceBuffer = surfaceCreate(ddPointer, dibWidth, dibHeight);
     }
     else
@@ -653,10 +652,10 @@ int movieOpen(char *aviFileName, char *audioFileName,
         item->surfaceBuffer = new char[item->pixelSize *
                                        item->aviStreams.bihIn.biWidth *
                                        item->aviStreams.bihIn.biHeight];
-        item->sbType or_eq SURFACE_TYPE_SYSTEM;
+        item->sbType |= SURFACE_TYPE_SYSTEM;
     }
 
-    if ( not item->surfaceBuffer)
+    if (!item->surfaceBuffer)
     {
         ICDecompressEnd(item->hIC);
         aviClose(&(item->aviStreams));
@@ -718,7 +717,7 @@ int movieStart(int handle)
 
     streams = &(item->aviStreams);
 
-    if (streams->audioFlag bitand STREAM_AUDIO_PRELOAD)
+    if (streams->audioFlag & STREAM_AUDIO_PRELOAD)
     {
         if (waveReadBlock(streams) < RIFF_OK)
             return MOVIE_BAD_AUDIO_FILE;
@@ -739,13 +738,13 @@ int movieStart(int handle)
                any.
             */
 
-            if ( not (streams->audioFlag bitand STREAM_AUDIO_EXTERNAL))
+            if (!(streams->audioFlag & STREAM_AUDIO_EXTERNAL))
             {
                 // Interleaved.
 
                 status = aviReadRecord(streams);
 
-                if (status not_eq RIFF_OK)
+                if (status != RIFF_OK)
                     return MOVIE_BAD_FILE;
             }
             else
@@ -756,13 +755,13 @@ int movieStart(int handle)
                 {
                     status = aviReadRecord(streams);
 
-                    if (status not_eq RIFF_OK)
+                    if (status != RIFF_OK)
                         return MOVIE_BAD_FILE;
                 }
 
                 status = waveReadBlock(streams);
 
-                if (status not_eq RIFF_OK)
+                if (status != RIFF_OK)
                     return MOVIE_BAD_AUDIO_FILE;
             }
         }
@@ -776,34 +775,34 @@ int movieStart(int handle)
 
     for (i = 0; i < streams->numOfVidBlocks; i++)
     {
-        if (aviReadRecord(streams) not_eq RIFF_OK)
+        if (aviReadRecord(streams) != RIFF_OK)
             return MOVIE_BAD_FILE;
 
-        if ((streams->audioFlag bitand STREAM_AUDIO_EXTERNAL) and 
- not (streams->audioFlag bitand STREAM_AUDIO_PRELOAD))
-            if (waveReadBlock(streams) not_eq RIFF_OK)
+        if ((streams->audioFlag & STREAM_AUDIO_EXTERNAL) &&
+            !(streams->audioFlag & STREAM_AUDIO_PRELOAD))
+            if (waveReadBlock(streams) != RIFF_OK)
                 return MOVIE_BAD_AUDIO_FILE;
     }
 
     // Launch filler thread.
 
     item->hFillerThread = _beginthreadex(NULL, 0, fillerThread, item,
-                                         0, (unsigned int *) bitand (item->fillerThreadID));
+                                         0, (unsigned int *) & (item->fillerThreadID));
 
-    if ( not item->hFillerThread)
+    if (!item->hFillerThread)
         return MOVIE_UNABLE_TO_LAUNCH_THREAD;
 
     // Launch movie thread.
 
     item->hMovieThread = _beginthreadex(NULL, 0, movieThread, item,
-                                        0, (unsigned int *) bitand (item->movieThreadID));
+                                        0, (unsigned int *) & (item->movieThreadID));
 
-    if ( not item->hMovieThread)
+    if (!item->hMovieThread)
     {
         /*
            Stop filler thread.
         */
-        item->status or_eq MOVIE_STATUS_STOP_THREAD;
+        item->status |= MOVIE_STATUS_STOP_THREAD;
         WaitForSingleObject((HANDLE) item->hFillerThread, INFINITE);
         CloseHandle((HANDLE) item->hFillerThread);
 
@@ -814,7 +813,7 @@ int movieStart(int handle)
         return MOVIE_UNABLE_TO_LAUNCH_THREAD;
     }
 
-    item->status or_eq MOVIE_STATUS_PLAYING;
+    item->status |= MOVIE_STATUS_PLAYING;
     Sleep(0);                               // give up time slice
 
     return MOVIE_OK;
@@ -861,7 +860,7 @@ int movieClose(int handle)
 
     EnterCriticalSection(&movieCriticalSection);
 
-    if ( not (item->status bitand MOVIE_STATUS_IN_USE))
+    if (!(item->status & MOVIE_STATUS_IN_USE))
     {
         LeaveCriticalSection(&movieCriticalSection);
         return MOVIE_NOT_IN_USE;
@@ -873,10 +872,10 @@ int movieClose(int handle)
         return MOVIE_CLOSE_THREAD_ERROR;
     }
 
-    if ((item->status bitand MOVIE_STATUS_PLAYING) or
-        (item->status bitand MOVIE_STATUS_THREAD_RUNNING))
+    if ((item->status & MOVIE_STATUS_PLAYING) ||
+        (item->status & MOVIE_STATUS_THREAD_RUNNING))
     {
-        item->status or_eq MOVIE_STATUS_QUIT;
+        item->status |= MOVIE_STATUS_QUIT;
         WaitForSingleObject((HANDLE) item->hMovieThread, INFINITE);
         CloseHandle((HANDLE) item->hMovieThread);
         CloseHandle((HANDLE) item->hFillerThread);
@@ -887,7 +886,7 @@ int movieClose(int handle)
 
     if (item->surfaceBuffer)
     {
-        if (item->sbType bitand SURFACE_TYPE_SYSTEM)
+        if (item->sbType & SURFACE_TYPE_SYSTEM)
             delete [] item->surfaceBuffer;
         else
             surfaceRelease(item->surfaceBuffer);
@@ -923,10 +922,10 @@ int movieStop(int handle)
 
     item = &(movie[handle]);
 
-    if ( not (item->status bitand MOVIE_STATUS_IN_USE))
+    if (!(item->status & MOVIE_STATUS_IN_USE))
         return MOVIE_NOT_IN_USE;
 
-    item->status or_eq MOVIE_STATUS_QUIT;
+    item->status |= MOVIE_STATUS_QUIT;
 
     return MOVIE_OK;
 }
@@ -974,7 +973,7 @@ int movieCount(void)
         count = 0;
     else
         for (i = count = 0; i < numOfMovies; i++)
-            if (movie[i].status bitand MOVIE_STATUS_IN_USE)
+            if (movie[i].status & MOVIE_STATUS_IN_USE)
                 count++;
 
     LeaveCriticalSection(&movieCriticalSection);
@@ -1004,16 +1003,16 @@ static unsigned int __stdcall fillerThread(void* itemIn)
     exitCode = MOVIE_OK;
     streams = &(item->aviStreams);
 
-    while ( not ((item->status bitand MOVIE_STATUS_QUIT) or
-             (item->status bitand MOVIE_STATUS_STOP_THREAD)))
+    while (!((item->status & MOVIE_STATUS_QUIT) ||
+             (item->status & MOVIE_STATUS_STOP_THREAD)))
     {
         /*
            Read only if there are free blocks.
         */
 
-        if ( not streams->nextBlockToFill->currentBlockSize)
+        if (!streams->nextBlockToFill->currentBlockSize)
         {
-            if (item->status bitand MOVIE_STATUS_EOF)
+            if (item->status & MOVIE_STATUS_EOF)
                 break;
 
             status = aviReadRecord(streams);
@@ -1021,32 +1020,32 @@ static unsigned int __stdcall fillerThread(void* itemIn)
             if (status < RIFF_OK)
             {
                 item->lastError = exitCode = MOVIE_THREAD_BAD_FILE;
-                item->status or_eq MOVIE_STATUS_STOP_THREAD;
+                item->status |= MOVIE_STATUS_STOP_THREAD;
                 break;
             }
 
             if (status == RIFF_END_FILE)
-                item->status or_eq MOVIE_STATUS_EOF;
+                item->status |= MOVIE_STATUS_EOF;
 
             /*
                Read audio data from an external sound file.
             */
 
-            if ((streams->audioFlag bitand STREAM_AUDIO_EXTERNAL) and 
- not (item->status bitand MOVIE_STATUS_AUDIO_EOF) and 
- not (streams->audioFlag bitand STREAM_AUDIO_PRELOAD))
+            if ((streams->audioFlag & STREAM_AUDIO_EXTERNAL) &&
+                !(item->status & MOVIE_STATUS_AUDIO_EOF) &&
+                !(streams->audioFlag & STREAM_AUDIO_PRELOAD))
             {
                 status = waveReadBlock(streams);
 
                 if (status < RIFF_OK)
                 {
                     item->lastError = exitCode = MOVIE_THREAD_BAD_AUDIO_FILE;
-                    item->status or_eq MOVIE_STATUS_STOP_THREAD;
+                    item->status |= MOVIE_STATUS_STOP_THREAD;
                     break;
                 }
 
                 if (status == RIFF_AUDIO_END_FILE)
-                    item->status or_eq MOVIE_STATUS_AUDIO_EOF;
+                    item->status |= MOVIE_STATUS_AUDIO_EOF;
             }
         }
         else
@@ -1080,26 +1079,26 @@ static unsigned int __stdcall movieThread(void* itemIn)
 
     firstTime = TRUE;
     exitCode = MOVIE_OK;
-    item->status or_eq MOVIE_STATUS_THREAD_RUNNING;
+    item->status |= MOVIE_STATUS_THREAD_RUNNING;
     streams = &(item->aviStreams);
 
-    if ((item->sbType bitand SURFACE_TYPE_SYSTEM) and 
-        (item->sbType bitand SURFACE_TRY_FAST))
+    if ((item->sbType & SURFACE_TYPE_SYSTEM) &&
+        (item->sbType & SURFACE_TRY_FAST))
     {
         surfaceGetPointer(item->ddSurface, &(item->sa));
 
         if (item->sa.lockStatus == SURFACE_IS_UNLOCKED)
         {
-            item->status or_eq MOVIE_STATUS_STOP_THREAD;
+            item->status |= MOVIE_STATUS_STOP_THREAD;
             item->lastError = exitCode = MOVIE_BUFFER_LOCK_FAIL;
             WaitForSingleObject((HANDLE) item->hFillerThread, INFINITE);
-            item->status and_eq compl MOVIE_STATUS_PLAYING;
+            item->status &= ~MOVIE_STATUS_PLAYING;
         }
 
         surfaceReleasePointer(item->ddSurface, &(item->sa));
     }
 
-    while ( not (item->status bitand MOVIE_STATUS_QUIT))
+    while (!(item->status & MOVIE_STATUS_QUIT))
     {
         /*
            Process a frame.
@@ -1111,7 +1110,7 @@ static unsigned int __stdcall movieThread(void* itemIn)
                 timeFrames = 0;
             else
             {
-                if (streams->audioFlag bitand STREAM_AUDIO_ON)
+                if (streams->audioFlag & STREAM_AUDIO_ON)
                 {
 #if   AUDIO_ON
                     /*
@@ -1149,12 +1148,12 @@ static unsigned int __stdcall movieThread(void* itemIn)
                    Decompress a frame if audio/timer is behind or on time.
                 */
 
-                if (item->sbType bitand SURFACE_TYPE_SYSTEM)
+                if (item->sbType & SURFACE_TYPE_SYSTEM)
                 {
                     errorCode = ICDecompress(item->hIC, 0, &(streams->bihIn),
                                              streams->currentBlock->buffer,
                                              (LPBITMAPINFOHEADER)
- bitand (item->bihOut),
+                                             & (item->bihOut),
                                              item->surfaceBuffer);
                 }
                 else
@@ -1166,21 +1165,21 @@ static unsigned int __stdcall movieThread(void* itemIn)
                         errorCode = ICDecompress(item->hIC, 0, &(streams->bihIn),
                                                  streams->currentBlock->buffer,
                                                  (LPBITMAPINFOHEADER)
- bitand (item->bihOut),
+                                                 & (item->bihOut),
                                                  sa.surfacePtr);
                         surfaceReleasePointer(item->surfaceBuffer, &sa);
                     }
                     else
                     {
-                        item->status or_eq MOVIE_STATUS_STOP_THREAD;
+                        item->status |= MOVIE_STATUS_STOP_THREAD;
                         item->lastError = exitCode = MOVIE_BUFFER_LOCK_FAIL;
                         break;
                     }
                 }
 
-                if (errorCode not_eq ICERR_OK)
+                if (errorCode != ICERR_OK)
                 {
-                    item->status or_eq MOVIE_STATUS_STOP_THREAD;
+                    item->status |= MOVIE_STATUS_STOP_THREAD;
                     item->lastError = exitCode = MOVIE_THREAD_BAD_DECOMPRESS;
                     break;
                 }
@@ -1215,14 +1214,14 @@ static unsigned int __stdcall movieThread(void* itemIn)
                     firstTime = FALSE;
 #if   AUDIO_ON
 
-                    if (streams->audioFlag bitand STREAM_AUDIO_ON)
+                    if (streams->audioFlag & STREAM_AUDIO_ON)
                     {
                         unsigned long   timeBegin;
                         DWORD           bytesProcessed;
 
                         item->audioChannel = (int)F4CreateStream(&streams->waveFormat, 0.5f);
 
-                        if (item->audioChannel not_eq 0)
+                        if (item->audioChannel != 0)
                         {
                             void *test;
                             test = &item->handle;
@@ -1236,11 +1235,11 @@ static unsigned int __stdcall movieThread(void* itemIn)
                         timeBegin = timeGetTime();
                         bytesProcessed = F4StreamPlayed(item->audioChannel);
 
-                        while ( not bytesProcessed)
+                        while (!bytesProcessed)
                         {
                             if ((timeGetTime() - timeBegin) > AUDIO_TIMEOUT)
                             {
-                                item->status or_eq MOVIE_STATUS_STOP_THREAD;
+                                item->status |= MOVIE_STATUS_STOP_THREAD;
                                 item->lastError = exitCode = MOVIE_THREAD_AUDIO_TIMEOUT;
                                 break;
                             }
@@ -1248,7 +1247,7 @@ static unsigned int __stdcall movieThread(void* itemIn)
                             bytesProcessed = F4StreamPlayed(item->audioChannel);
                         }
 
-                        if ( not bytesProcessed)
+                        if (!bytesProcessed)
                         {
                             break;                                 // time out
                         }
@@ -1265,8 +1264,8 @@ static unsigned int __stdcall movieThread(void* itemIn)
             else
                 Sleep(10);
         }
-        else if ((item->status bitand MOVIE_STATUS_EOF) or
-                 (item->status bitand MOVIE_STATUS_STOP_THREAD))
+        else if ((item->status & MOVIE_STATUS_EOF) ||
+                 (item->status & MOVIE_STATUS_STOP_THREAD))
             break;
     }
 
@@ -1280,7 +1279,7 @@ static unsigned int __stdcall movieThread(void* itemIn)
     //
 #endif
 
-    item->status and_eq compl MOVIE_STATUS_PLAYING;
+    item->status &= ~MOVIE_STATUS_PLAYING;
     return (unsigned int) exitCode;
 }
 
@@ -1314,7 +1313,7 @@ static DWORD fillSoundBuffer(void *me, char *soundBuffer, DWORD length)
     movieHandle = *((int*)me);
     item = &(movie[movieHandle]);
 
-    if ( not (item->status bitand MOVIE_STATUS_PLAYING))
+    if (!(item->status & MOVIE_STATUS_PLAYING))
         return 0;
 
     streams = &(item->aviStreams);
@@ -1351,7 +1350,7 @@ static DWORD fillSoundBuffer(void *me, char *soundBuffer, DWORD length)
             dsb += dataToCopy;
             streams->waveBufferRead += dataToCopy;
 
-            if ( not size)
+            if (!size)
                 streams->waveBufferRead = 0;
         }
         else
@@ -1371,7 +1370,7 @@ static DWORD fillSoundBuffer(void *me, char *soundBuffer, DWORD length)
     {
         filler = 0x80;
 
-        if (streams->waveFormat.wBitsPerSample not_eq 8)
+        if (streams->waveFormat.wBitsPerSample != 8)
             filler = 0;
 
         memset(dsb, filler, fillerSize);

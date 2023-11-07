@@ -5,7 +5,6 @@
 
     This class provides basic 2D drawing functions in a device independent fashion.
 \***************************************************************************/
-#include <cISO646>
 #include <math.h>
 #include "Display.h"
 #include "Render3D.h" // ASSO:
@@ -198,7 +197,7 @@ void VirtualDisplay::GetRttCanvas(Tpoint* Canvas)
 \***************************************************************************/
 void VirtualDisplay::Setup(void)
 {
-    ShiAssert( not IsReady());
+    ShiAssert(!IsReady());
 
     // Setup the default viewport
     SetViewport(-1.0f, 1.0f, 1.0f, -1.0f);
@@ -385,7 +384,7 @@ void VirtualDisplay::Point(float x1, float y1)
     y = x1 * dmatrix.rotation10 + y1 * dmatrix.rotation11 + dmatrix.translationY;
 
     // Clipping
-    if ((x >= -1.0f) and (x <= 1.0f) and (y <= 1.0f) and (y >= -1.0f))
+    if ((x >= -1.0f) && (x <= 1.0f) && (y <= 1.0f) && (y >= -1.0f))
     {
 
         // Convert to pixel coordinates and draw the point on the display
@@ -433,13 +432,13 @@ void VirtualDisplay::Line(float x1, float y1, float x2, float y2)
     {
         x1 = x2 + (x1 - x2) * ((y2 + 1.0f) / (y2 - y1));
         y1 = -1.0f;
-        clipFlag or_eq CLIP_BOTTOM;
+        clipFlag |= CLIP_BOTTOM;
     }
     else if (y1 > 1.0f)
     {
         x1 = x2 + (x1 - x2) * ((y2 - 1.0f) / (y2 - y1));
         y1 = 1.0f;
-        clipFlag or_eq CLIP_TOP;
+        clipFlag |= CLIP_TOP;
     }
 
     // Clip point 2
@@ -448,14 +447,14 @@ void VirtualDisplay::Line(float x1, float y1, float x2, float y2)
         y2 = y1 + (y2 - y1) * ((x1 + 1.0f) / (x1 - x2));
         x2 = -1.0f;
 
-        if (clipFlag bitand CLIP_LEFT)  return;
+        if (clipFlag & CLIP_LEFT)  return;
     }
     else if (x2 > 1.0f)
     {
         y2 = y1 + (y2 - y1) * ((x1 - 1.0f) / (x1 - x2));
         x2 = 1.0f;
 
-        if (clipFlag bitand CLIP_RIGHT)  return;
+        if (clipFlag & CLIP_RIGHT)  return;
     }
 
     if (y2 < -1.0f)
@@ -463,14 +462,14 @@ void VirtualDisplay::Line(float x1, float y1, float x2, float y2)
         x2 = x1 + (x2 - x1) * ((y1 + 1.0f) / (y1 - y2));
         y2 = -1.0f;
 
-        if (clipFlag bitand CLIP_BOTTOM)  return;
+        if (clipFlag & CLIP_BOTTOM)  return;
     }
     else if (y2 > 1.0f)
     {
         x2 = x1 + (x2 - x1) * ((y1 - 1.0f) / (y1 - y2));
         y2 = 1.0f;
 
-        if (clipFlag bitand CLIP_TOP)  return;
+        if (clipFlag & CLIP_TOP)  return;
     }
 
     Render2DLine(viewportXtoPixel(x1),
@@ -799,7 +798,7 @@ int VirtualDisplay::TextWrap(float h, float v, const char *s, float spacing, flo
                 lineBreak--;
                 ShiAssert(lineBreak >= string);
             }
-            while (*lineBreak not_eq ' ');
+            while (*lineBreak != ' ');
 
             do
             {
@@ -1304,14 +1303,14 @@ void VirtualDisplay::InitializeFonts(void)
         // Shift each row right one to make room for the edging
         for (r = 0; r < 8; r++)
         {
-            InvFont[c][r] = (unsigned char)(compl (Font[c][r] >> 1));
+            InvFont[c][r] = (unsigned char)(~(Font[c][r] >> 1));
         }
     }
 }
 
 void VirtualDisplay::SetFont(int newfont)
 {
-    ShiAssert(newfont >= 0 and newfont < NUM_FONT_RESOLUTIONS);
+    ShiAssert(newfont >= 0 && newfont < NUM_FONT_RESOLUTIONS);
 
     if (newfont >= pFontSet->totalFont)
         newfont = pFontSet->totalFont - 1;
@@ -1321,7 +1320,7 @@ void VirtualDisplay::SetFont(int newfont)
 bool VirtualDisplay::SetupRttTarget(int tXres_, int tYres_, int tBpp_)
 {
     // Initialize the shared renderTexture only once
-    if ( not renderTexture)
+    if (!renderTexture)
     {
         int tBpp;
 
@@ -1345,7 +1344,7 @@ bool VirtualDisplay::SetupRttTarget(int tXres_, int tYres_, int tBpp_)
 
         renderTexture = new TextureHandle;
         renderTexture->Create("RttTarget", tBpp, 0, tXres_, tYres_,
-                              TextureHandle::FLAG_RENDERTARGET bitor TextureHandle::FLAG_HINT_DYNAMIC);
+                              TextureHandle::FLAG_RENDERTARGET | TextureHandle::FLAG_HINT_DYNAMIC);
 
         return true;
     }
@@ -1408,7 +1407,7 @@ void VirtualDisplay::SetRttRect(int tLeft_, int tTop_, int tRight_, int tBottom_
     xRes = tRight - tLeft;
     yRes = tBottom - tTop;
 
-    if (rt_ and renderTexture)
+    if (rt_ && renderTexture)
     {
         txRes = renderTexture->m_nActualWidth;
         tyRes = renderTexture->m_nActualHeight;

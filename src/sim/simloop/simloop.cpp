@@ -161,7 +161,7 @@ void SimulationLoopControl::StartSim(void)
     unsigned long value;
 
     // Don't start until we're ready
-    while (currentMode not_eq Stopped)
+    while (currentMode != Stopped)
     {
         Sleep(50);
     }
@@ -187,7 +187,7 @@ void SimulationLoopControl::StartSim(void)
 void SimulationLoopControl::StopSim(void)
 {
     // Don't stop until we're sure we're running
-    while (currentMode not_eq RunningSim)
+    while (currentMode != RunningSim)
     {
         Sleep(50);
     }
@@ -223,14 +223,14 @@ void SimulationLoopControl::StartGraphics(void)
     g_bSleepAll = TRUE;//me123 host it's ok to sleep
 
     // gRebuildBubbleNow = TRUE;
-    while (someoneawake and (delayCounter))
+    while (someoneawake && (delayCounter))
     {
         someoneawake = FALSE;
         SimBaseClass* theObject;
         VuListIterator objectWalker(SimDriver.objectList);
         theObject = (SimBaseClass*)objectWalker.GetFirst();
 
-        while (theObject and not someoneawake)
+        while (theObject && !someoneawake)
         {
             if (theObject->IsAwake())
             {
@@ -243,7 +243,7 @@ void SimulationLoopControl::StartGraphics(void)
         VuListIterator objecttiveswalker(SimDriver.campObjList);
         theObject = (SimBaseClass*)objecttiveswalker.GetFirst();
 
-        while (theObject and not someoneawake)
+        while (theObject && !someoneawake)
         {
             if (theObject->IsAwake())
             {
@@ -264,7 +264,7 @@ void SimulationLoopControl::StartGraphics(void)
         OTWDriver.SetActive(FALSE);
     }
 
-    while (currentMode not_eq RunningSim)
+    while (currentMode != RunningSim)
     {
         Sleep(50);
     }
@@ -278,7 +278,7 @@ void SimulationLoopControl::StartGraphics(void)
 void SimulationLoopControl::StopGraphics()
 {
     // Don't stop until we're sure we're running
-    while (currentMode not_eq RunningGraphics)
+    while (currentMode != RunningGraphics)
     {
         Sleep(50);
     }
@@ -314,13 +314,13 @@ void SimulationLoopControl::Loop(void)
     _controlfp(_RC_CHOP, MCW_RC); // Set the FPU to Truncate
     _controlfp(_PC_24, MCW_PC); // Set the FPU to 24 bit precision
 #else
-#error Pay special attention to rounding mode and precision effects on floating point ops
+#error Pay special attention to rounding mode and precision effects on floating point ops!
 #endif
 
     // Record the fact that we're up and running
     currentMode = RunningSim;
 
-    //while (currentMode not_eq StoppingSim)
+    //while (currentMode != StoppingSim)
     do
     {
         //START_PROFILE("INPUT");
@@ -344,7 +344,7 @@ void SimulationLoopControl::Loop(void)
 
         // Rebuild the bubble here
         if (
-            gRebuildBubbleNow or (
+            gRebuildBubbleNow || (
                 static_cast<CampaignTime>(vuxRealTime - lastBubbleTime) >
                 static_cast<CampaignTime>(BUBBLE_REBUILD_TIME * CampaignSeconds)
             )
@@ -367,7 +367,7 @@ void SimulationLoopControl::Loop(void)
 
             RebuildBubble(forced);
 
-            if ( not forced)
+            if (!forced)
             {
                 lastBubbleTime = vuxRealTime;
             }
@@ -386,12 +386,12 @@ void SimulationLoopControl::Loop(void)
         real_delta = delta = (vuxRealTime - lastStartTime);
 
         if (
-            FalconLocalGame and (
-                ((vuPlayerPoolGroup) and (FalconLocalGame->Id() not_eq vuPlayerPoolGroup->Id())) or not vuPlayerPoolGroup
+            FalconLocalGame && (
+                ((vuPlayerPoolGroup) && (FalconLocalGame->Id() != vuPlayerPoolGroup->Id())) || !vuPlayerPoolGroup
             )
         )
         {
-            if (( not FalconLocalGame->IsLocal()) and (lastTimingMessage > 0))
+            if ((!FalconLocalGame->IsLocal()) && (lastTimingMessage > 0))
             {
                 static int last_ratio = 0;
                 int y, ratio, lookahead;
@@ -411,12 +411,12 @@ void SimulationLoopControl::Loop(void)
                 {
                     //  me123 changed this to ajust fluently
                     // we are less then 2 sec infront
-                    if ((y >= lookahead) and (delta))
+                    if ((y >= lookahead) && (delta))
                     {
                         // we are behind
                         delta = delta * (min(10, (y - lookahead) / 10) + 100) / 100; //
                     }
-                    else if ((y <= lookahead) and (delta))
+                    else if ((y <= lookahead) && (delta))
                     {
                         // we are infront
                         delta = delta * ((100 - min(10, (lookahead - y) / 10)) / 100); //
@@ -443,7 +443,7 @@ void SimulationLoopControl::Loop(void)
                     ratio = 0;
                 }
 
-                if (ratio not_eq last_ratio)
+                if (ratio != last_ratio)
                 {
                     last_ratio = ratio;
                 }
@@ -473,20 +473,20 @@ void SimulationLoopControl::Loop(void)
 
                 for (
                     VuSessionEntity *sess = sessionIter.GetFirst(), *nextSess;
-                    sess not_eq NULL and not flying;
+                    sess != NULL && !flying;
                     sess = nextSess
                 )
                 {
                     nextSess = sessionIter.GetNext();
                     FalconSessionEntity *sessionEntity = static_cast<FalconSessionEntity*>(sess);
 
-                    if (sessionEntity not_eq NULL)
+                    if (sessionEntity != NULL)
                     {
                         uchar flyState = sessionEntity->GetFlyState();
 
                         if (
-                            (flyState ==  FLYSTATE_FLYING) or
-                            (flyState ==  FLYSTATE_WAITING) or
+                            (flyState ==  FLYSTATE_FLYING) ||
+                            (flyState ==  FLYSTATE_WAITING) ||
                             (flyState ==  FLYSTATE_LOADING)
                         )
                         {
@@ -496,8 +496,8 @@ void SimulationLoopControl::Loop(void)
                 }
 
                 if (
-                    flying and gameCompressionRatio > 4
-                   and (gCommsMgr and gCommsMgr->Online())
+                    flying && gameCompressionRatio > 4
+                    && (gCommsMgr && gCommsMgr->Online())
                 )
                 {
                     SetTimeCompression(1) ;
@@ -507,8 +507,8 @@ void SimulationLoopControl::Loop(void)
             }
 
             if (
-                FalconLocalSession->GetFlyState() not_eq FLYSTATE_FLYING and 
-                gCompressTillTime and tmpTime > gLaunchTime + 1000
+                FalconLocalSession->GetFlyState() !=  FLYSTATE_FLYING &&
+                gCompressTillTime && tmpTime > gLaunchTime + 1000
             )
             {
                 if (vuxGameTime < gCompressTillTime)
@@ -576,7 +576,7 @@ void SimulationLoopControl::Loop(void)
         switch (currentMode)
         {
             case StartRunningGraphics:
-                if ( not SimDriver.lastRealTime)
+                if (!SimDriver.lastRealTime)
                 {
                     SimDriver.lastRealTime = vuxGameTime;
                 }
@@ -601,13 +601,13 @@ void SimulationLoopControl::Loop(void)
                 // average over 8 frames
                 gAveSimGraphicsTime = (gAveSimGraphicsTime * 7 + gSimTime + gGraphicsTimeLast * 100) / 8;
 
-                // WARNING  WARNING  WARNING  WARNING  WARNING 
+                // WARNING ! WARNING ! WARNING ! WARNING ! WARNING !
                 // COBRA - RED - REMOVED THIS WAITING FOR CAMPAIGN - HAS TO BE TESTED FOR SIDE EFFECTS
                 //START_PROFILE("SIMLOOP:");
                 //ThreadManager::sim_signal_campaign();
                 //ThreadManager::sim_wait_for_campaign ( min( 50, ( gAveSimGraphicsTime )/3 ) );
                 //STOP_PROFILE("SIMLOOP:");
-                // WARNING  WARNING  WARNING  WARNING  WARNING 
+                // WARNING ! WARNING ! WARNING ! WARNING ! WARNING !
                 if (currentMode == StartRunningGraphics)
                 {
                     currentMode = RunningGraphics;
@@ -616,7 +616,7 @@ void SimulationLoopControl::Loop(void)
                 break;
 
             case RunningSim:
-#if not NEW_SYNC
+#if !NEW_SYNC
                 ThreadManager::sim_signal_campaign();
                 ThreadManager::sim_wait_for_campaign(10);
 #endif
@@ -639,7 +639,7 @@ void SimulationLoopControl::Loop(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//sfr: pie screens
+//sfr: pie screens!
 void SimulationLoopControl::StartLoop(void)
 {
     FlightClass *flight;
@@ -660,7 +660,7 @@ void SimulationLoopControl::StartLoop(void)
         TheTimeOfDay.Setup(theaterdir); // load the new one
 
         // Our pause/suspend state varies by type of game and online status - set appropriately
-        if (gCommsMgr and not gCommsMgr->Online())
+        if (gCommsMgr && !gCommsMgr->Online())
         {
             TheCampaign.Suspend();
         }
@@ -722,7 +722,7 @@ void SimulationLoopControl::StartLoop(void)
             // Ask the game to send all deag entities to me
             VuTargetEntity* target = (VuTargetEntity*) vuDatabase->Find(FalconLocalGame->OwnerId());
 
-            if ( not target->IsLocal())
+            if (!target->IsLocal())
             {
                 FalconSimCampMessage *msg;
                 //here we ask for all deaggregated data
@@ -761,14 +761,14 @@ void SimulationLoopControl::StartLoop(void)
         // Wait until our flight is deaggregated
         g_bSleepAll = FALSE;//me123 host it's ok to wake again now you are attached
 
-        while (flight and flight->IsAggregate() and (delayCounter))
+        while (flight && flight->IsAggregate() && (delayCounter))
         {
             Sleep(1000);
             delayCounter --;
         }
 
         // If we didn't deaggregate ourselves - RH
-        if (flight and flight->IsAggregate())
+        if (flight && flight->IsAggregate())
         {
             MonoPrint("Flight didn't deaggregate before timeout.\n");
             player = NULL;
@@ -792,7 +792,7 @@ void SimulationLoopControl::StartLoop(void)
         }
 
         // Check if the player was successfully attached (They could have been killed in the meantime)
-        if (player and not player->IsDead())
+        if (player && !player->IsDead())
         {
             GameManager.AnnounceEntry();
 #define START_GRAPHICS_WAIT_FOR_SIMDRIVE 1
@@ -817,10 +817,10 @@ void SimulationLoopControl::StartLoop(void)
 
             // Wait until all necessary deaggregation events have been handled
             while (
-                (gLeftToDeaggregate) and 
-                (delayCounter) and 
-                (SimDriver.GetPlayerEntity()) and 
-                ( not (SimDriver.GetPlayerEntity()->IsLocal()))
+                (gLeftToDeaggregate) &&
+                (delayCounter) &&
+                (SimDriver.GetPlayerEntity()) &&
+                (!(SimDriver.GetPlayerEntity()->IsLocal()))
             )
             {
                 Sleep(100);
@@ -860,7 +860,7 @@ void SimulationLoopControl::StartLoop(void)
              if (wait_for_loaded)
              {
              delayCounter = 0;
-             while ( not TheLoader.LoaderQueueEmpty())
+             while (!TheLoader.LoaderQueueEmpty())
              {
              Sleep (100);
              delayCounter++;
@@ -876,7 +876,7 @@ void SimulationLoopControl::StartLoop(void)
              TheTextureBank.SetDeferredLoad( FALSE ); // Load all the deferred object textures
 
              delayCounter = 0;
-             while ( not TheLoader.LoaderQueueEmpty())
+             while (!TheLoader.LoaderQueueEmpty())
              {
              Sleep (100);
              delayCounter++;
@@ -921,12 +921,12 @@ void SimulationLoopControl::StartLoop(void)
 
             // Dogfights have some special case start code -
             // i.e. For match play and instant entry
-            if ( not SimDriver.RunningDogfight() or SimDogfight.GetGameType() not_eq dog_TeamMatchplay)
+            if (!SimDriver.RunningDogfight() || SimDogfight.GetGameType() != dog_TeamMatchplay)
             {
                 GameManager.ReleasePlayer(FalconLocalSession);
             }
 
-            //sfr: im leaving only this one
+            //sfr: im leaving only this one!
             OTWDriver.RenderFirstFrame();
 
             /*delayCounter = 20;
@@ -965,7 +965,7 @@ void SimulationLoopControl::StartLoop(void)
         }
         else
         {
-            if ( not player)
+            if (!player)
             {
                 MonoPrint("Failed to fly\n");
             }
@@ -1000,15 +1000,15 @@ void SimulationLoopControl::StartLoop(void)
 
         // sfr: this is killing remote players when server exits bubble
 #define NO_REQUEST_CAMPAIGN_SLEEP 1
-#if not NO_REQUEST_CAMPAIGN_SLEEP
+#if !NO_REQUEST_CAMPAIGN_SLEEP
         // Request that the campaign do a final bubble rebuild
         // MonoPrint("Requesting campain to do a final bubble rebuild\n");
         CampaignRequestSleep();
 
-        while ( not CampaignAllAsleep())
+        while (!CampaignAllAsleep())
         {
             Sleep(100);
-            // 2002-02-19 REMOVED BY S.G. NO NO NO Wrong thread to do this
+            // 2002-02-19 REMOVED BY S.G. NO NO NO! Wrong thread to do this!
             // 2002-01-02 ADDED BY S.G.
             // We are asked to sleep so keep doing bubble rebuild until all sim objects are sleeping
             // MonoPrint("Doing a final bubble rebuild\n");
@@ -1129,7 +1129,7 @@ void RewakeSessions(void)
         theObject = (SimBaseClass*) session->GetPlayerEntity();
         theUnit = (UnitClass*) session->GetPlayerFlight();
 
-        if (theObject and theUnit and theUnit->IsAwake() and not theObject->IsAwake() and not theObject->IsDead() and not theObject->IsExploding())
+        if (theObject && theUnit && theUnit->IsAwake() && !theObject->IsAwake() && !theObject->IsDead() && !theObject->IsExploding())
             SimDriver.WakeObject(theObject);
 
         session = (FalconSessionEntity*)sessionWalker.GetNext();

@@ -1,7 +1,6 @@
 #ifndef _ICP_H
 #define _ICP_H
 
-#include <cISO646>
 #ifndef _WINDOWS_
 #include <windows.h>
 #endif
@@ -508,15 +507,15 @@ public:
     //Functions for our Flags
     void SetICPFlag(int newFlag)
     {
-        ICPModeFlags or_eq newFlag;
+        ICPModeFlags |= newFlag;
     };
     void ClearICPFlag(int newFlag)
     {
-        ICPModeFlags and_eq compl newFlag;
+        ICPModeFlags &= ~newFlag;
     };
     int IsICPSet(int testFlag)
     {
-        return ICPModeFlags bitand testFlag ? 1 : 0;
+        return ICPModeFlags & testFlag ? 1 : 0;
     };
 
     //IFF Stuff
@@ -534,19 +533,19 @@ public:
     };
     void SetIFFFlag(int newFlag)
     {
-        IFFModes or_eq newFlag;
+        IFFModes |= newFlag;
     };
     void ClearIFFFlag(int newFlag)
     {
-        IFFModes and_eq compl newFlag;
+        IFFModes &= ~newFlag;
     };
     int IsIFFSet(int testFlag)
     {
-        return IFFModes bitand testFlag ? 1 : 0;
+        return IFFModes & testFlag ? 1 : 0;
     };
     void ToggleIFFFlag(int Flag)
     {
-        IFFModes xor_eq Flag;
+        IFFModes ^= Flag;
     };
     void FillIFFString(char *string);
 
@@ -632,7 +631,7 @@ public:
     };
     void SetICPUpdateFlag(int newFlag)
     {
-        mUpdateFlags or_eq newFlag;
+        mUpdateFlags |= newFlag;
     };
 
     void SetICPSecondaryMode(int num)

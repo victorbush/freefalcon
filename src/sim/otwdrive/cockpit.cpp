@@ -47,17 +47,17 @@ void OTWDriverClass::Draw2DHud(void)
     DoHud = pCockpitManager->GetViewportBounds(&hudViewportBounds, BOUNDS_HUD);
     pCockpitManager->AddTurbulenceVp(&hudViewportBounds);
 
-    if (theLantirn and theLantirn->IsFLIR())
+    if (theLantirn && theLantirn->IsFLIR())
     {
 #if DO_HIRESCOCK_HACK
 
-        if ( not gDoCockpitHack and (mOTWDisplayMode == ModeHud or mOTWDisplayMode == ModePadlockEFOV or
-                                mOTWDisplayMode == Mode2DCockpit and pCockpitManager))
+        if (!gDoCockpitHack && (mOTWDisplayMode == ModeHud || mOTWDisplayMode == ModePadlockEFOV ||
+                                mOTWDisplayMode == Mode2DCockpit && pCockpitManager))
         {
 #else
 
-        if (mOTWDisplayMode == ModeHud or mOTWDisplayMode == ModePadlockEFOV or
-            mOTWDisplayMode == Mode2DCockpit and pCockpitManager)
+        if (mOTWDisplayMode == ModeHud || mOTWDisplayMode == ModePadlockEFOV ||
+            mOTWDisplayMode == Mode2DCockpit && pCockpitManager)
         {
 #endif
 
@@ -88,12 +88,12 @@ void OTWDriverClass::Draw2DHud(void)
 #if DO_HIRESCOCK_HACK
 
     if (
- not gDoCockpitHack and (mOTWDisplayMode == ModeHud or mOTWDisplayMode == ModePadlockEFOV or
-                            mOTWDisplayMode == Mode2DCockpit and pCockpitManager)
+        !gDoCockpitHack && (mOTWDisplayMode == ModeHud || mOTWDisplayMode == ModePadlockEFOV ||
+                            mOTWDisplayMode == Mode2DCockpit && pCockpitManager)
 #else
     if (
-        mOTWDisplayMode == ModeHud or mOTWDisplayMode == ModePadlockEFOV or
-        mOTWDisplayMode == Mode2DCockpit and pCockpitManager
+        mOTWDisplayMode == ModeHud || mOTWDisplayMode == ModePadlockEFOV ||
+        mOTWDisplayMode == Mode2DCockpit && pCockpitManager
 #endif
     )
     {
@@ -108,7 +108,7 @@ void OTWDriverClass::Draw2DHud(void)
                 TheHud->SetTarget(NULL);
 
             if (
-                (mOTWDisplayMode == ModeHud) and 
+                (mOTWDisplayMode == ModeHud) &&
                 ((((float)DisplayOptions.DispWidth)) == 1.25F * DisplayOptions.DispHeight)
             )
             {

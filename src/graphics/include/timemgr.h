@@ -9,7 +9,6 @@
 #ifndef TIMEMGR_H
 #define TIMEMGR_H
 
-#include <cISO646>
 #include "grtypes.h"
 
 
@@ -45,7 +44,7 @@ public:
 
     BOOL IsReady(void)
     {
-        return (CBlist not_eq NULL);
+        return (CBlist != NULL);
     };
 
     void SetTime(DWORD newTime);
@@ -64,7 +63,7 @@ public:
     };
     DWORD GetDayOfLunarMonth(void)
     {
-        return today bitand 31;
+        return today & 31;
     };
     DWORD GetTimeOfDay(void)
     {

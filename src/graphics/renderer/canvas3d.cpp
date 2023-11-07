@@ -11,7 +11,6 @@
 ** 3-nov-97 (edg)
 ** We go marching in.....
 */
-#include <cISO646>
 #include <math.h>
 #include "Matrix.h"
 #include "canvas3d.h"
@@ -155,7 +154,7 @@ void Canvas3D::Point(float x1, float y1)
     float xres, yres;
 
     // no 3d context, do dice...
-    if ( not r3d)
+    if (!r3d)
         return;
 
     // Rotation and translate this point based on the current settings
@@ -163,7 +162,7 @@ void Canvas3D::Point(float x1, float y1)
     y = x1 * dmatrix.rotation10 + y1 * dmatrix.rotation11 + dmatrix.translationY;
 
     // Clipping
-    if ((x >= -1.0f) and (x <= 1.0f) and (y <= 1.0f) and (y >= -1.0f))
+    if ((x >= -1.0f) && (x <= 1.0f) && (y <= 1.0f) && (y >= -1.0f))
     {
         xres = canScaleX * x;
         yres = -canScaleY * y;
@@ -189,7 +188,7 @@ void Canvas3D::Line(float x1, float y1, float x2, float y2)
     float   xres, yres;
 
     // no 3d context, do dice...
-    if ( not r3d)
+    if (!r3d)
         return;
 
     // Rotation and translate this point based on the current settings
@@ -222,13 +221,13 @@ void Canvas3D::Line(float x1, float y1, float x2, float y2)
     {
         x1 = x2 + (x1 - x2) * ((y2 + 1.0f) / (y2 - y1));
         y1 = -1.0f;
-        clipFlag or_eq CLIP_BOTTOM;
+        clipFlag |= CLIP_BOTTOM;
     }
     else if (y1 > 1.0f)
     {
         x1 = x2 + (x1 - x2) * ((y2 - 1.0f) / (y2 - y1));
         y1 = 1.0f;
-        clipFlag or_eq CLIP_TOP;
+        clipFlag |= CLIP_TOP;
     }
 
     // Clip point 2
@@ -237,14 +236,14 @@ void Canvas3D::Line(float x1, float y1, float x2, float y2)
         y2 = y1 + (y2 - y1) * ((x1 + 1.0f) / (x1 - x2));
         x2 = -1.0f;
 
-        if (clipFlag bitand CLIP_LEFT)  return;
+        if (clipFlag & CLIP_LEFT)  return;
     }
     else if (x2 > 1.0f)
     {
         y2 = y1 + (y2 - y1) * ((x1 - 1.0f) / (x1 - x2));
         x2 = 1.0f;
 
-        if (clipFlag bitand CLIP_RIGHT)  return;
+        if (clipFlag & CLIP_RIGHT)  return;
     }
 
     if (y2 < -1.0f)
@@ -252,14 +251,14 @@ void Canvas3D::Line(float x1, float y1, float x2, float y2)
         x2 = x1 + (x2 - x1) * ((y1 + 1.0f) / (y1 - y2));
         y2 = -1.0f;
 
-        if (clipFlag bitand CLIP_BOTTOM)  return;
+        if (clipFlag & CLIP_BOTTOM)  return;
     }
     else if (y2 > 1.0f)
     {
         x2 = x1 + (x2 - x1) * ((y1 - 1.0f) / (y1 - y2));
         y2 = 1.0f;
 
-        if (clipFlag bitand CLIP_TOP)  return;
+        if (clipFlag & CLIP_TOP)  return;
     }
 
     xres = canScaleX * x1;
@@ -292,7 +291,7 @@ void Canvas3D::Tri(float x1, float y1, float x2, float y2, float x3, float y3)
     float   xres, yres;
 
     // no 3d context, do dice...
-    if ( not r3d)
+    if (!r3d)
         return;
 
 
@@ -393,7 +392,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
     float xStart, yStart;
     int height;
 
-    if ( not *string)
+    if (!*string)
         return;
 
     r3d->ForceAlpha = ForceAlpha; // COBRA - RED -Forced Alpha
@@ -403,7 +402,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
     y = x1 * dmatrix.rotation10 + y1 * dmatrix.rotation11 + dmatrix.translationY;
 
     // Clipping
-    if ((x >= -1.0f) and (x <= 1.0f) and (y <= 1.0f) and (y >= -1.0f))
+    if ((x >= -1.0f) && (x <= 1.0f) && (y <= 1.0f) && (y >= -1.0f))
     {
         xres = canScaleX * x;
         yres = -canScaleY * y;
@@ -415,7 +414,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
         // Transform the point from world space to window space
         r3d->TransformPoint(&p1, &ps1);
 
-        if (ps1.clipFlag not_eq ON_SCREEN)  return;
+        if (ps1.clipFlag != ON_SCREEN)  return;
 
         // make sure the text won't go off the edge of our canvas
         // assumption: the canvas doesn't roll so that text travels in the
@@ -437,7 +436,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
         numChars = strlen(string);
         slope = (ps2.x - ps1.x);
 
-        if (slope not_eq 0.0f)
+        if (slope != 0.0f)
             slope = (ps2.y - ps1.y) / slope;
         else
             slope = 0.0f;
@@ -453,7 +452,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
             s[0] = string[i];
 
             // specifically check for blanks (DED text has a lot)
-            if (*s == ' ' and not boxed)
+            if (*s == ' ' && !boxed)
             {
                 ps1.x += 3.0f;
                 ps1.y += slope * 3.0f;
@@ -465,7 +464,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
             if (ps1.x + width >= ps2.x)
                 return;
 
-            r3d->ScreenText(ps1.x, ps1.y, s, (boxed bitand 0x2));
+            r3d->ScreenText(ps1.x, ps1.y, s, (boxed & 0x2));
             ps1.x += width;
             ps1.y += slope * width;
         }
@@ -503,7 +502,7 @@ void Canvas3D::TextLeft(float x1, float y1, const char *string, int boxed)
 
 void Canvas3D::TextLeftVertical(float x1, float y1, const char *string, int boxed)
 {
-    if ( not *string)
+    if (!*string)
         return;
 
     y1 += r3d->ScreenTextHeight() / ((float)yRes) * canScaleY;
@@ -519,7 +518,7 @@ void Canvas3D::TextLeftVertical(float x1, float y1, const char *string, int boxe
 \***************************************************************************/
 void Canvas3D::TextRight(float x1, float y1, const char *string, int boxed)
 {
-    if ( not *string)
+    if (!*string)
         return;
 
     x1 -= r3d->ScreenTextWidth(string) / ((float)xRes) * 2.0F * canScaleX;
@@ -534,7 +533,7 @@ void Canvas3D::TextRight(float x1, float y1, const char *string, int boxed)
 \***************************************************************************/
 void Canvas3D::TextRightVertical(float x1, float y1, const char *string, int boxed)
 {
-    if ( not *string)
+    if (!*string)
         return;
 
     x1 -= r3d->ScreenTextWidth(string) / ((float)xRes) * 2.0F * canScaleX;
@@ -552,7 +551,7 @@ void Canvas3D::TextRightVertical(float x1, float y1, const char *string, int box
 \***************************************************************************/
 void Canvas3D::TextCenter(float x1, float y1, const char *string, int boxed)
 {
-    if ( not *string)
+    if (!*string)
         return;
 
     x1 -= r3d->ScreenTextWidth(string) / ((float)xRes) * canScaleX;
@@ -563,7 +562,7 @@ void Canvas3D::TextCenter(float x1, float y1, const char *string, int boxed)
 
 void Canvas3D::TextCenterVertical(float x1, float y1, const char *string, int boxed)
 {
-    if ( not *string)
+    if (!*string)
         return;
 
     x1 -= r3d->ScreenTextWidth(string) / ((float)xRes) * canScaleX;

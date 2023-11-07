@@ -1,7 +1,6 @@
 #ifndef _THREAD_MANAGER_H_
 #define _THREAD_MANAGER_H_
 
-#include <cISO646>
 #include <windows.h>
 #include <process.h>
 
@@ -42,7 +41,7 @@ public:
 
     static BOOL campaign_active(void)
     {
-        return campaign_thread.status bitand THREAD_STATUS_ACTIVE;
+        return campaign_thread.status & THREAD_STATUS_ACTIVE;
     }
 
     static void slow_campaign(void);

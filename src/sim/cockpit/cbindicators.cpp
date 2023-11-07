@@ -24,7 +24,7 @@ void CBEAOA(void * pObject)
 
     pCPIndicator = (CPIndicator*) pObject;
 
-    if ( not g_bIFlyMirage)
+    if (!g_bIFlyMirage)
         pCPIndicator->mpTapeValues[0] = cockpitFlightData.alpha;
     else
         pCPIndicator->mpTapeValues[0] = -cockpitFlightData.alpha;
