@@ -16,3 +16,6 @@ obj/
 *.user
 *.tmp
 .vs/
+
+# Nuget Packages
+src/packages/

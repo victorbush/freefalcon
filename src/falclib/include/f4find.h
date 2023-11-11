@@ -11,7 +11,8 @@
 #ifndef _F4FIND_H
 #define _F4FIND_H
 
-#define FALCON_REGISTRY_KEY       "Software\\MicroProse\\Falcon\\4.0"
+//#define FALCON_REGISTRY_KEY       "Software\\MicroProse\\Falcon\\4.0"
+#define FALCON_REGISTRY_KEY       "Software\\MicroProse\\Falcon\\FreeFalcon"
 
 extern char FalconDataDirectory[_MAX_PATH];
 extern char FalconTerrainDataDir[_MAX_PATH];
