@@ -3,6 +3,12 @@
 
 #ifdef _UI95_PARSER_
 
+#include "cresmgr.h"
+extern "C"
+{
+#include "codelib/resources/reslib/src/resmgr.h"
+}
+
 #define PARSE_MAX_PARAMS    (12)
 #define MAX_WINDOWS_IN_LIST (200)
 #define PARSE_HASH_SIZE (1024)
@@ -53,7 +59,7 @@ private:
 
     char ValueStr[40]; // string to contain values of IDs NOT found in table
 
-    FILE *Perror_;
+    RES_file_hndl Perror_;
     // Current Token;
     short  tokenlen_;
 
@@ -68,7 +74,7 @@ private:
     void AddInternalIDs(ID_TABLE tbl[]);
     long TokenizeIDs(char *idfile, long size);
     void LoadIDTable(char *filename);
-    FILE *OpenArtFile(char *filename, const char *thrdir, const char *maindir, int hirescapable = 1);
+    RES_file_hndl OpenArtFile(char *filename, const char *thrdir, const char *maindir, int hirescapable = 1);
 
 public:
     C_Parser();

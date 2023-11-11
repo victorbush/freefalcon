@@ -164,6 +164,10 @@
     <ClCompile Include="src\resmgr.c" />
     <ClCompile Include="src\unzip.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\resmgr.h" />
+    <ClInclude Include="src\resmgr_prv.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

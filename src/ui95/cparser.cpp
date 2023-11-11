@@ -25,7 +25,7 @@ extern "C"
 #include "codelib/resources/reslib/src/resmgr.h"
 }
 
-#define UI_HANDLE FILE *
+#define UI_HANDLE RES_file_hndl
 #define UI_OPEN   RES_FOPEN
 #define UI_READ   RES_FREAD
 #define UI_CLOSE  RES_FCLOSE
@@ -379,7 +379,7 @@ void C_Parser::Setup(C_Handler *handler, C_Image *ImgMgr, C_Font *FontList, C_So
         Perror_ = UI_OPEN("ui95err.log", "a");
 
         if (Perror_)
-            fprintf(Perror_, "Setup Parser\n");
+            RES_FPRINTF(Perror_, "Setup Parser\n");
     }
 }
 
@@ -390,7 +390,7 @@ void C_Parser::Cleanup()
     {
 
         if (Perror_)
-            fprintf(Perror_, "Cleanup Parser\n");
+            RES_FPRINTF(Perror_, "Cleanup Parser\n");
 
         if (Perror_)
             UI_CLOSE(Perror_);
@@ -514,7 +514,7 @@ void C_Parser::LoadIDTable(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadIDTable load failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadIDTable load failed (%s)\n", filename);
         }
     }
 
@@ -525,7 +525,7 @@ void C_Parser::LoadIDTable(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadIDTable seek end failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadIDTable seek end failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -538,7 +538,7 @@ void C_Parser::LoadIDTable(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadIDTable read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadIDTable read failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -614,7 +614,7 @@ void C_Parser::LoadIDList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadIDTable read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadIDTable read failed (%s)\n", filename);
         }
 
         return;
@@ -712,7 +712,7 @@ BOOL C_Parser::LoadScript(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadScript load failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadScript load failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -725,7 +725,7 @@ BOOL C_Parser::LoadScript(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadScript seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadScript seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -746,7 +746,7 @@ BOOL C_Parser::LoadScript(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadScript read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadScript read failed (%s)\n", filename);
         }
 
         delete script_;
@@ -844,7 +844,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
     if (g_bLogUiErrors)
     {
         if (Perror_)
-            fprintf(Perror_, "LoadWindowList processing (%s)\n", filename);
+            RES_FPRINTF(Perror_, "LoadWindowList processing (%s)\n", filename);
     }
 
     ifp = OpenArtFile(filename, FalconUIArtThrDirectory, FalconUIArtDirectory);
@@ -854,7 +854,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadWindowList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadWindowList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -863,7 +863,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
     if (g_bLogUiErrors)
     {
         if (Perror_)
-            fprintf(Perror_, "Open Art file found as %s\n", filebuf);
+            RES_FPRINTF(Perror_, "Open Art file found as %s\n", filebuf);
     }
 
 
@@ -874,7 +874,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadWindowList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadWindowList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -888,7 +888,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadWindowList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadWindowList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -920,7 +920,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
             if (g_bLogUiErrors)
             {
                 if (Perror_)
-                    fprintf(Perror_, "LoadWindowList Parsing Window (%s)\n", lfp);
+                    RES_FPRINTF(Perror_, "LoadWindowList Parsing Window (%s)\n", lfp);
             }
 
             if (*lfp != '#')
@@ -944,7 +944,7 @@ BOOL C_Parser::LoadWindowList(char *filename)
 
                         if (Perror_)
                         {
-                            fprintf(Perror_, "LoadWindowList NO Window returned (%s)\n", lfp);
+                            RES_FPRINTF(Perror_, "LoadWindowList NO Window returned (%s)\n", lfp);
                         }
                     }
                 }
@@ -973,7 +973,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
     if (g_bLogUiErrors)
     {
         if (Perror_)
-            fprintf(Perror_, "LoadPopupMenuList processing (%s)\n", filename);
+            RES_FPRINTF(Perror_, "LoadPopupMenuList processing (%s)\n", filename);
     }
 
 #if 0
@@ -989,7 +989,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadPopupMenuList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadPopupMenuList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -1002,7 +1002,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadPopupMenuList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadPopupMenuList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -1016,7 +1016,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadPopupMenuList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadPopupMenuList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -1048,7 +1048,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
             if (g_bLogUiErrors)
             {
                 if (Perror_)
-                    fprintf(Perror_, "LoadPopupMenuList Parsing PopMenu (%s)\n", lfp);
+                    RES_FPRINTF(Perror_, "LoadPopupMenuList Parsing PopMenu (%s)\n", lfp);
             }
 
             //strcpy(filebuf,FalconUIArtDirectory);
@@ -1064,7 +1064,7 @@ BOOL C_Parser::LoadPopupMenuList(char *filename)
                 if (g_bLogUiErrors)
                 {
                     if (Perror_)
-                        fprintf(Perror_, "LoadPopupMenuList NO Popup Menu returned (%s)\n", lfp);
+                        RES_FPRINTF(Perror_, "LoadPopupMenuList NO Popup Menu returned (%s)\n", lfp);
                 }
             }
 
@@ -1106,7 +1106,7 @@ BOOL C_Parser::LoadImageList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadImageList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadImageList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -1119,7 +1119,7 @@ BOOL C_Parser::LoadImageList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadImageList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadImageList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -1133,7 +1133,7 @@ BOOL C_Parser::LoadImageList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadImageList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadImageList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -1205,7 +1205,7 @@ BOOL C_Parser::LoadSoundList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadSoundList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadSoundList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -1218,7 +1218,7 @@ BOOL C_Parser::LoadSoundList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadSoundList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadSoundList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -1232,7 +1232,7 @@ BOOL C_Parser::LoadSoundList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadSoundList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadSoundList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -1305,7 +1305,7 @@ BOOL C_Parser::LoadStringList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadStringList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadStringList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -1318,7 +1318,7 @@ BOOL C_Parser::LoadStringList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadStringList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadStringList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -1332,7 +1332,7 @@ BOOL C_Parser::LoadStringList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadStringList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadStringList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -1404,7 +1404,7 @@ BOOL C_Parser::LoadMovieList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadMovieList open failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadMovieList open failed (%s)\n", filename);
         }
 
         return(FALSE);
@@ -1417,7 +1417,7 @@ BOOL C_Parser::LoadMovieList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadMovieList seek start failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadMovieList seek start failed (%s)\n", filename);
         }
 
         UI_CLOSE(ifp);
@@ -1431,7 +1431,7 @@ BOOL C_Parser::LoadMovieList(char *filename)
         if (g_bLogUiErrors)
         {
             if (Perror_)
-                fprintf(Perror_, "LoadMovieList read failed (%s)\n", filename);
+                RES_FPRINTF(Perror_, "LoadMovieList read failed (%s)\n", filename);
         }
 
         delete listfile;
@@ -5141,7 +5141,7 @@ void C_Parser::LogError(char *str)
     if (g_bLogUiErrors)
     {
         if (Perror_)
-            fprintf(Perror_, "%s\n", str);
+            RES_FPRINTF(Perror_, "%s\n", str);
     }
 }
 #endif // this goes at end of THIS file

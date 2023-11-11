@@ -805,7 +805,7 @@ bool OTWDriverClass::VCock_SetCanvas(char **plinePtr, Canvas3D **canvaspp)
 }
 
 void
-OTWDriverClass::VCock_ParseVDial(FILE *fp)
+OTWDriverClass::VCock_ParseVDial(RES_file_hndl fp)
 {
     VDialInitStr vdialInitStr;
     static const char pseparators[] = {0x20, 0x2c, 0x3d, 0x3b, 0x0d, 0x0a, 0x09, 0x00};
@@ -818,7 +818,7 @@ OTWDriverClass::VCock_ParseVDial(FILE *fp)
     ZeroMemory(&vdialInitStr, sizeof vdialInitStr);
     vdialInitStr.callback = -1;
 
-    fgets(plineBuffer, sizeof plineBuffer, fp);
+    RES_FGETS(plineBuffer, sizeof plineBuffer, fp);
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
     vdialInitStr.ppoints = NULL;
@@ -892,7 +892,7 @@ OTWDriverClass::VCock_ParseVDial(FILE *fp)
             F4Assert(!"Unknown Line in dial defn");
         }
 
-        fgets(plineBuffer, sizeof plineBuffer, fp);
+        RES_FGETS(plineBuffer, sizeof plineBuffer, fp);
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
     }
@@ -909,7 +909,7 @@ OTWDriverClass::VCock_Init(int eCPVisType, TCHAR* eCPName, TCHAR* eCPNameNCTR)
 {
     char strCPFile[MAX_PATH];
     static const TCHAR *pCPFile = "3dckpit.dat";
-    CP_HANDLE* pcockpitDataFile;
+    RES_file_hndl pcockpitDataFile;
     static const char pseparators[] = {0x20, 0x2c, 0x3d, 0x3b, 0x0d, 0x0a, 0x09, 0x00};
     extern Tpoint lMFDul, lMFDur, lMFDll;
     extern int ltMFDleft, ltMFDtop, ltMFDright, ltMFDbottom; // ASSO:
@@ -944,7 +944,7 @@ OTWDriverClass::VCock_Init(int eCPVisType, TCHAR* eCPName, TCHAR* eCPNameNCTR)
     {
         char plineBuffer[MAX_LINE_BUFFER];
         char *plinePtr, *ptoken;
-        char *presult = fgets(plineBuffer, sizeof plineBuffer, pcockpitDataFile);
+        char *presult = RES_FGETS(plineBuffer, sizeof plineBuffer, pcockpitDataFile);
         DebugLineNum ++;
         quitFlag = (presult == NULL);
 

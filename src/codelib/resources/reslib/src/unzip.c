@@ -253,7 +253,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
         arc -> length = statbuf.st_size;
     }
 
-    if ((arc -> os_handle = _open(filename, O_RDONLY | O_BINARY)) < 0)
+    if ((arc -> file_ptr = fopen(filename, "rb")) == NULL)
     {
         ResCheckMedia(toupper(filename[0]) - 'A');   /* see if media has been swapped */
 
@@ -293,7 +293,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
 
     if ((arc -> tmp_in_buffer = (uch *)MemMalloc(INPUTBUFSIZE, "input buffer")) == NULL)
     {
-        _close(arc -> os_handle);
+        fclose(arc->file_ptr);
         MemFree(arc -> tmp_slide);
         MemFree(arc);
         UNZIP_ERROR = RES_ERR_NO_MEMORY;
@@ -339,7 +339,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
     //****** (arc -> len) ?  66000L ? *****//
     if ((((error_in_archive = find_end_central_dir(MIN((arc -> length), 66000L), &ecrec, arc)) != 0)))
     {
-        _close(arc -> os_handle);
+        fclose(arc->file_ptr);
 #ifdef USE_SH_POOLS
         MemFreePtr(arc -> tmp_in_buffer);
         MemFreePtr(arc -> tmp_slide);
@@ -364,7 +364,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
 
     if (UNZIP_LSEEK(ecrec.offset_start_central_directory, arc))
     {
-        _close(arc -> os_handle);
+        fclose(arc->file_ptr);
 #ifdef USE_SH_POOLS
         MemFreePtr(arc -> tmp_in_buffer);
         MemFreePtr(arc -> tmp_slide);
@@ -634,7 +634,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
         entry -> method        = crec.compression_method;
         entry -> size          = crec.ucsize;
         entry -> csize         = crec.csize;
-        entry -> archive       = arc -> os_handle;
+        entry -> archive       = arc;
         entry -> volume        = vol_was;
         entry -> directory     = dir_was;
         /*        RES_UNLOCK( table );  GFG */
@@ -672,7 +672,7 @@ ARCHIVE * archive_create(const char * attach_point, const char * filename, HASH_
 
 void archive_delete(ARCHIVE * arc)
 {
-    _close(arc -> os_handle);
+    fclose(arc->file_ptr);
 
     DESTROY_LOCK(arc -> lock);
 
@@ -811,9 +811,10 @@ int unzip_seek(LONGINT val, ARCHIVE * arc)
     {
         if (bufstart != arc -> start_buffer)
         {
-            arc -> start_buffer = lseek(arc -> os_handle, (LONGINT)bufstart, SEEK_SET);
+            fseek(arc->file_ptr, (LONGINT)bufstart, SEEK_SET);
+            arc->start_buffer = ftell(arc->file_ptr);
 
-            if ((arc -> tmp_in_count = read(arc -> os_handle, (char *)arc -> tmp_in_buffer, INBUFSIZ)) <= 0)
+            if ((arc -> tmp_in_count = fread((char*)arc->tmp_in_buffer, INBUFSIZ, 1, arc -> file_ptr)) <= 0)
                 return(-1);
 
             arc -> tmp_in_ptr = arc -> tmp_in_buffer + inbuf_offset;
@@ -1039,7 +1040,7 @@ int extract_or_test_member(int method, long fcsize, COMPRESSED_FILE * cmp)
             do
             {
                 r = (fcsize > INPUTBUFSIZE) ? INPUTBUFSIZE : fcsize;
-                read(cmp -> archive -> os_handle, pos, r);
+                fread(pos, r, 1, cmp->archive->file_ptr);
                 pos += r;
                 fcsize -= r;
             }
@@ -1111,7 +1112,7 @@ int readbuf(char * buf, unsigned size, ARCHIVE * arc)
     {
         if (arc -> tmp_in_count == 0)
         {
-            if ((arc -> tmp_in_count = read(arc -> os_handle, (char *)arc -> tmp_in_buffer, arc -> tmp_in_size)) == 0)
+            if ((arc -> tmp_in_count = fread((char *)arc -> tmp_in_buffer, arc -> tmp_in_size, 1, arc->file_ptr)) == 0)
             {
                 //arc -> start_buffer += arc -> tmp_in_size;
                 return((int)(n - size));
@@ -1159,7 +1160,7 @@ int readbuf(char * buf, unsigned size, ARCHIVE * arc)
 
 int readbyte(COMPRESSED_FILE * cmp)
 {
-    if ((cmp -> in_count = read(cmp -> archive -> os_handle, (char *)cmp -> in_buffer, cmp -> in_size)) <= 0)
+    if ((cmp -> in_count = fread((char *)cmp -> in_buffer, cmp -> in_size, 1, cmp->archive->file_ptr)) <= 0)
         return(EOF);
 
     // nuke(?) cmp -> start_buffer += cmp -> in_size;   /* always starts on a block boundary */
@@ -1232,9 +1233,9 @@ int find_end_central_dir(long searchlen, ecdir_rec *ecrec, ARCHIVE * arc)
 
     if ((arc -> length) <= arc -> tmp_in_size)
     {
-        lseek(arc -> os_handle, 0L, SEEK_SET);
+        fseek(arc->file_ptr, 0L, SEEK_SET);
 
-        if ((arc -> tmp_in_count = read(arc -> os_handle, (char *)arc -> tmp_in_buffer, (unsigned int)(arc -> length))) == (int)(arc -> length))
+        if ((arc -> tmp_in_count = fread((char *)arc -> tmp_in_buffer, (unsigned int)(arc -> length), 1, arc->file_ptr)) == (int)(arc -> length))
         {
             /* 'P' must be at least 22 bytes from end of zipfile */
 
@@ -1263,8 +1264,9 @@ int find_end_central_dir(long searchlen, ecdir_rec *ecrec, ARCHIVE * arc)
 
         if ((tail_len = (arc -> length) % arc -> tmp_in_size) > ECREC_SIZE)
         {
-            arc -> start_buffer = lseek(arc -> os_handle, (arc -> length) - tail_len, SEEK_SET);
-            arc -> tmp_in_count = read(arc -> os_handle, (char *)arc -> tmp_in_buffer, (unsigned int)tail_len);
+            fseek(arc->file_ptr, (arc->length) - tail_len, SEEK_SET);
+            arc->start_buffer = ftell(arc->file_ptr);
+            arc->tmp_in_count = fread((char*)arc->tmp_in_buffer, (unsigned int)tail_len, 1, arc->file_ptr);
 
             if (arc -> tmp_in_count != (int)tail_len)
                 goto fail;      /* shut up; it's expedient */
@@ -1303,9 +1305,9 @@ int find_end_central_dir(long searchlen, ecdir_rec *ecrec, ARCHIVE * arc)
         for (i = 1;  !found && (i <= numblks);  ++i)
         {
             arc -> start_buffer -= arc -> tmp_in_size;
-            lseek(arc -> os_handle, arc -> start_buffer, SEEK_SET);
+            fseek(arc -> file_ptr, arc -> start_buffer, SEEK_SET);
 
-            if ((arc -> tmp_in_count = read(arc -> os_handle, (char *)arc -> tmp_in_buffer, arc -> tmp_in_size)) != arc -> tmp_in_size)
+            if ((arc -> tmp_in_count = fread((char *)arc -> tmp_in_buffer, arc -> tmp_in_size, 1, arc->file_ptr)) != arc -> tmp_in_size)
                 break;   /* fall through and fail */
 
             for (arc -> tmp_in_ptr = arc -> tmp_in_buffer + arc -> tmp_in_size - 1;

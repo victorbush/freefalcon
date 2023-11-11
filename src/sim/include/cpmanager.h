@@ -15,6 +15,10 @@
 #include "dispopts.h"
 #include "flightdata.h"
 
+extern "C" {
+#include "codelib/resources/reslib/src/resmgr.h"
+};
+
 #ifdef USE_SH_POOLS
 extern MEM_POOL gCockMemPool;
 #endif
@@ -447,30 +451,30 @@ private:
     // Initialization Member Functions
     //====================================================//
 
-    void CreateText(int, FILE*);
-    void CreateChevron(int, FILE*);
-    void CreateLiftLine(int, FILE*);
-    void CreateSurface(int, FILE*);
-    void CreatePanel(int, FILE*);
-    void CreateSwitch(int, FILE*);
-    void CreateLight(int, FILE*);
-    void CreateButton(int, FILE*);
-    void CreateButtonView(int, FILE*);
-    void CreateIndicator(int, FILE*);
-    void CreateDial(int, FILE*);
-    void CreateMulti(int, FILE*);
-    void CreateCursor(int, FILE*);
-    void CreateDed(int, FILE*);
-    void CreateAdi(int, FILE*);
-    void CreateMachAsi(int, FILE*);
-    void CreateHsiView(int, FILE*);
-    void CreateDigits(int, FILE*);
-    void CreateSound(int, FILE*);
-    void CreateKneeView(int, FILE*);
-    void CreateMirror(int, FILE*);
-    void LoadBuffer(FILE*);
+    void CreateText(int, RES_file_hndl);
+    void CreateChevron(int, RES_file_hndl);
+    void CreateLiftLine(int, RES_file_hndl);
+    void CreateSurface(int, RES_file_hndl);
+    void CreatePanel(int, RES_file_hndl);
+    void CreateSwitch(int, RES_file_hndl);
+    void CreateLight(int, RES_file_hndl);
+    void CreateButton(int, RES_file_hndl);
+    void CreateButtonView(int, RES_file_hndl);
+    void CreateIndicator(int, RES_file_hndl);
+    void CreateDial(int, RES_file_hndl);
+    void CreateMulti(int, RES_file_hndl);
+    void CreateCursor(int, RES_file_hndl);
+    void CreateDed(int, RES_file_hndl);
+    void CreateAdi(int, RES_file_hndl);
+    void CreateMachAsi(int, RES_file_hndl);
+    void CreateHsiView(int, RES_file_hndl);
+    void CreateDigits(int, RES_file_hndl);
+    void CreateSound(int, RES_file_hndl);
+    void CreateKneeView(int, RES_file_hndl);
+    void CreateMirror(int, RES_file_hndl);
+    void LoadBuffer(RES_file_hndl);
     void SetupControlTemplate(char*, int, int);
-    void ParseManagerInfo(FILE*);
+    void ParseManagerInfo(RES_file_hndl);
     void ResolveReferences(void);
     static void TimeUpdateCallback(void *self);
 

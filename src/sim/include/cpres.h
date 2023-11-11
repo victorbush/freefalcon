@@ -20,7 +20,7 @@ extern "C"
 #include "codelib/resources/reslib/src/resmgr.h"
 }
 
-#define CP_HANDLE FILE
+#define CP_HANDLE RES_file_hndl
 #define CP_OPEN   RES_FOPEN
 #define CP_READ   RES_FREAD
 #define CP_CLOSE  RES_FCLOSE

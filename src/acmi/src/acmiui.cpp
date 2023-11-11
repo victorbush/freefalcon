@@ -19,7 +19,6 @@
 #include "graphics/include/drawbsp.h"
 #include "Acmihash.h"
 
-
 #include "codelib/tools/lists/lists.h"
 #include "AcmiTape.h"
 #include "AcmiView.h"

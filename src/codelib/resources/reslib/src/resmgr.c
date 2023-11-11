@@ -90,6 +90,7 @@
    ---------------------------------------------------------------------- */
 #include "lists.h"         /* list manipulation functions (+list.cpp)        */
 #include "resmgr.h"        /* exported prototypes & type definitions         */
+#include "resmgr_prv.h"
 //#include "memmgr.h"
 #include "omni.h"
 
@@ -126,39 +127,39 @@ MEM_POOL gResmgrMemPool = NULL;
 #define SHOULD_I_CALL_WITH(idx,param,retval)  if( RES_CALLBACK[(idx)] )\
                                                   retval = ((*(RES_CALLBACK[(idx)]))(param));
 
-#if( RES_STREAMING_IO )
-
-RES_EXPORT FILE *  __cdecl _getstream(void);
-RES_EXPORT FILE *  __cdecl _openfile(const char *, const char *, int, FILE *);
-RES_EXPORT void    __cdecl _getbuf(FILE *);
-RES_EXPORT int     __cdecl _flush(FILE *);
-RES_EXPORT long    __cdecl ftell(FILE *);
-RES_EXPORT long    __cdecl _ftell_lk(FILE *);
-
-extern void __cdecl _getbuf(FILE *);
-extern int  __cdecl _flush(FILE * str);
-
-#define EINVAL                  22
-
-#define _IOYOURBUF              0x0100
-#define _INTERNAL_BUFSIZ        4096
-#define _IOARCHIVE              0x00010000
-#define _IOLOOSE                0x00020000
-#define _SMALL_BUFSIZ           512    /* from stdio.h */
-#define _INTERNAL_BUFSIZ        4096   /* from stdio.h */
-#define _IOSETVBUF              0x0400 /* from file2.h */
-#define _SH_DENYNO              0x40   /* from share.h */
-
-#define anybuf(s)               ((s)->_flag & (_IOMYBUF|_IONBF|_IOYOURBUF))
-#define inuse(s)                ((s)->_flag & (_IOREAD|_IOWRT|_IORW))
-
-
-#define SHOULD_I_CALL(idx,retval)       if( RES_CALLBACK[(idx)] )\
-                                            retval = ( *(RES_CALLBACK[(idx)]));
-
-#define SHOULD_I_CALL_WITH(idx,param,retval)  if( RES_CALLBACK[(idx)] )\
-                                                  retval = ((*(RES_CALLBACK[(idx)]))(param));
-#endif /* RES_STREAMING_IO */
+//#if( RES_STREAMING_IO )
+//
+//RES_EXPORT FILE *  __cdecl _getstream(void);
+//RES_EXPORT FILE *  __cdecl _openfile(const char *, const char *, int, FILE *);
+//RES_EXPORT void    __cdecl _getbuf(FILE *);
+//RES_EXPORT int     __cdecl _flush(FILE *);
+//RES_EXPORT long    __cdecl ftell(FILE *);
+//RES_EXPORT long    __cdecl _ftell_lk(FILE *);
+//
+//extern void __cdecl _getbuf(FILE *);
+//extern int  __cdecl _flush(FILE * str);
+//
+//#define EINVAL                  22
+//
+//#define _IOYOURBUF              0x0100
+//#define _INTERNAL_BUFSIZ        4096
+//#define _IOARCHIVE              0x00010000
+//#define _IOLOOSE                0x00020000
+//#define _SMALL_BUFSIZ           512    /* from stdio.h */
+//#define _INTERNAL_BUFSIZ        4096   /* from stdio.h */
+//#define _IOSETVBUF              0x0400 /* from file2.h */
+//#define _SH_DENYNO              0x40   /* from share.h */
+//
+//#define anybuf(s)               ((s)->_flag & (_IOMYBUF|_IONBF|_IOYOURBUF))
+//#define inuse(s)                ((s)->_flag & (_IOREAD|_IOWRT|_IORW))
+//
+//
+//#define SHOULD_I_CALL(idx,retval)       if( RES_CALLBACK[(idx)] )\
+//                                            retval = ( *(RES_CALLBACK[(idx)]));
+//
+//#define SHOULD_I_CALL_WITH(idx,param,retval)  if( RES_CALLBACK[(idx)] )\
+//                                                  retval = ((*(RES_CALLBACK[(idx)]))(param));
+//#endif /* RES_STREAMING_IO */
 
 
 #define RES_INIT_DIRECTORY_SIZE         8    /* initial size for buffer used in ResCountDirectory */
@@ -284,7 +285,7 @@ enum                                    /* compression methods                  
 
 typedef struct ASYNCH_DATA              /* created when spawning a read/write thread    */
 {
-    int         file;                   /* handle of file performing i/o on             */
+    FILE_ENTRY* file;                   /* handle of file performing i/o on             */
     void      * buffer;                 /* ptr to buffer used to read to/write from     */
     size_t      size;                   /* bytes to read -or- bytes to write            */
     PFV         callback;               /* callback to issue upon completion            */
@@ -553,10 +554,10 @@ inflate_free(void);
 
 
 /* From MSVC CRT */
-extern __cdecl _freebuf(FILE *);
-extern __cdecl _fseek_lk(FILE *, long, int);
-extern __cdecl _lseek_lk(int, long, int);
-extern __cdecl _read_lk(int, char *, int);
+//extern __cdecl _freebuf(FILE *);
+//extern __cdecl _fseek_lk(FILE *, long, int);
+//extern __cdecl _lseek_lk(int, long, int);
+//extern __cdecl _read_lk(int, char *, int);
 
 /* ----------------------------------------------------------------------
    ----------------------------------------------------------------------
@@ -631,10 +632,6 @@ RES_EXPORT int ResInit(HWND hwnd)
     }
 
     memset(FILE_HANDLES, 0, sizeof(FILE_ENTRY) * MAX_FILE_HANDLES);
-
-    for (index = 0; index < MAX_FILE_HANDLES; index++)
-        FILE_HANDLES[ index ].os_handle = -1;
-
 
     /* Save current drive. */
 
@@ -925,7 +922,7 @@ RES_EXPORT int ResDismountCD(void)
                 {
                     REQUEST_LOCK(archive -> lock);
                     dir = archive -> directory;
-                    ResDetach(archive -> os_handle);
+                    ResDetach(archive);
                     ResPurge(NULL, NULL, &dir, NULL);
                     hit = 1;
                     RELEASE_LOCK(archive -> lock);
@@ -1036,11 +1033,11 @@ RES_EXPORT int ResCheckMedia(int device)
                the reverse is true (the files within
                the archive take precedence).
 
-   RETURNS:    Handle if sucessful, otherwise -1.
+   RETURNS:    Handle if sucessful, otherwise NULL.
 
    ======================================================= */
 
-RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, int replace_flag)
+RES_EXPORT RES_archive_hndl ResAttach(const char * attach_point_arg, const char * filename, int replace_flag)
 {
     ARCHIVE    * archive;
     HASH_TABLE * table = NULL;
@@ -1076,7 +1073,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
     if (!filename || (strlen(filename) > _MAX_FNAME))
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAttach");
-        return(-1);
+        return(NULL);
     }
 
 #endif
@@ -1084,7 +1081,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
     if (!GLOBAL_HASH_TABLE)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAttach");
-        return(-1);
+        return(NULL);
     }
 
     if (!attach_point)
@@ -1124,7 +1121,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
     if (!entry)
     {
         SAY_ERROR(RES_ERR_PATH_NOT_FOUND, attach_point);
-        return(-1);
+        return(NULL);
     }
 
 #else
@@ -1142,7 +1139,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
         {
             assert(!"Exceeded MAX_DIRECTORIES as defined in omni.h");
             //            SAY_ERROR( RES_ERR_TOO_MANY_DIRECTORIES, "ResAddPath" );
-            return(FALSE);
+            return(NULL);
         }
 
 #endif
@@ -1159,7 +1156,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
         if (!entry)
         {
             SAY_ERROR(RES_ERR_UNKNOWN, "ResAttach");
-            return(-1);
+            return(NULL);
         }
 
         entry -> archive       = -1; /* the actual directory existence should not be considered
@@ -1186,7 +1183,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
     if (!archive)
     {
         SAY_ERROR(RES_ERR_CANT_OPEN_ARCHIVE, filename);
-        return(-1);
+        return(NULL);
     }
 
     for (i = 0; i < (GLOBAL_SEARCH_INDEX - 1); i++)
@@ -1204,7 +1201,7 @@ RES_EXPORT int ResAttach(const char * attach_point_arg, const char * filename, i
 
     ARCHIVE_LIST = LIST_APPEND(ARCHIVE_LIST, archive);
 
-    return(archive -> os_handle);
+    return(archive);
 }
 
 
@@ -1252,7 +1249,7 @@ RES_EXPORT int ResDevice(int device_id, DEVICE_ENTRY * dev)
 
    ======================================================= */
 
-RES_EXPORT void ResDetach(int handle)
+RES_EXPORT void ResDetach(RES_archive_hndl* handle)
 {
     ARCHIVE    * archive = NULL;
     LIST       * list = NULL;
@@ -1273,7 +1270,7 @@ RES_EXPORT void ResDetach(int handle)
     {
         archive = (ARCHIVE *)list -> node;
 
-        if (archive -> os_handle == handle)
+        if (archive == handle)
             break;
     }
 
@@ -1287,7 +1284,7 @@ RES_EXPORT void ResDetach(int handle)
 
     REQUEST_LOCK(archive -> lock);
 
-    ResPurge((char *)&archive -> os_handle, NULL, NULL, NULL);
+    ResPurge(archive, NULL, NULL, NULL);
 
     /* remove the archive from out list */
     ARCHIVE_LIST = LIST_REMOVE(ARCHIVE_LIST, archive);
@@ -1303,7 +1300,7 @@ RES_EXPORT void ResDetach(int handle)
         inflate_free();
 
     /* close the actual archive file */
-    _close(archive -> os_handle);
+    fclose(archive -> file_ptr);
 
     RELEASE_LOCK(archive -> lock);
     DESTROY_LOCK(archive -> lock);
@@ -1326,11 +1323,11 @@ RES_EXPORT void ResDetach(int handle)
    PARAMETERS: Filename, mode to open with.
                Wildcards are not supported.
 
-   RETURNS:    File int if sucessful, otherwise -1.
+   RETURNS:    File handle if sucessful, otherwise NULL.
 
    ======================================================= */
 
-RES_EXPORT int ResOpenFile(const char * name, int mode)
+RES_EXPORT RES_file_hndl ResOpenFile(const char * name, int mode)
 {
     HASH_TABLE * table = NULL;
     HASH_ENTRY * entry = NULL;
@@ -1344,7 +1341,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
     char filename[_MAX_PATH];
 
     int   retval = 1;
-    int   handle;
+    int   file_idx;
     int   dir_index;
 
     struct _finddata_t data; /* used to dummy-up a hash entry */
@@ -1360,7 +1357,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
     if (!name)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResOpenFile");
-        return(-1);
+        return(NULL);
     }
 
 #endif
@@ -1371,19 +1368,19 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
 
     /* get the next available file handle */
-    handle = get_handle();
+    file_idx = get_handle();
 
-    if (handle == -1)    /* none left */
+    if (file_idx == -1)    /* none left */
     {
         SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResOpenFile");
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK); /* GFG */
 #endif
 
-        return(-1);
+        return(NULL);
     }
 
-    file = &FILE_HANDLES[ handle ];
+    file = &FILE_HANDLES[ file_idx ];
 
 
     /* ----------------------------------------------------
@@ -1418,7 +1415,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
             RELEASE_LOCK(GLOCK); /* GFG */
 #endif
 
-            return(-1);
+            return(NULL);
         }
         else
         {
@@ -1453,7 +1450,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
 
-                return(-1);
+                return(NULL);
             }
             else
             {
@@ -1486,7 +1483,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
 
-                return(-1);
+                return(NULL);
             }
 
             for (dir_index = 0; dir_index <= GLOBAL_SEARCH_INDEX; dir_index++)
@@ -1504,7 +1501,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-                return(-1);
+                return(NULL);
             }
 
             entry -> archive = -1;
@@ -1528,7 +1525,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
             RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-            return(-1);
+            return(NULL);
         }
     }
 
@@ -1553,9 +1550,9 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
            octal 666 ensures that stack-crap won't accidently create this file as
            read-only.  Thank to Roger Fujii for this fix! */
 
-        file -> os_handle = _open(filename, mode, 0x1b6 /* choked on O666 and O666L */);
+        file -> file_ptr = fopen(filename, mode);
 
-        if (file -> os_handle == -1)
+        if (file -> file_ptr == NULL)
         {
 
             if (errno == EACCES)
@@ -1571,7 +1568,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
             RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-            return(-1);
+            return(NULL);
         }
 
         file -> seek_start  = 0;
@@ -1584,11 +1581,11 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
         file -> filename    = MemStrDup(filename);
         file -> device      = entry -> volume;
 
-        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
+        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, file_idx, retval);
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-        return(handle);
+        return(file);
     }
     else     /* in an archive */
     {
@@ -1598,7 +1595,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
         {
             archive = (ARCHIVE *)list -> node;
 
-            if (archive -> os_handle == entry -> archive)
+            if (archive == entry -> archive)
                 break;
         }
 
@@ -1608,24 +1605,25 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
             RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-            return(-1);
+            return(NULL);
         }
 
         sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
 
-        lseek(archive -> os_handle, entry -> file_position + SIGNATURE_SIZE, SEEK_SET);
-
-        _read(archive -> os_handle, tmp, LREC_SIZE);
+        fseek(archive -> file_ptr, entry -> file_position + SIGNATURE_SIZE, SEEK_SET);
+        fread(tmp, LREC_SIZE, 1, archive->file_ptr);
 
         process_local_file_hdr(&lrec, tmp);      /* return PK-type error code */
 
-        file -> seek_start = lseek(archive -> os_handle, lrec.filename_length + lrec.extra_field_length, SEEK_CUR);
+        fseek(archive -> file_ptr, lrec.filename_length + lrec.extra_field_length, SEEK_CUR);
+
+        file -> seek_start = ftell(archive -> file_ptr );
 
         switch (entry -> method)
         {
             case STORED:
             {
-                file -> os_handle   = archive -> os_handle;
+                file -> file_ptr   = archive -> file_ptr;
                 //file -> seek_start  = entry -> file_position;
                 file -> csize       = 0;
                 file -> size        = entry -> size;
@@ -1634,11 +1632,11 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 file -> device      = entry -> volume;
                 file -> zip         = NULL; /* only used if we need to deflate */
 
-                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
+                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, file_idx, retval);
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-                return(handle);
+                return(file);
                 break;
             }
 
@@ -1661,7 +1659,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                     return(-1);
                 }
 
-                file -> os_handle   = archive -> os_handle;
+                file -> file_ptr   = archive -> file_ptr;
                 //file -> seek_start  = entry -> file_position;
                 file -> csize       = entry -> csize;
                 file -> size        = entry -> size;
@@ -1695,11 +1693,11 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
                 MemFree(zip -> slide);      /* Free temporary allocations */
 #endif
 
-                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
+                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, file_idx, retval);
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-                return(handle);
+                return(file);
                 break;
             }
 
@@ -1708,7 +1706,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
                 RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-                return(-1);
+                return(NULL);
                 break;
         }
     }
@@ -1716,7 +1714,7 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 #if (RES_MULTITHREAD)
     RELEASE_LOCK(GLOCK); /* GFG */
 #endif
-    return(-1);
+    return(NULL);
 }
 
 
@@ -1732,17 +1730,19 @@ RES_EXPORT int ResOpenFile(const char * name, int mode)
 
    ======================================================= */
 
-RES_EXPORT int ResSizeFile(int file)
+RES_EXPORT int ResSizeFile(RES_file_hndl handle)
 {
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+
 #if( RES_DEBUG_PARAMS )
 
-    if (file < 0 || file >= MAX_FILE_HANDLES)
+    if (!file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResSizeFile");
         return(-1);
     }
 
-    if (FILE_HANDLES[ file ].os_handle == -1)
+    if (file -> file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResSizeFile");
         return(-1);
@@ -1750,7 +1750,7 @@ RES_EXPORT int ResSizeFile(int file)
 
 #endif /* RES_DEBUG_PARAMS */
 
-    return(FILE_HANDLES[ file ].size);
+    return(file->size);
 }
 
 
@@ -1760,7 +1760,7 @@ RES_EXPORT int ResSizeFile(int file)
 
    PURPOSE:    Read from a file via the Resource Manager.
 
-   PARAMETERS: File int, ptr to a buffer to place
+   PARAMETERS: File handle, ptr to a buffer to place
                data, number of bytes to read.
 
    RETURNS:    Number of bytes actually read, -1 in case
@@ -1768,15 +1768,15 @@ RES_EXPORT int ResSizeFile(int file)
 
    ======================================================= */
 
-RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
+RES_EXPORT int ResReadFile(RES_file_hndl handle, void * buffer, size_t count)
 {
-    FILE_ENTRY * file;
+    FILE_ENTRY * file = (FILE_ENTRY*)handle;
     int len;
     int retval = 1;
 
 #if( RES_DEBUG_PARAMS )
 
-    if (!buffer || handle < 0 || handle > MAX_FILE_HANDLES)
+    if (!buffer || !file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResReadFile");
         return(-1);
@@ -1786,11 +1786,13 @@ RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
 #if (RES_MULTITHREAD)
     REQUEST_LOCK(GLOCK); /* GFG */
 #endif
-    file = &FILE_HANDLES[ handle ];
 
-    if (file -> os_handle == -1)
+    if (file -> file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResReadFile");
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
         return(-1);
     }
 
@@ -1818,9 +1820,8 @@ RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
            stream from that offset, no seek will be done.  If that isn't so, a
            seek was going to happen anyway when the OS tries to do the read. */
 
-        lseek(file -> os_handle, (file -> seek_start + file -> current_pos), SEEK_SET);
-
-        len = _read(file -> os_handle, buffer, count);
+        fseek(file->file_ptr, (file->seek_start + file->current_pos), SEEK_SET);
+        len = fread(buffer, count, 1, file->file_ptr);
 
         if (len < 0)  /* error, see if media has changed */
             ResCheckMedia(file -> device);
@@ -1875,7 +1876,7 @@ RES_EXPORT int ResReadFile(int handle, void * buffer, size_t count)
 
 RES_EXPORT char * ResLoadFile(const char * filename,  char * buffer, size_t * size)
 {
-    int file;
+    RES_file_hndl file;
     int check;
     int s;
     char * alloc_buffer;
@@ -1989,30 +1990,32 @@ RES_EXPORT void ResUnloadFile(char * buffer)
 
    PURPOSE:    Close a previously opened file.
 
-   PARAMETERS: File int.
+   PARAMETERS: File handle.
 
    RETURNS:    TRUE (pass) / FALSE (fail)
 
    ======================================================= */
 
-RES_EXPORT int ResCloseFile(int file)
+RES_EXPORT int ResCloseFile(RES_file_hndl handle)
 {
+    FILE_ENTRY * file;
     HASH_ENTRY * entry;
     char         filename[_MAX_PATH],
                  dirpath[_MAX_PATH];
     long         size;
     int          retval = 1;
 
+    file = (FILE_ENTRY*)handle;
 
 #if( RES_DEBUG_PARAMS )
 
-    if (file < 0 || file >= MAX_FILE_HANDLES)
+    if (!file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResCloseFile");
         return(FALSE);
     }
 
-    if (FILE_HANDLES[ file ].os_handle == -1)
+    if (file->file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResCloseFile");
         return(FALSE);
@@ -2028,19 +2031,22 @@ RES_EXPORT int ResCloseFile(int file)
 
     SHOULD_I_CALL_WITH(CALLBACK_CLOSE_FILE, file, retval);
 
-    if (!FILE_HANDLES[file].zip)
+    if (!file->zip)
     {
         /* if the file has been written to, recheck the size */
 
-        if (FILE_HANDLES[file].csize == (unsigned int)WRITTEN_TO_FLAG)
+        if (file->csize == (unsigned int)WRITTEN_TO_FLAG)
         {
             /* flush to disk */
-            _commit(FILE_HANDLES[file].os_handle);
+            //_commit(file->os_handle);
+            fflush(file->file_ptr);
 
             /* go to the end of the file */
-            size = lseek(FILE_HANDLES[file].os_handle, 0, SEEK_END);
+            //size = lseek(file->os_handle, 0, SEEK_END);
+            fseek(file->file_ptr, 0, SEEK_END);
+            size = ftell(file->file_ptr);
 
-            split_path(FILE_HANDLES[file].filename, filename, dirpath);
+            split_path(file->filename, filename, dirpath);
 
 #if( !RES_USE_FLAT_MODEL )
             entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
@@ -2075,16 +2081,16 @@ RES_EXPORT int ResCloseFile(int file)
 #endif /* !RES_USE_FLAT_MODEL */
         }
 
-        if (!FILE_HANDLES[ file ].seek_start)   /* don't close an archive */
-            _close(FILE_HANDLES[ file ].os_handle);
+        if (!file->seek_start)   /* don't close an archive */
+            fclose(file->file_ptr);
 
 #ifdef USE_SH_POOLS
-        MemFreePtr(FILE_HANDLES[ file ].filename);
+        MemFreePtr(file->filename);
 #else
-        MemFree(FILE_HANDLES[ file ].filename);
+        MemFree(file->filename);
 #endif
-        FILE_HANDLES[ file ].filename = NULL;
-        FILE_HANDLES[ file ].os_handle = -1;
+        file->filename = NULL;
+        file->file_ptr = NULL;
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK);
 #endif
@@ -2094,15 +2100,15 @@ RES_EXPORT int ResCloseFile(int file)
     else
     {
 #ifdef USE_SH_POOLS
-        MemFreePtr(FILE_HANDLES[file].zip);
-        MemFreePtr(FILE_HANDLES[file].filename);
+        MemFreePtr(file->zip);
+        MemFreePtr(file->filename);
 #else
-        MemFree(FILE_HANDLES[file].zip);
-        MemFree(FILE_HANDLES[file].filename);
+        MemFree(file->zip);
+        MemFree(file->filename);
 #endif
-        FILE_HANDLES[ file ].zip = NULL;
-        FILE_HANDLES[ file ].filename = NULL;
-        FILE_HANDLES[ file ].os_handle = -1;
+        file->zip = NULL;
+        file->filename = NULL;
+        file->file_ptr = NULL;
 #if (RES_MULTITHREAD)
         RELEASE_LOCK(GLOCK);
 #endif
@@ -2125,22 +2131,24 @@ RES_EXPORT int ResCloseFile(int file)
 
    PURPOSE:    Write to a file via the Resource Manager.
 
-   PARAMETERS: File int, ptr to a buffer to get
+   PARAMETERS: File handle, ptr to a buffer to get
                data from, number of bytes to write.
 
    RETURNS:    Number of bytes actually written.
 
    ======================================================= */
 
-RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count)
+RES_EXPORT size_t ResWriteFile(RES_file_hndl handle, const void * buffer, size_t count)
 {
     FILE_ENTRY * file;
     int check;
     int retval = 1;
 
+    file = (FILE_ENTRY*)handle;
+
 #if( RES_DEBUG_PARAMS )
 
-    if (handle < 0 || handle >= MAX_FILE_HANDLES || !buffer)
+    if (!file || !buffer)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResWriteFile");
         return(0);
@@ -2151,9 +2159,7 @@ RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count)
     REQUEST_LOCK(GLOCK);
 #endif
 
-    file = &FILE_HANDLES[ handle ];
-
-    if (file -> os_handle == -1)
+    if (file -> file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResWriteFile");
 #if (RES_MULTITHREAD)
@@ -2181,7 +2187,7 @@ RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count)
 
     IF_LOG(LOG("write (%s): (%d bytes)\n", file -> filename, count));
 
-    check = _write(file -> os_handle, buffer, count);
+    check = fwrite(buffer, 1, count, file->file_ptr);
 
     if (check < 0)
         ResCheckMedia(file -> device);
@@ -2362,47 +2368,47 @@ RES_EXPORT int ResModifyFile(const char * name, int flags)
    RETURNS:    TRUE (pass) / FALSE (fail)
 
    ======================================================= */
-
-RES_EXPORT int ResMakeDirectory(char * pathname)
-{
-    int check;
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!pathname)
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResMakeDirectory");
-        return(FALSE);
-    }
-
-#endif
-
-    check = _mkdir(pathname);
-
-    IF_LOG(LOG("mkdir: %s\n", pathname));
-
-    if (check == -1)
-    {
-#if( RES_DEBUG_PARAMS )
-
-        if (errno == EACCES)
-        {
-            SAY_ERROR(RES_ERR_DIRECTORY_EXISTS, pathname);
-        }
-        else if (errno == ENOENT)
-        {
-            SAY_ERROR(RES_ERR_PATH_NOT_FOUND, pathname);
-        }
-
-#endif /* RES_DEBUG_PARAMS */
-
-        return(FALSE);
-    }
-
-    ResAddPath(pathname, FALSE);
-
-    return(TRUE);
-}
+//
+//RES_EXPORT int ResMakeDirectory(char * pathname)
+//{
+//    int check;
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!pathname)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResMakeDirectory");
+//        return(FALSE);
+//    }
+//
+//#endif
+//
+//    check = _mkdir(pathname);
+//
+//    IF_LOG(LOG("mkdir: %s\n", pathname));
+//
+//    if (check == -1)
+//    {
+//#if( RES_DEBUG_PARAMS )
+//
+//        if (errno == EACCES)
+//        {
+//            SAY_ERROR(RES_ERR_DIRECTORY_EXISTS, pathname);
+//        }
+//        else if (errno == ENOENT)
+//        {
+//            SAY_ERROR(RES_ERR_PATH_NOT_FOUND, pathname);
+//        }
+//
+//#endif /* RES_DEBUG_PARAMS */
+//
+//        return(FALSE);
+//    }
+//
+//    ResAddPath(pathname, FALSE);
+//
+//    return(TRUE);
+//}
 
 
 
@@ -2419,94 +2425,94 @@ RES_EXPORT int ResMakeDirectory(char * pathname)
    =======================================================
    03/17/97    [GAB] - wrote.
    ======================================================= */
-
-RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
-{
-    int  handle,
-         check,
-         status;
-
-    char full_path[ MAX_PATH ],
-         old_cwd[ MAX_PATH ];
-
-    struct _finddata_t fileinfo;
-
-    status = 0;
-
-    handle = _findfirst(pathname, &fileinfo);
-
-    if (handle == -1)
-        return(FALSE);     /* couldn't find directory */
-
-    IF_LOG(LOG("deltree: %s\n", pathname));
-
-    if (!(fileinfo.attrib & _A_SUBDIR))
-    {
-        SAY_ERROR(RES_ERR_IS_NOT_DIRECTORY, pathname);
-        return(FALSE);
-    }
-
-    _findclose(handle);
-
-    _getcwd(old_cwd, MAX_PATH);
-    _chdir(pathname);
-
-    sprintf(full_path, "%s\\*.*", pathname);
-    handle = _findfirst(full_path, &fileinfo);
-
-    while (status != -1)
-    {
-
-        if (!stricmp(fileinfo.name, ".") || !stricmp(fileinfo.name, ".."))
-        {
-            status = _findnext(handle, &fileinfo);
-            continue;
-        }
-
-        if (fileinfo.attrib & _A_SUBDIR)
-        {
-            char recurse_path[MAX_PATH];
-            sprintf(recurse_path, "%s\\%s", pathname, fileinfo.name);
-            ResDeleteDirectory(recurse_path, TRUE);
-            status = _findnext(handle, &fileinfo);
-            continue;
-        }
-
-        check = remove(fileinfo.name);
-
-        if (check == -1)
-        {
-            if (forced)
-            {
-                chmod(fileinfo.name, _S_IWRITE);
-                check = remove(fileinfo.name);
-            }
-
-            if (check == -1)
-            {
-                SAY_ERROR(RES_ERR_COULD_NOT_DELETE, fileinfo.name);
-                break;
-            }
-        }
-
-        status = _findnext(handle, &fileinfo);
-    }
-
-    _findclose(handle);
-
-    _chdir(old_cwd);
-
-    _rmdir(pathname);
-
-    if (handle == -1)
-    {
-        SAY_ERROR(RES_ERR_COULD_NOT_DELETE, pathname);
-        return(FALSE);
-    }
-
-    return(TRUE);
-}
-
+//
+//RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
+//{
+//    int  handle,
+//         check,
+//         status;
+//
+//    char full_path[ MAX_PATH ],
+//         old_cwd[ MAX_PATH ];
+//
+//    struct _finddata_t fileinfo;
+//
+//    status = 0;
+//
+//    handle = _findfirst(pathname, &fileinfo);
+//
+//    if (handle == -1)
+//        return(FALSE);     /* couldn't find directory */
+//
+//    IF_LOG(LOG("deltree: %s\n", pathname));
+//
+//    if (!(fileinfo.attrib & _A_SUBDIR))
+//    {
+//        SAY_ERROR(RES_ERR_IS_NOT_DIRECTORY, pathname);
+//        return(FALSE);
+//    }
+//
+//    _findclose(handle);
+//
+//    _getcwd(old_cwd, MAX_PATH);
+//    _chdir(pathname);
+//
+//    sprintf(full_path, "%s\\*.*", pathname);
+//    handle = _findfirst(full_path, &fileinfo);
+//
+//    while (status != -1)
+//    {
+//
+//        if (!stricmp(fileinfo.name, ".") || !stricmp(fileinfo.name, ".."))
+//        {
+//            status = _findnext(handle, &fileinfo);
+//            continue;
+//        }
+//
+//        if (fileinfo.attrib & _A_SUBDIR)
+//        {
+//            char recurse_path[MAX_PATH];
+//            sprintf(recurse_path, "%s\\%s", pathname, fileinfo.name);
+//            ResDeleteDirectory(recurse_path, TRUE);
+//            status = _findnext(handle, &fileinfo);
+//            continue;
+//        }
+//
+//        check = remove(fileinfo.name);
+//
+//        if (check == -1)
+//        {
+//            if (forced)
+//            {
+//                chmod(fileinfo.name, _S_IWRITE);
+//                check = remove(fileinfo.name);
+//            }
+//
+//            if (check == -1)
+//            {
+//                SAY_ERROR(RES_ERR_COULD_NOT_DELETE, fileinfo.name);
+//                break;
+//            }
+//        }
+//
+//        status = _findnext(handle, &fileinfo);
+//    }
+//
+//    _findclose(handle);
+//
+//    _chdir(old_cwd);
+//
+//    _rmdir(pathname);
+//
+//    if (handle == -1)
+//    {
+//        SAY_ERROR(RES_ERR_COULD_NOT_DELETE, pathname);
+//        return(FALSE);
+//    }
+//
+//    return(TRUE);
+//}
+//
 
 
 /* =======================================================
@@ -2545,97 +2551,97 @@ RES_EXPORT int ResDeleteDirectory(char * pathname, int forced)
    RETURNS:    Ptr to a RES_DIR struct or NULL (on error).
 
    ======================================================= */
-
-RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
-{
-    //    int count = 0;
-
-#if( !RES_USE_FLAT_MODEL )
-
-    HASH_TABLE * hsh;
-    HASH_ENTRY * entry;
-    RES_DIR    * dir;
-    size_t       size;
-    char         dirpath[_MAX_PATH];
-    int          index, i;
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!GLOBAL_SEARCH_INDEX)
-        return(NULL);
-
-#endif
-
-    IF_LOG(LOG("opendir: %s\n", pathname));
-
-    res_fullpath(dirpath, pathname, _MAX_PATH);
-
-    entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
-
-    if (entry && entry -> dir)
-    {
-        hsh = (HASH_TABLE *)entry -> dir;
-
-        size = sizeof(RES_DIR);
-        size += sizeof(char *) * (hsh -> num_entries);
-        size += MAX_FILENAME * (hsh -> num_entries + 12);
-
-#ifdef USE_SH_POOLS
-        dir = (RES_DIR *)MemAllocPtr(gResmgrMemPool, size, 0);
-#else
-        dir = (RES_DIR *)MemMalloc(size, "RES_DIR");
-#endif
-
-        dir -> filenames = (char**)((char*)dir + sizeof(RES_DIR));
-        dir -> string_pool = (char*)dir + sizeof(RES_DIR) + (sizeof(char *) * (hsh -> num_entries));
-
-        if (!dir -> filenames || !dir -> string_pool)
-        {
-            SAY_ERROR(RES_ERR_NO_MEMORY, "ResOpenDirectory");
-            return(NULL);
-        }
-
-        dir -> string_ptr = dir -> string_pool;
-
-        RES_STRING_SET(dir -> name, entry -> name, dir -> string_ptr);
-
-        index = 0;
-
-        for (i = 0; i < hsh->table_size; i++)
-        {
-            entry = &hsh -> table[i];
-
-            if (entry -> next)
-            {
-                while (entry)
-                {
-                    RES_STRING_SET(dir -> filenames[ index++ ], entry -> name, dir -> string_ptr);
-                    entry = entry -> next;
-                }
-            }
-            else
-            {
-                if (entry -> attrib)
-                {
-                    RES_STRING_SET(dir -> filenames[ index++ ], entry -> name, dir -> string_ptr);
-                }
-            }
-        }
-
-        dir -> num_entries = index;
-        dir -> current = 0;
-
-#if( RES_DEBUG_VERSION )
-        OPEN_DIR_LIST = LIST_APPEND(OPEN_DIR_LIST, dir);
-#endif /* RES_DEBUG_VERSION */
-
-        return(dir);
-    }
-
-#endif /* !RES_USE_FLAT_MODEL */
-
-    return(NULL);   /* only usefull in the hierarchical version */
-}
+//
+//RES_EXPORT RES_dir * ResOpenDirectory(char * pathname)
+//{
+//    //    int count = 0;
+//
+//#if( !RES_USE_FLAT_MODEL )
+//
+//    HASH_TABLE * hsh;
+//    HASH_ENTRY * entry;
+//    RES_dir    * dir;
+//    size_t       size;
+//    char         dirpath[_MAX_PATH];
+//    int          index, i;
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!GLOBAL_SEARCH_INDEX)
+//        return(NULL);
+//
+//#endif
+//
+//    IF_LOG(LOG("opendir: %s\n", pathname));
+//
+//    res_fullpath(dirpath, pathname, _MAX_PATH);
+//
+//    entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
+//
+//    if (entry && entry -> dir)
+//    {
+//        hsh = (HASH_TABLE *)entry -> dir;
+//
+//        size = sizeof(RES_dir);
+//        size += sizeof(char *) * (hsh -> num_entries);
+//        size += MAX_FILENAME * (hsh -> num_entries + 12);
+//
+//#ifdef USE_SH_POOLS
+//        dir = (RES_dir *)MemAllocPtr(gResmgrMemPool, size, 0);
+//#else
+//        dir = (RES_dir *)MemMalloc(size, "RES_DIR");
+//#endif
+//
+//        dir -> filenames = (char**)((char*)dir + sizeof(RES_dir));
+//        dir -> string_pool = (char*)dir + sizeof(RES_dir) + (sizeof(char *) * (hsh -> num_entries));
+//
+//        if (!dir -> filenames || !dir -> string_pool)
+//        {
+//            SAY_ERROR(RES_ERR_NO_MEMORY, "ResOpenDirectory");
+//            return(NULL);
+//        }
+//
+//        dir -> string_ptr = dir -> string_pool;
+//
+//        RES_STRING_SET(dir -> name, entry -> name, dir -> string_ptr);
+//
+//        index = 0;
+//
+//        for (i = 0; i < hsh->table_size; i++)
+//        {
+//            entry = &hsh -> table[i];
+//
+//            if (entry -> next)
+//            {
+//                while (entry)
+//                {
+//                    RES_STRING_SET(dir -> filenames[ index++ ], entry -> name, dir -> string_ptr);
+//                    entry = entry -> next;
+//                }
+//            }
+//            else
+//            {
+//                if (entry -> attrib)
+//                {
+//                    RES_STRING_SET(dir -> filenames[ index++ ], entry -> name, dir -> string_ptr);
+//                }
+//            }
+//        }
+//
+//        dir -> num_entries = index;
+//        dir -> current = 0;
+//
+//#if( RES_DEBUG_VERSION )
+//        OPEN_DIR_LIST = LIST_APPEND(OPEN_DIR_LIST, dir);
+//#endif /* RES_DEBUG_VERSION */
+//
+//        return(dir);
+//    }
+//
+//#endif /* !RES_USE_FLAT_MODEL */
+//
+//    return(NULL);   /* only usefull in the hierarchical version */
+//}
 
 
 
@@ -2650,27 +2656,27 @@ RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname)
    RETURNS:    Ptr to filename string or NULL (on error).
 
    ======================================================= */
-
-RES_EXPORT char * ResReadDirectory(RES_DIR * dir)
-{
-#if( RES_DEBUG_PARAMS )
-
-    if (!dir)
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResReadDirectory");
-        return(NULL);
-    }
-
-#endif /* RES_DEBUG_PARAMS */
-
-
-    IF_LOG(LOG("readdir: %s\n", dir -> name));
-
-    if (dir -> current >= dir -> num_entries)
-        return(NULL);
-
-    return((char *)(dir -> filenames[ dir -> current++ ]));
-}
+//
+//RES_EXPORT char * ResReadDirectory(RES_dir * dir)
+//{
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!dir)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResReadDirectory");
+//        return(NULL);
+//    }
+//
+//#endif /* RES_DEBUG_PARAMS */
+//
+//
+//    IF_LOG(LOG("readdir: %s\n", dir -> name));
+//
+//    if (dir -> current >= dir -> num_entries)
+//        return(NULL);
+//
+//    return((char *)(dir -> filenames[ dir -> current++ ]));
+//}
 
 
 
@@ -2686,7 +2692,7 @@ RES_EXPORT char * ResReadDirectory(RES_DIR * dir)
 
    ======================================================= */
 
-RES_EXPORT void ResCloseDirectory(RES_DIR * dir)
+RES_EXPORT void ResCloseDirectory(RES_dir * dir)
 {
 #if( RES_DEBUG_PARAMS )
 
@@ -2823,11 +2829,13 @@ RES_EXPORT int ResExistDirectory(char * pathname)
 
    ======================================================= */
 
-RES_EXPORT long ResTellFile(int handle)
+RES_EXPORT long ResTellFile(RES_file_hndl handle)
 {
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+
 #if( RES_DEBUG_PARAMS )
 
-    if (handle < 0 || handle >= MAX_FILE_HANDLES)
+    if (!file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResTellFile");
         return(-1);
@@ -2838,7 +2846,7 @@ RES_EXPORT long ResTellFile(int handle)
     REQUEST_LOCK(GLOCK);
 #endif
 
-    if (FILE_HANDLES[ handle ].os_handle == -1)
+    if (file->file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResTellFile");
 #if (RES_MULTITHREAD)
@@ -2851,7 +2859,7 @@ RES_EXPORT long ResTellFile(int handle)
     RELEASE_LOCK(GLOCK);
 #endif
 
-    return(FILE_HANDLES[ handle ].current_pos);
+    return(file->current_pos);
 }
 
 
@@ -2865,7 +2873,7 @@ RES_EXPORT long ResTellFile(int handle)
                (either the current location, end of file,
                or beginning of file).
 
-   PARAMETERS: File int, offset in bytes, origin.
+   PARAMETERS: File handle, offset in bytes, origin.
                Origin can be one of:
 
                   SEEK_CUR - current location
@@ -2876,8 +2884,10 @@ RES_EXPORT long ResTellFile(int handle)
 
    ======================================================= */
 
-RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
+RES_EXPORT int ResSeekFile(RES_file_hndl handle, size_t offset, int origin)
 {
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+
 #if( RES_DEBUG_PARAMS )
 
     if (handle < 0 || handle >= MAX_FILE_HANDLES)
@@ -2899,7 +2909,7 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
 
     IF_LOG(LOG("seek: %s\n", FILE_HANDLES[handle].filename));
 
-    if (FILE_HANDLES[ handle ].os_handle == -1)
+    if (file->file_ptr == NULL)
     {
         SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ResReadFile");
 #if (RES_MULTITHREAD)
@@ -2909,9 +2919,10 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
     }
 
     /* If we are writing, do seek anyway */
-    if (FILE_HANDLES[ handle ].mode & (O_WRONLY | O_RDWR))
+    if (file->mode & (O_WRONLY | O_RDWR))
     {
-        FILE_HANDLES[ handle ].current_pos  = lseek(FILE_HANDLES[ handle ].os_handle, offset, origin);
+        fseek(file->file_ptr, offset, origin);
+        file->current_pos = ftell(file->file_ptr);
     }
     else
     {
@@ -2920,15 +2931,15 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
         switch (origin)
         {
             case SEEK_SET: /* 0 */
-                FILE_HANDLES[ handle ].current_pos = offset;
+                file->current_pos = offset;
                 break;
 
             case SEEK_CUR: /* 1 */
-                FILE_HANDLES[ handle ].current_pos += offset;
+                file->current_pos += offset;
                 break;
 
             case SEEK_END: /* 2 */
-                FILE_HANDLES[ handle ].current_pos = FILE_HANDLES[ handle ].size + offset;
+                file->current_pos = file->size + offset;
                 break;
         }
     }
@@ -2936,7 +2947,7 @@ RES_EXPORT int ResSeekFile(int handle, size_t offset, int origin)
 #if (RES_MULTITHREAD)
     RELEASE_LOCK(GLOCK);
 #endif
-    return(FILE_HANDLES[ handle ].current_pos);
+    return(file->current_pos);
 }
 
 
@@ -3143,7 +3154,7 @@ RES_EXPORT int ResGetPath(int idx, char * buffer)
 
    ======================================================= */
 
-RES_EXPORT int ResGetArchive(int handle, char * buffer)
+RES_EXPORT int ResGetArchive(RES_archive_hndl* handle, char * buffer)
 {
     ARCHIVE    * archive = NULL;
     LIST       * list = NULL;
@@ -3164,7 +3175,7 @@ RES_EXPORT int ResGetArchive(int handle, char * buffer)
     {
         archive = (ARCHIVE *)list -> node;
 
-        if (archive -> os_handle == handle)
+        if (archive == handle)
             break;
     }
 
@@ -3336,7 +3347,7 @@ RES_EXPORT int ResWriteTOC(char * filename)
 
    ======================================================= */
 
-RES_EXPORT int ResStatusFile(const char * filename, RES_STAT * stat_buffer)
+RES_EXPORT int ResStatusFile(const char * filename, RES_stat * stat_buffer)
 {
     HASH_ENTRY * entry;
     LIST * list;
@@ -4270,7 +4281,7 @@ RES_EXPORT void ResAssignPath(int index, char * path)
 
     PURPOSE:    Perform an asynchronous read.
 
-    PARAMETERS: File int, buffer to read data in to,
+    PARAMETERS: File handle, buffer to read data in to,
                 function ptr for callback on completion.
 
     RETURNS:    TRUE (pass) / FALSE (fail).
@@ -4295,14 +4306,15 @@ RES_EXPORT void ResAssignPath(int index, char * path)
 
    ======================================================= */
 
-RES_EXPORT int ResAsynchRead(int file, void * buffer, PFV callback)
+RES_EXPORT int ResAsynchRead(RES_file_hndl handle, void * buffer, PFV callback)
 {
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
     ASYNCH_DATA * data;
     int thread_id;
 
 #if( RES_DEBUG_PARAMS )
 
-    if (!buffer || (file < 0) || (file > MAX_FILE_HANDLES))
+    if (!buffer || !file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAsynchRead");
         return(FALSE);
@@ -4372,14 +4384,15 @@ RES_EXPORT int ResAsynchRead(int file, void * buffer, PFV callback)
 
    ======================================================= */
 
-RES_EXPORT int ResAsynchWrite(int file, void * buffer, PFV callback)
+RES_EXPORT int ResAsynchWrite(RES_file_hndl handle, void * buffer, PFV callback)
 {
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
     ASYNCH_DATA * data;
     int thread_id;
 
 #if( RES_DEBUG_PARAMS )
 
-    if (!buffer || (file < 0) || (file > MAX_FILE_HANDLES))
+    if (!buffer || !file)
     {
         SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResAsynchWrite");
         return(FALSE);
@@ -4387,7 +4400,7 @@ RES_EXPORT int ResAsynchWrite(int file, void * buffer, PFV callback)
 
 #endif
 
-    IF_LOG(LOG("asynch write %s\n", FILE_HANDLES[file].filename));
+    IF_LOG(LOG("asynch write %s\n", file->filename));
 
 #ifdef USE_SH_POOLS
     data = (ASYNCH_DATA *)MemAllocPtr(gResmgrMemPool, sizeof(ASYNCH_DATA), 0);
@@ -4517,7 +4530,7 @@ RES_EXPORT int ResExtractFile(const char * dst, const char * src)
    ======================================================= */
 
 //RES_EXPORT void ResPurge( char * archive, char * volume, char * directory, char * filename )
-RES_EXPORT void ResPurge(const char * archive, const char * volume, const int * directory, const char * filename)
+RES_EXPORT void ResPurge(RES_archive_hndl* archive, const char * volume, const int * directory, const char * filename)
 {
     LIST * list;
 
@@ -4538,7 +4551,6 @@ RES_EXPORT void ResPurge(const char * archive, const char * volume, const int * 
 
 
 
-#if( RES_STREAMING_IO )
 
 /* -----------------------------------------------------------------------------------------------
 
@@ -4654,8 +4666,8 @@ RES_EXPORT void ResPurge(const char * archive, const char * volume, const int * 
    bit-field is 0x0200, and embarrassingly, I've munged my bit-fields into
    this same member, starting at 0x00010000 */
 
-#define _IOARCHIVE  0x00010000
-#define _IOLOOSE    0x00020000
+//#define _IOARCHIVE  0x00010000
+//#define _IOLOOSE    0x00020000
 
 
 
@@ -4683,6 +4695,193 @@ RES_EXPORT void ResSetbuf(FILE * file, void * buffer, int mode, size_t size)
 
 
 
+RES_EXPORT int RES_FPRINTF(RES_file_hndl handle, const char* fmt, ...)
+{
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+
+    if (!file)
+        return -1;
+
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(file->file_ptr, fmt, args);
+    va_end(args);
+}
+
+
+
+RES_EXPORT int RES_FSCANF(RES_file_hndl handle, const char* fmt, ...)
+{
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+    va_list args;
+    int retval = 1;
+
+#if( RES_DEBUG_PARAMS )
+
+    if (!file)
+    {
+        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "RES_FSCANF");
+        return(0);
+    }
+
+#endif /* RES_DEBUG_PARAMS */
+#if (RES_MULTITHREAD)
+    REQUEST_LOCK(GLOCK); /* GFG */
+#endif
+
+    if (file->file_ptr == NULL)
+    {
+        SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "RES_FSCANF");
+        return(0);
+    }
+
+    IF_LOG(LOG("fscanf (%s): (%s)\n", file->filename, fmt));
+
+    if (file->current_pos >= file->size)
+    {
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(0);
+    }
+
+    if (!file->zip)
+    {
+        va_start(args, fmt);
+        retval = vfscanf(file->file_ptr, fmt, args);
+        va_end(args);
+
+        file->current_pos = ftell(file->file_ptr);
+
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(retval);
+    }
+    else
+    {
+        /* In ZIP file */
+
+        SAY_ERROR(RES_ERR_UNKNOWN, "fscanf in archive not supported");
+
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(0);
+    }
+
+    return(0);
+}
+
+
+RES_EXPORT size_t RES_FWRITE(void* buffer, size_t size, size_t num, RES_file_hndl file)
+{
+    return ResWriteFile(file, buffer, size * num);
+}
+
+
+RES_EXPORT char* RES_FGETS(char* buffer, int max_count, RES_file_hndl handle)
+{
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+    char* retval;
+
+#if( RES_DEBUG_PARAMS )
+
+    if (!file)
+    {
+        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "RES_FGETS");
+        return(NULL);
+    }
+
+#endif /* RES_DEBUG_PARAMS */
+#if (RES_MULTITHREAD)
+    REQUEST_LOCK(GLOCK); /* GFG */
+#endif
+
+    if (file->file_ptr == NULL)
+    {
+        SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "RES_FGETS");
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(NULL);
+    }
+
+    IF_LOG(LOG("fgets (%s)", file->filename));
+
+    if (file->current_pos >= file->size)
+    {
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(NULL);
+    }
+
+    if (!file->zip)
+    {
+        retval = fgets(buffer, max_count, file->file_ptr);
+        file->current_pos = ftell(file->file_ptr);
+
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(retval);
+    }
+    else
+    {
+        /* In ZIP file */
+
+        SAY_ERROR(RES_ERR_UNKNOWN, "fscanf in archive not supported");
+
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(NULL);
+    }
+
+    return(NULL);
+}
+
+
+RES_EXPORT int RES_FEOF(RES_file_hndl handle)
+{
+    FILE_ENTRY* file = (FILE_ENTRY*)handle;
+    int retval;
+
+#if( RES_DEBUG_PARAMS )
+
+    if (!file)
+    {
+        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "RES_FEOF");
+        return(NULL);
+    }
+
+#endif /* RES_DEBUG_PARAMS */
+#if (RES_MULTITHREAD)
+    REQUEST_LOCK(GLOCK); /* GFG */
+#endif
+
+    if (file->file_ptr == NULL)
+    {
+        SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "RES_FEOF");
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+        return(NULL);
+    }
+
+    IF_LOG(LOG("feof (%s)\n", file->filename));
+
+    retval = file->current_pos >= file->size ? 1 : 0;
+
+#if (RES_MULTITHREAD)
+        RELEASE_LOCK(GLOCK); /* GFG */
+#endif
+
+    return(retval);
+}
+
+
 /* =======================================================
 
     FUNCTION:   fopen / ResFOpen
@@ -4695,500 +4894,539 @@ RES_EXPORT void ResSetbuf(FILE * file, void * buffer, int mode, size_t size)
 
    ======================================================= */
 
-
-
-RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
+RES_EXPORT RES_file_hndl RES_FOPEN(const char* name, const char* mode)
 {
-    FILE * stream;
-    int    write_flag = FALSE;
+    int mode_flags = 0;
+    char c;
+    char c_next;
 
-    HASH_ENTRY * entry;
-    HASH_TABLE * table = NULL;
+    // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/fopen-wfopen?view=msvc-170
 
-    char filename[_MAX_PATH],
-         dirpath[_MAX_PATH];
-
-    int  retval = 1;     /* to test return value of callbacks */
-    int  dir_index;
-    struct _finddata_t data;
-
-    char tmp[LREC_SIZE];
-    local_file_hdr lrec;
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!name || !mode)
+    for (int i = 0; i < 100; ++i)
     {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFOpen");
-        return(FALSE);
+        c = mode[i];
+        if (!c)
+            break;
+
+        c_next = mode[i++];
+
+        if (c == 'a' && c_next == '+')
+            mode_flags |= _O_RDWR | _O_APPEND | _O_CREAT;
+        else if (c == 'a')
+            mode_flags |= _O_WRONLY | _O_CREAT | _O_APPEND;
+        else if (c == 'r' && c_next == '+')
+            mode_flags |= _O_RDWR;
+        else if (c == 'r')
+            mode_flags |= _O_RDONLY;
+        else if (c == 'w' && c_next == '+')
+            mode_flags |= _O_RDWR | _O_CREAT | _O_TRUNC;
+        else if (c == 'w')
+            mode_flags |= _O_WRONLY | _O_CREAT | _O_TRUNC;
+        else if (c == 'b')
+            mode_flags |= _O_BINARY;
+        else if (c == 't')
+            mode_flags |= _O_TEXT;
+        else if (c == 'x')
+            mode_flags |= _O_EXCL;
     }
 
-#endif /* RES_DEBUG_PARAMS */
-#if (RES_MULTITHREAD)
-    REQUEST_LOCK(GLOCK);
-#endif
-
-
-    /* if the mode string contains either a 'w' or a '+' we
-       need to return an error if the file being operated on
-       is an archive file (eventually, this may be otherwise) */
-
-    if (strchr(mode, 'w') || strchr(mode, 'a'))
-        write_flag = TRUE;
-
-
-    /* find the file */
-
-#if( !RES_USE_FLAT_MODEL )
-    entry = hash_find_table(name, &table);          /* look through tables in search path order */
-#else
-    entry = hash_find(name, GLOBAL_HASH_TABLE);     /* look in the root hash table (flat model) */
-#endif
-
-    if (!entry && table && !write_flag)
-    {
-        SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
-        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, -1, retval);
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(NULL);
-    }
-
-    /* -------------------------------------
-           Creating a file for writing
-       ------------------------------------- */
-
-    if (!entry && write_flag)     /* FILE NOT FOUND */
-    {
-
-        /* if the user is trying to create a file on the harddrive,
-           this is ok (entry not found), but if they are not even
-           openning the file for any writing, we can return with
-           an error now. */
-
-#if( !RES_USE_FLAT_MODEL )
-
-        /* see if the destination directory exists */
-
-        if (strchr(name, ASCII_BACKSLASH))
-        {
-            split_path((char *)name, filename, dirpath);
-            entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
-        }
-        else    /* current directory */
-        {
-            strcpy(filename, name);
-            strcpy(dirpath, GLOBAL_CURRENT_PATH);
-            entry = hash_find(GLOBAL_CURRENT_PATH, GLOBAL_HASH_TABLE);
-        }
-
-
-        /* if the directory does not exist, this is an error.  Otherwise,
-           we get the ptr to the hash table for the destination directory */
-
-        if (!entry || !entry -> dir)    /* directory not found in resmgr */
-        {
-            SAY_ERROR(RES_ERR_UNKNOWN_WRITE_TO, name);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-        else
-        {
-            table = (HASH_TABLE *)entry -> dir;
-        }
-
-#else /* flat model */
-
-        /* if this is flat-mode, just look in the root hash table for
-           existance of the file, and set the table ptr to be the global
-           hash table (the sole hash table in this case). */
-
-        if (strchr(name, ASCII_BACKSLASH))
-            split_path(name, filename, dirpath);
-        else
-            strcpy(filename, name);
-
-        table = GLOBAL_HASH_TABLE;
-
-#endif /* !RES_USE_FLAT_MODEL */
-
-
-        /* We use a dummy _finddata_t struct to stuff an entry for
-           this file into the hash table */
-
-        strcpy(data.name, filename);
-        data.attrib = (unsigned int)FORCE_BIT;
-        data.time_create = 0;
-        data.time_access = 0;
-        data.size = 0;
-
-        entry = hash_add(&data, table);
-
-        if (!entry)
-        {
-            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen - create");
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-
-        /* Look through the array of directory names comparing these to
-           our destination directory.  The index value of the match is
-           set in our hash entry for later use.  If no match is found
-           ( this should never occur ), there is a big problem in the
-           hash tables */
-
-        for (dir_index = 0; dir_index <= GLOBAL_SEARCH_INDEX; dir_index++)
-        {
-            if (!stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
-            {
-                entry -> directory = dir_index;
-                entry -> volume = (char)(toupper(dirpath[0]) - 'A');
-                break;
-            }
-        }
-
-        /* oops.  big problem. */
-
-        if (dir_index > GLOBAL_SEARCH_INDEX)
-        {
-            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen - create");
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-    }
-
-
-    /* Make sure the user isn't trying to write to an archive file.
-       Someday this may be possible, but not for a while. */
-
-    if (entry && (entry -> archive != -1) && write_flag)
-    {
-        SAY_ERROR(RES_ERR_CANT_WRITE_ARCHIVE, "ResFOpen");
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(NULL);
-    }
-
-
-    /* we want to use the same allocation scheme that the
-       visual c++ run-time uses because a) it isn't that
-       bad, b) it assures the highest integration with the
-       stream i/o functions, and c) it may keep fclose(file)
-       from thrashing your system. */
-
-    stream = _getstream(); /* taken from open.c */
-
-    if (!stream)
-    {
-        SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResFOpen");
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(NULL);
-    }
-
-
-    /* these initialization values may change */
-
-    stream -> _ptr     = NULL;
-    stream -> _cnt     = 0;
-    stream -> _base    = NULL;
-    stream -> _flag    = _IOREAD; /* *MUST* have this for inuse to think it's full */
-    stream -> _file    = 0;
-    stream -> _charbuf = 0;
-    stream -> _bufsiz  = 0;
-    stream -> _tmpfname = NULL;
-
-    if (!entry || (entry -> archive == -1))
-    {
-
-        /* ----- Loose file ----- */
-
-
-        /* If the file is loose (not in an archive) we will want
-           _filbuf to work as normal - therefore the file handle
-           should be the OS handle of the open file.  If the file
-           is in an archive, the handle is our file handle which
-           we use to access the archive and read the file. */
-
-        if (!entry)  /* assume it's a 'create' acceptable mode */
-            res_fullpath(filename, name, _MAX_PATH);    /* regardless of coercion state */
-        else
-            sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
-
-
-        /* call the same low-level open file that fopen uses */
-
-        if (!_openfile(filename, mode, _SH_DENYNO, stream))
-        {
-
-            if (errno == EACCES)
-            {
-                SAY_ERROR(RES_ERR_FILE_SHARING, filename);
-            }
-            else
-            {
-                SAY_ERROR(RES_ERR_PROBLEM_READING, filename);
-            }
-
-            /* Don't forget to free the stream handle, duh */
-            stream -> _flag = 0;
-            stream -> _ptr = NULL;
-            stream -> _cnt = 0;
-
-            UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-
-
-        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, -1, retval);
-
-
-        /* tag the structure as our own flavor (specifically 'loose') */
-
-        stream -> _flag |= _IOLOOSE;
-
-        UNLOCK_STREAM(stream);
-
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(stream);
-    }
-    else
-    {
-
-        /* ----- Archive File ----- */
-
-
-        /* This is the case that we're doing all the work for.
-           If the file being read is a member of an archive, we
-           treat it as if we were using ResOpenFile at this
-           point.  Later, during the _filbuf() function, we'll
-           use this data to simulate the stream i/o filling
-           routine. */
-
-
-        /* We need one of our special file descriptors */
-
-        int           handle = 0;
-        FILE_ENTRY  * file = NULL;
-        LIST        * list = NULL;
-        ARCHIVE     * archive = NULL;
-
-        handle = get_handle();
-
-        if (handle == -1)    /* none left */
-        {
-            SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResOpenFile");
-            UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-
-        file = &FILE_HANDLES[ handle ];
-
-        /* Find the archive file from which this file is found */
-
-        for (list = ARCHIVE_LIST; list; list = list -> next)
-        {
-            archive = (ARCHIVE *)list -> node;
-
-            if (archive -> os_handle == entry -> archive)
-                break;
-        }
-
-
-        /* oops.  big problem. */
-
-        if (!list)
-        {
-            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen");   /* archive handle in hash entry is incorrect (or archive detached) */
-            UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(NULL);
-        }
-
-
-        /* Use our own file descriptor here.  This is where we do two cheats, one
-           obvious, one subtle.  We stuff our own descriptor into the file member
-           of the stream structure so we can use our own access methods within our
-           modified _filbuf routine.  However, we also use a sleazy little VC++
-           uniqueness by setting a flag that this is a _IOSTRG (stream is really
-           a string).  This ensures that if the user accidently passes the FILE
-           ptr to fclose, nothing nasty will occur.  It also ensures that should
-           the run-time library decide to go south, the clean-up code won't
-           exaserbate the problem, possibly allowing you to debug the original
-           problem. */
-
-        stream -> _file = handle;
-
-        /* Tag the structure as our own flavor (specifically 'archive'), as well
-           as use a vc++ uniqueness. */
-
-        stream -> _flag |= (_IOARCHIVE | _IOSTRG | _IOREAD);
-
-
-        /* ---------------------------------------------------------------------------
-
-                                          UGGGH!!
-
-           Microsoft morons didn't implement any of their stdio streaming functions
-           like everyone else in the fucking world, so this is a sordid fix.  The
-           problem is that fread will bypass _filbuf if the requested read size is
-           larger than the buffer.  Now, this alone is not a bad optimization, but
-           it would have been a hell of lot easier if they had done it like everyone
-           else and just put a function ptr for read/write within the iobuf struct.
-
-           --------------------------------------------------------------------------- */
-
-        stream -> _bufsiz = 0xffffffff;
-
-        /* --------------------------------------------------------------------------- */
-
-
-
-        UNLOCK_STREAM(stream);
-
-        REQUEST_LOCK(archive -> lock);
-
-        sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
-
-        lseek(archive -> os_handle, entry -> file_position + SIGNATURE_SIZE, SEEK_SET);
-
-        _read(archive -> os_handle, tmp, LREC_SIZE);
-
-        process_local_file_hdr(&lrec, tmp);      /* return PK-type error code */
-
-        file -> seek_start = lseek(archive -> os_handle, lrec.filename_length + lrec.extra_field_length, SEEK_CUR);
-
-
-        /* Initialize some common data */
-        file -> current_pos = 0;
-        file -> current_filbuf_pos = 0;
-
-
-        switch (entry -> method)
-        {
-            case STORED:
-            {
-                file -> os_handle   = archive -> os_handle;
-                //file -> seek_start  = entry -> file_position;
-                file -> csize       = 0;
-                file -> size        = entry -> size;
-                file -> filename    = MemStrDup(filename);
-                file -> mode        = _O_RDONLY | _O_BINARY;
-                file -> device      = entry -> volume;
-                file -> zip         = NULL; /* only used if we need to deflate */
-
-                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
-
-                RELEASE_LOCK(archive -> lock);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return(stream);
-                break;
-            }
-
-            case DEFLATED:
-            {
-                COMPRESSED_FILE * zip;
-
-#ifdef USE_SH_POOLS
-                zip = (COMPRESSED_FILE *)MemAllocPtr(gResmgrMemPool, sizeof(COMPRESSED_FILE) + (entry -> size), 0);
-#else
-                zip = (COMPRESSED_FILE *)MemMalloc(sizeof(COMPRESSED_FILE) + (entry -> size), "Inflate");
-#endif
-
-                if (!zip)
-                {
-                    SAY_ERROR(RES_ERR_NO_MEMORY, "Inflate");
-                    RELEASE_LOCK(archive -> lock);
-#if (RES_MULTITHREAD)
-                    RELEASE_LOCK(GLOCK);
-#endif
-                    return(NULL);
-                }
-
-                file -> os_handle   = archive -> os_handle;
-                //file -> seek_start  = entry -> file_position;
-                file -> csize       = entry -> csize;
-                file -> size        = entry -> size;
-                file -> filename    = MemStrDup(filename);
-                file -> mode        = _O_RDONLY | _O_BINARY;
-                file -> device      = entry -> volume;
-
-#ifdef USE_SH_POOLS
-                zip -> slide      = (uch *)MemAllocPtr(gResmgrMemPool, UNZIP_SLIDE_SIZE + INPUTBUFSIZE, 0);   /* glob temporary allocations */
-#else
-                zip -> slide      = (uch *)MemMalloc(UNZIP_SLIDE_SIZE + INPUTBUFSIZE, "deflate");   /* glob temporary allocations */
-#endif
-
-                zip -> in_buffer  = (uch *)zip -> slide + UNZIP_SLIDE_SIZE;
-                zip -> in_ptr     = (uch *)zip -> in_buffer;
-                zip -> in_count   = 0;
-                zip -> in_size    = file -> csize > INPUTBUFSIZE ? INPUTBUFSIZE : file -> csize;
-                zip -> csize      = file -> csize;
-
-                zip -> out_buffer = (char *)zip + sizeof(COMPRESSED_FILE);
-                zip -> out_count  = 0;
-                zip -> archive    = archive;
-
-                file -> zip       = zip;    /* Future use: I may add incremental deflation */
-
-                //lseek( file -> os_handle, file -> seek_start, SEEK_SET );
-                inflate(zip);
-
-#ifdef USE_SH_POOLS
-                MemFreePtr(zip -> slide);      /* Free temporary allocations */
-#else
-                MemFree(zip -> slide);      /* Free temporary allocations */
-#endif
-
-                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
-
-                RELEASE_LOCK(archive -> lock);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return(stream);
-                break;
-            }
-
-            default:
-                SAY_ERROR(RES_ERR_UNSUPPORTED_COMPRESSION, entry -> name);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return(NULL);
-                break;
-        }
-
-        RELEASE_LOCK(archive -> lock);
-    }
-
-#if (RES_MULTITHREAD)
-    RELEASE_LOCK(GLOCK);
-#endif
-
-    return(NULL);
+    return ResOpenFile(name, mode_flags);
 }
+
+
+//
+//RES_EXPORT RES_FILE* RES_FOPEN(const char * name, const char * mode)
+//{
+//    FILE * stream;
+//    int    write_flag = FALSE;
+//
+//    HASH_ENTRY * entry;
+//    HASH_TABLE * table = NULL;
+//
+//    char filename[_MAX_PATH],
+//         dirpath[_MAX_PATH];
+//
+//    int  retval = 1;     /* to test return value of callbacks */
+//    int  dir_index;
+//    struct _finddata_t data;
+//
+//    char tmp[LREC_SIZE];
+//    local_file_hdr lrec;
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!name || !mode)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFOpen");
+//        return(FALSE);
+//    }
+//
+//#endif /* RES_DEBUG_PARAMS */
+//#if (RES_MULTITHREAD)
+//    REQUEST_LOCK(GLOCK);
+//#endif
+//
+//
+//    /* if the mode string contains either a 'w' or a '+' we
+//       need to return an error if the file being operated on
+//       is an archive file (eventually, this may be otherwise) */
+//
+//    if (strchr(mode, 'w') || strchr(mode, 'a'))
+//        write_flag = TRUE;
+//
+//
+//    /* find the file */
+//
+//#if( !RES_USE_FLAT_MODEL )
+//    entry = hash_find_table(name, &table);          /* look through tables in search path order */
+//#else
+//    entry = hash_find(name, GLOBAL_HASH_TABLE);     /* look in the root hash table (flat model) */
+//#endif
+//
+//    if (!entry && table && !write_flag)
+//    {
+//        SAY_ERROR(RES_ERR_FILE_NOT_FOUND, name);
+//        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, -1, retval);
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(NULL);
+//    }
+//
+//    /* -------------------------------------
+//           Creating a file for writing
+//       ------------------------------------- */
+//
+//    if (!entry && write_flag)     /* FILE NOT FOUND */
+//    {
+//
+//        /* if the user is trying to create a file on the harddrive,
+//           this is ok (entry not found), but if they are not even
+//           openning the file for any writing, we can return with
+//           an error now. */
+//
+//#if( !RES_USE_FLAT_MODEL )
+//
+//        /* see if the destination directory exists */
+//
+//        if (strchr(name, ASCII_BACKSLASH))
+//        {
+//            split_path((char *)name, filename, dirpath);
+//            entry = hash_find(dirpath, GLOBAL_HASH_TABLE);
+//        }
+//        else    /* current directory */
+//        {
+//            strcpy(filename, name);
+//            strcpy(dirpath, GLOBAL_CURRENT_PATH);
+//            entry = hash_find(GLOBAL_CURRENT_PATH, GLOBAL_HASH_TABLE);
+//        }
+//
+//
+//        /* if the directory does not exist, this is an error.  Otherwise,
+//           we get the ptr to the hash table for the destination directory */
+//
+//        if (!entry || !entry -> dir)    /* directory not found in resmgr */
+//        {
+//            SAY_ERROR(RES_ERR_UNKNOWN_WRITE_TO, name);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//        else
+//        {
+//            table = (HASH_TABLE *)entry -> dir;
+//        }
+//
+//#else /* flat model */
+//
+//        /* if this is flat-mode, just look in the root hash table for
+//           existance of the file, and set the table ptr to be the global
+//           hash table (the sole hash table in this case). */
+//
+//        if (strchr(name, ASCII_BACKSLASH))
+//            split_path(name, filename, dirpath);
+//        else
+//            strcpy(filename, name);
+//
+//        table = GLOBAL_HASH_TABLE;
+//
+//#endif /* !RES_USE_FLAT_MODEL */
+//
+//
+//        /* We use a dummy _finddata_t struct to stuff an entry for
+//           this file into the hash table */
+//
+//        strcpy(data.name, filename);
+//        data.attrib = (unsigned int)FORCE_BIT;
+//        data.time_create = 0;
+//        data.time_access = 0;
+//        data.size = 0;
+//
+//        entry = hash_add(&data, table);
+//
+//        if (!entry)
+//        {
+//            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen - create");
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//
+//        /* Look through the array of directory names comparing these to
+//           our destination directory.  The index value of the match is
+//           set in our hash entry for later use.  If no match is found
+//           ( this should never occur ), there is a big problem in the
+//           hash tables */
+//
+//        for (dir_index = 0; dir_index <= GLOBAL_SEARCH_INDEX; dir_index++)
+//        {
+//            if (!stricmp(dirpath, GLOBAL_SEARCH_PATH[ dir_index ]))
+//            {
+//                entry -> directory = dir_index;
+//                entry -> volume = (char)(toupper(dirpath[0]) - 'A');
+//                break;
+//            }
+//        }
+//
+//        /* oops.  big problem. */
+//
+//        if (dir_index > GLOBAL_SEARCH_INDEX)
+//        {
+//            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen - create");
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//    }
+//
+//
+//    /* Make sure the user isn't trying to write to an archive file.
+//       Someday this may be possible, but not for a while. */
+//
+//    if (entry && (entry -> archive != -1) && write_flag)
+//    {
+//        SAY_ERROR(RES_ERR_CANT_WRITE_ARCHIVE, "ResFOpen");
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(NULL);
+//    }
+//
+//
+//    /* we want to use the same allocation scheme that the
+//       visual c++ run-time uses because a) it isn't that
+//       bad, b) it assures the highest integration with the
+//       stream i/o functions, and c) it may keep fclose(file)
+//       from thrashing your system. */
+//
+//    stream = _getstream(); /* taken from open.c */
+//
+//    if (!stream)
+//    {
+//        SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResFOpen");
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(NULL);
+//    }
+//
+//
+//    /* these initialization values may change */
+//
+//    stream -> _ptr     = NULL;
+//    stream -> _cnt     = 0;
+//    stream -> _base    = NULL;
+//    stream -> _flag    = _IOREAD; /* *MUST* have this for inuse to think it's full */
+//    stream -> _file    = 0;
+//    stream -> _charbuf = 0;
+//    stream -> _bufsiz  = 0;
+//    stream -> _tmpfname = NULL;
+//
+//    if (!entry || (entry -> archive == -1))
+//    {
+//
+//        /* ----- Loose file ----- */
+//
+//
+//        /* If the file is loose (not in an archive) we will want
+//           _filbuf to work as normal - therefore the file handle
+//           should be the OS handle of the open file.  If the file
+//           is in an archive, the handle is our file handle which
+//           we use to access the archive and read the file. */
+//
+//        if (!entry)  /* assume it's a 'create' acceptable mode */
+//            res_fullpath(filename, name, _MAX_PATH);    /* regardless of coercion state */
+//        else
+//            sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
+//
+//
+//        /* call the same low-level open file that fopen uses */
+//
+//        if (!_openfile(filename, mode, _SH_DENYNO, stream))
+//        {
+//
+//            if (errno == EACCES)
+//            {
+//                SAY_ERROR(RES_ERR_FILE_SHARING, filename);
+//            }
+//            else
+//            {
+//                SAY_ERROR(RES_ERR_PROBLEM_READING, filename);
+//            }
+//
+//            /* Don't forget to free the stream handle, duh */
+//            stream -> _flag = 0;
+//            stream -> _ptr = NULL;
+//            stream -> _cnt = 0;
+//
+//            UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//
+//
+//        SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, -1, retval);
+//
+//
+//        /* tag the structure as our own flavor (specifically 'loose') */
+//
+//        stream -> _flag |= _IOLOOSE;
+//
+//        UNLOCK_STREAM(stream);
+//
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(stream);
+//    }
+//    else
+//    {
+//
+//        /* ----- Archive File ----- */
+//
+//
+//        /* This is the case that we're doing all the work for.
+//           If the file being read is a member of an archive, we
+//           treat it as if we were using ResOpenFile at this
+//           point.  Later, during the _filbuf() function, we'll
+//           use this data to simulate the stream i/o filling
+//           routine. */
+//
+//
+//        /* We need one of our special file descriptors */
+//
+//        int           handle = 0;
+//        FILE_ENTRY  * file = NULL;
+//        LIST        * list = NULL;
+//        ARCHIVE     * archive = NULL;
+//
+//        handle = get_handle();
+//
+//        if (handle == -1)    /* none left */
+//        {
+//            SAY_ERROR(RES_ERR_TOO_MANY_FILES, "ResOpenFile");
+//            UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//
+//        file = &FILE_HANDLES[ handle ];
+//
+//        /* Find the archive file from which this file is found */
+//
+//        for (list = ARCHIVE_LIST; list; list = list -> next)
+//        {
+//            archive = (ARCHIVE *)list -> node;
+//
+//            if (archive -> os_handle == entry -> archive)
+//                break;
+//        }
+//
+//
+//        /* oops.  big problem. */
+//
+//        if (!list)
+//        {
+//            SAY_ERROR(RES_ERR_UNKNOWN, "ResFOpen");   /* archive handle in hash entry is incorrect (or archive detached) */
+//            UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(NULL);
+//        }
+//
+//
+//        /* Use our own file descriptor here.  This is where we do two cheats, one
+//           obvious, one subtle.  We stuff our own descriptor into the file member
+//           of the stream structure so we can use our own access methods within our
+//           modified _filbuf routine.  However, we also use a sleazy little VC++
+//           uniqueness by setting a flag that this is a _IOSTRG (stream is really
+//           a string).  This ensures that if the user accidently passes the FILE
+//           ptr to fclose, nothing nasty will occur.  It also ensures that should
+//           the run-time library decide to go south, the clean-up code won't
+//           exaserbate the problem, possibly allowing you to debug the original
+//           problem. */
+//
+//        stream -> _file = handle;
+//
+//        /* Tag the structure as our own flavor (specifically 'archive'), as well
+//           as use a vc++ uniqueness. */
+//
+//        stream -> _flag |= (_IOARCHIVE | _IOSTRG | _IOREAD);
+//
+//
+//        /* ---------------------------------------------------------------------------
+//
+//                                          UGGGH!!
+//
+//           Microsoft morons didn't implement any of their stdio streaming functions
+//           like everyone else in the fucking world, so this is a sordid fix.  The
+//           problem is that fread will bypass _filbuf if the requested read size is
+//           larger than the buffer.  Now, this alone is not a bad optimization, but
+//           it would have been a hell of lot easier if they had done it like everyone
+//           else and just put a function ptr for read/write within the iobuf struct.
+//
+//           --------------------------------------------------------------------------- */
+//
+//        stream -> _bufsiz = 0xffffffff;
+//
+//        /* --------------------------------------------------------------------------- */
+//
+//
+//
+//        UNLOCK_STREAM(stream);
+//
+//        REQUEST_LOCK(archive -> lock);
+//
+//        sprintf(filename, "%s%s", GLOBAL_SEARCH_PATH[ entry -> directory ], entry -> name);
+//
+//        lseek(archive -> os_handle, entry -> file_position + SIGNATURE_SIZE, SEEK_SET);
+//
+//        _read(archive -> os_handle, tmp, LREC_SIZE);
+//
+//        process_local_file_hdr(&lrec, tmp);      /* return PK-type error code */
+//
+//        file -> seek_start = lseek(archive -> os_handle, lrec.filename_length + lrec.extra_field_length, SEEK_CUR);
+//
+//
+//        /* Initialize some common data */
+//        file -> current_pos = 0;
+//        file -> current_filbuf_pos = 0;
+//
+//
+//        switch (entry -> method)
+//        {
+//            case STORED:
+//            {
+//                file -> os_handle   = archive -> os_handle;
+//                //file -> seek_start  = entry -> file_position;
+//                file -> csize       = 0;
+//                file -> size        = entry -> size;
+//                file -> filename    = MemStrDup(filename);
+//                file -> mode        = _O_RDONLY | _O_BINARY;
+//                file -> device      = entry -> volume;
+//                file -> zip         = NULL; /* only used if we need to deflate */
+//
+//                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
+//
+//                RELEASE_LOCK(archive -> lock);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return(stream);
+//                break;
+//            }
+//
+//            case DEFLATED:
+//            {
+//                COMPRESSED_FILE * zip;
+//
+//#ifdef USE_SH_POOLS
+//                zip = (COMPRESSED_FILE *)MemAllocPtr(gResmgrMemPool, sizeof(COMPRESSED_FILE) + (entry -> size), 0);
+//#else
+//                zip = (COMPRESSED_FILE *)MemMalloc(sizeof(COMPRESSED_FILE) + (entry -> size), "Inflate");
+//#endif
+//
+//                if (!zip)
+//                {
+//                    SAY_ERROR(RES_ERR_NO_MEMORY, "Inflate");
+//                    RELEASE_LOCK(archive -> lock);
+//#if (RES_MULTITHREAD)
+//                    RELEASE_LOCK(GLOCK);
+//#endif
+//                    return(NULL);
+//                }
+//
+//                file -> os_handle   = archive -> os_handle;
+//                //file -> seek_start  = entry -> file_position;
+//                file -> csize       = entry -> csize;
+//                file -> size        = entry -> size;
+//                file -> filename    = MemStrDup(filename);
+//                file -> mode        = _O_RDONLY | _O_BINARY;
+//                file -> device      = entry -> volume;
+//
+//#ifdef USE_SH_POOLS
+//                zip -> slide      = (uch *)MemAllocPtr(gResmgrMemPool, UNZIP_SLIDE_SIZE + INPUTBUFSIZE, 0);   /* glob temporary allocations */
+//#else
+//                zip -> slide      = (uch *)MemMalloc(UNZIP_SLIDE_SIZE + INPUTBUFSIZE, "deflate");   /* glob temporary allocations */
+//#endif
+//
+//                zip -> in_buffer  = (uch *)zip -> slide + UNZIP_SLIDE_SIZE;
+//                zip -> in_ptr     = (uch *)zip -> in_buffer;
+//                zip -> in_count   = 0;
+//                zip -> in_size    = file -> csize > INPUTBUFSIZE ? INPUTBUFSIZE : file -> csize;
+//                zip -> csize      = file -> csize;
+//
+//                zip -> out_buffer = (char *)zip + sizeof(COMPRESSED_FILE);
+//                zip -> out_count  = 0;
+//                zip -> archive    = archive;
+//
+//                file -> zip       = zip;    /* Future use: I may add incremental deflation */
+//
+//                //lseek( file -> os_handle, file -> seek_start, SEEK_SET );
+//                inflate(zip);
+//
+//#ifdef USE_SH_POOLS
+//                MemFreePtr(zip -> slide);      /* Free temporary allocations */
+//#else
+//                MemFree(zip -> slide);      /* Free temporary allocations */
+//#endif
+//
+//                SHOULD_I_CALL_WITH(CALLBACK_OPEN_FILE, handle, retval);
+//
+//                RELEASE_LOCK(archive -> lock);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return(stream);
+//                break;
+//            }
+//
+//            default:
+//                SAY_ERROR(RES_ERR_UNSUPPORTED_COMPRESSION, entry -> name);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return(NULL);
+//                break;
+//        }
+//
+//        RELEASE_LOCK(archive -> lock);
+//    }
+//
+//#if (RES_MULTITHREAD)
+//    RELEASE_LOCK(GLOCK);
+//#endif
+//
+//    return(NULL);
+//}
 
 
 
@@ -5201,113 +5439,122 @@ RES_EXPORT FILE * RES_FOPEN(const char * name, const char * mode)
     PURPOSE:    Closes a file that has previously been
                 opened using ResFOpen().
 
-    PARAMETERS: File ptr.
+    PARAMETERS: File handle.
 
-    RETURNS:    None.
+    RETURNS:    TRUE (pass) / FALSE (fail)
 
    ======================================================= */
 
-int __cdecl RES_FCLOSE(FILE * file)
+int RES_FCLOSE(RES_file_hndl file)
 {
-    int handle,
-        result;
-
-#if( RES_DEBUG_PARAMS )
-    /* check to see if it's one of our two flavors of FILE ptrs */
-
-    if (!file || !(file -> _flag, (_IOARCHIVE | _IOLOOSE)))
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFClose");
-        return(EOF); /* error */
-    }
-
-#endif
-
-#if (RES_MULTITHREAD)
-    REQUEST_LOCK(GLOCK);
-#endif
-
-    if (FLAG_TEST(file -> _flag, _IOARCHIVE))
-    {
-        handle = file -> _file;
-
-        if (FILE_HANDLES[ handle ].zip)
-#ifdef USE_SH_POOLS
-            MemFreePtr(FILE_HANDLES[ handle ].zip);
-
-#else
-            MemFree(FILE_HANDLES[ handle ].zip);
-#endif
-
-#ifdef USE_SH_POOLS
-        MemFreePtr(FILE_HANDLES[ handle ].filename);
-#else
-        MemFree(FILE_HANDLES[ handle ].filename);
-#endif
-
-        FILE_HANDLES[ handle ].zip = NULL;
-        FILE_HANDLES[ handle ].filename = NULL;
-        FILE_HANDLES[ handle ].os_handle = -1;
-
-        /* since microsoft doesn't use have symmetry with it's _getstream()
-           function (eg; _freestream()), we just set the _flag field to 0
-           and assume that's all there is to do (seems like this is true
-           after looking at close.c and fclose.c */
-
-        /* Actually, not quite. If the streaming io functions are used then
-           a call to _freebuf is needed. Looking closely at fclose.c and
-           _freebuf.c it seems safe to do all the time. LRKUDGE
-        */
-        LOCK_STREAM(file);
-
-        _freebuf(file);
-        file -> _flag = 0;
-        file -> _ptr = NULL;
-        file -> _cnt = 0;
-
-        UNLOCK_STREAM(file);
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-
-        return(0);
-
-    }
-    else
-    {
-        FLAG_UNSET(file -> _flag, _IOLOOSE);    /* we want to unset our unique flags before */
-        FLAG_UNSET(file -> _flag, _IOSTRG);     /* calling any CRT functions.               */
-
-        /* this is basically all that fclose does   */
-        LOCK_STREAM(file);
-
-        result = _flush(file);
-
-        _freebuf(file);
-
-        if (_close(_fileno(file)) < 0)
-            result = EOF;
-
-        UNLOCK_STREAM(file);
-
-        file -> _flag = 0;                      /* now we clear all flags                   */
-
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(result);
-    }
+    return ResCloseFile(file);
 }
 
 
+//
+//int __cdecl RES_FCLOSE(FILE * file)
+//{
+//    int handle,
+//        result;
+//
+//#if( RES_DEBUG_PARAMS )
+//    /* check to see if it's one of our two flavors of FILE ptrs */
+//
+//    if (!file || !(file -> _flag, (_IOARCHIVE | _IOLOOSE)))
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ResFClose");
+//        return(EOF); /* error */
+//    }
+//
+//#endif
+//
+//#if (RES_MULTITHREAD)
+//    REQUEST_LOCK(GLOCK);
+//#endif
+//
+//    if (FLAG_TEST(file -> _flag, _IOARCHIVE))
+//    {
+//        handle = file -> _file;
+//
+//        if (FILE_HANDLES[ handle ].zip)
+//#ifdef USE_SH_POOLS
+//            MemFreePtr(FILE_HANDLES[ handle ].zip);
+//
+//#else
+//            MemFree(FILE_HANDLES[ handle ].zip);
+//#endif
+//
+//#ifdef USE_SH_POOLS
+//        MemFreePtr(FILE_HANDLES[ handle ].filename);
+//#else
+//        MemFree(FILE_HANDLES[ handle ].filename);
+//#endif
+//
+//        FILE_HANDLES[ handle ].zip = NULL;
+//        FILE_HANDLES[ handle ].filename = NULL;
+//        FILE_HANDLES[ handle ].os_handle = -1;
+//
+//        /* since microsoft doesn't use have symmetry with it's _getstream()
+//           function (eg; _freestream()), we just set the _flag field to 0
+//           and assume that's all there is to do (seems like this is true
+//           after looking at close.c and fclose.c */
+//
+//        /* Actually, not quite. If the streaming io functions are used then
+//           a call to _freebuf is needed. Looking closely at fclose.c and
+//           _freebuf.c it seems safe to do all the time. LRKUDGE
+//        */
+//        LOCK_STREAM(file);
+//
+//        _freebuf(file);
+//        file -> _flag = 0;
+//        file -> _ptr = NULL;
+//        file -> _cnt = 0;
+//
+//        UNLOCK_STREAM(file);
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//
+//        return(0);
+//
+//    }
+//    else
+//    {
+//        FLAG_UNSET(file -> _flag, _IOLOOSE);    /* we want to unset our unique flags before */
+//        FLAG_UNSET(file -> _flag, _IOSTRG);     /* calling any CRT functions.               */
+//
+//        /* this is basically all that fclose does   */
+//        LOCK_STREAM(file);
+//
+//        result = _flush(file);
+//
+//        _freebuf(file);
+//
+//        if (_close(_fileno(file)) < 0)
+//            result = EOF;
+//
+//        UNLOCK_STREAM(file);
+//
+//        file -> _flag = 0;                      /* now we clear all flags                   */
+//
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(result);
+//    }
+//}
 
 
 
-#define bigbuf(s)       ((s)->_flag & (_IOMYBUF|_IOYOURBUF))
-#define _osfile(i)      ( _pioinfo(i)->osfile
-#define FCRLF           0x04    /* CR-LF across read buffer (in text mode) */
-#define _IOCTRLZ        0x2000
-#define FTEXT           0x80    /* file handle is in text mode */
+
+
+//#define bigbuf(s)       ((s)->_flag & (_IOMYBUF|_IOYOURBUF))
+//#define _osfile(i)      ( _pioinfo(i)->osfile
+//#define FCRLF           0x04    /* CR-LF across read buffer (in text mode) */
+//#define _IOCTRLZ        0x2000
+//#define FTEXT           0x80    /* file handle is in text mode */
+
+
 
 /* =======================================================
 
@@ -5352,242 +5599,248 @@ int __cdecl RES_FCLOSE(FILE * file)
 
    ======================================================= */
 
-long __cdecl RES_FTELL(FILE * stream)
+long RES_FTELL(RES_file_hndl file)
 {
-    unsigned int offset;
-    long filepos;
-    register char * p;
-    char * max;
-    int fd;
-    unsigned int rdcnt;
-
-    int handle,
-        count;
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!stream)
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ftell");
-        return(-1);
-    }
-
-#endif /* RES_DEBUG_PARAMS */
-
-#if (RES_MULTITHREAD)
-    REQUEST_LOCK(GLOCK);
-#endif
-
-    /* --------- File within a compressed archive --------- */
-
-
-    LOCK_STREAM(stream);
-
-    if ((stream -> _flag) & _IOARCHIVE)
-    {
-        handle = stream -> _file;
-
-        /* GFG_NOV06        count = (int)( stream -> _ptr - stream -> _base ); *//* should be safe (key word: SHOULD) */
-
-        if (handle < 0 || handle > MAX_FILE_HANDLES || (FILE_HANDLES[ handle ].os_handle == -1 && !(stream -> _flag & _IOLOOSE)))
-        {
-            SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ftell");
-            UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(-1);
-        }
-
-        /***  GFG_NOV06
-               if( stream -> _flag & _IOARCHIVE )
-                   count = FILE_HANDLES[ handle ].current_pos - stream -> _cnt;
-               else
-                   count += FILE_HANDLES[ handle ].current_pos;
-        ***/
-        count = FILE_HANDLES[ handle ].current_pos;;
-
-        UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(count);
-    }
-
-
-    /* ------------------- Loose file ------------------- */
-
-
-    /* Init stream pointer and file descriptor */
-
-    fd = _fileno(stream);
-
-    if (stream->_cnt < 0)
-        stream->_cnt = 0;
-
-    UNLOCK_STREAM(stream);
-
-    if ((filepos = _lseek(fd, 0L, SEEK_CUR)) < 0L)
-    {
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(-1L);
-    }
-
-    if (!bigbuf(stream))           /* _IONBF or no buffering designated */
-    {
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(filepos - stream->_cnt);
-    }
-
-    LOCK_STREAM(stream);
-
-    offset = stream->_ptr - stream->_base;
-
-    if (stream->_flag & (_IOWRT | _IOREAD))
-    {
-        if (stream -> _flag & _O_TEXT)
-            for (p = stream->_base; p < stream->_ptr; p++)
-                if (*p == '\n')  /* adjust for '\r' */
-                    offset++;
-    }
-    else if (!(stream->_flag & _IORW))
-    {
-        errno = EINVAL;
-        UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return(-1L);
-    }
-
-    if (filepos == 0L)
-    {
-        UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-        return((long)offset);
-    }
-
-    if (stream->_flag & _IOREAD)    /* go to preceding sector */
-    {
-
-        if (stream->_cnt == 0)      /* filepos holds correct location */
-        {
-            UNLOCK_STREAM(stream);
-            offset = 0;
-        }
-        else
-        {
-            /* Subtract out the number of unread bytes left in the
-               buffer. [We can't simply use _iob[]._bufsiz because
-               the last read may have hit EOF and, thus, the buffer
-               was not completely filled.] */
-
-            rdcnt = stream->_cnt + (stream->_ptr - stream->_base);
-
-            /* If text mode, adjust for the cr/lf substitution. If
-               binary mode, we're outta here. */
-
-            if (stream -> _flag & _O_TEXT)
-            {
-                /* (1) If we're not at eof, simply copy _bufsiz
-                   onto rdcnt to get the # of untranslated
-                   chars read. (2) If we're at eof, we must
-                   look through the buffer expanding the '\n'
-                   chars one at a time. */
-
-                /* [NOTE: Performance issue -- it is faster to
-                   do the two _lseek() calls than to blindly go
-                   through and expand the '\n' chars regardless
-                   of whether we're at eof or not.] */
-
-                UNLOCK_STREAM(stream);
-
-                if (_lseek(fd, 0L, 2) == filepos)
-                {
-
-                    LOCK_STREAM(stream);
-
-                    max = stream->_base + rdcnt;
-
-                    for (p = stream->_base; p < max; p++)
-                        if (*p == '\n')                     /* adjust for '\r' */
-                            rdcnt++;
-
-                    /* If last byte was ^Z, the lowio read
-                       didn't tell us about it.  Check flag
-                       and bump count, if necessary. */
-
-                    if (stream->_flag & _IOCTRLZ)
-                        ++rdcnt;
-
-                    UNLOCK_STREAM(stream);
-                }
-                else
-                {
-
-                    _lseek(fd, filepos, 0);
-
-                    /* We want to set rdcnt to the number
-                       of bytes originally read into the
-                       stream buffer (before crlf->lf
-                       translation). In most cases, this
-                       will just be _bufsiz. However, the
-                       buffer size may have been changed,
-                       due to fseek optimization, at the
-                       END of the last _filbuf call. */
-
-                    LOCK_STREAM(stream);
-
-                    if ((rdcnt <= _SMALL_BUFSIZ) &&
-                        (stream->_flag & _IOMYBUF) &&
-                        !(stream->_flag & _IOSETVBUF))
-                    {
-                        /* The translated contents of
-                           the buffer is small and we
-                           are not at eof. The buffer
-                           size must have been set to
-                           _SMALL_BUFSIZ during the
-                           last _filbuf call. */
-
-                        rdcnt = _SMALL_BUFSIZ;
-                    }
-                    else
-                        rdcnt = stream->_bufsiz;
-
-
-                    /* If first byte in untranslated buffer
-                       was a '\n', assume it was preceeded
-                       by a '\r' which was discarded by the
-                       previous read operation and count
-                       the '\n'. */
-                    if (*stream->_base == '\n')
-                        ++rdcnt;
-
-                    UNLOCK_STREAM(stream);
-                }
-
-            } /* end if FTEXT */
-            else
-                UNLOCK_STREAM(stream);
-
-            filepos -= (long)rdcnt;
-
-        } /* end else stream->_cnt != 0 */
-    }
-    else
-        UNLOCK_STREAM(stream);
-
-#if (RES_MULTITHREAD)
-    RELEASE_LOCK(GLOCK);
-#endif
-    return(filepos + (long)offset);
+    return ResTellFile(file);
 }
+
+//
+//long __cdecl RES_FTELL(FILE * stream)
+//{
+//    unsigned int offset;
+//    long filepos;
+//    register char * p;
+//    char * max;
+//    int fd;
+//    unsigned int rdcnt;
+//
+//    int handle,
+//        count;
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!stream)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "ftell");
+//        return(-1);
+//    }
+//
+//#endif /* RES_DEBUG_PARAMS */
+//
+//#if (RES_MULTITHREAD)
+//    REQUEST_LOCK(GLOCK);
+//#endif
+//
+//    /* --------- File within a compressed archive --------- */
+//
+//
+//    LOCK_STREAM(stream);
+//
+//    if ((stream -> _flag) & _IOARCHIVE)
+//    {
+//        handle = stream -> _file;
+//
+//        /* GFG_NOV06        count = (int)( stream -> _ptr - stream -> _base ); *//* should be safe (key word: SHOULD) */
+//
+//        if (handle < 0 || handle > MAX_FILE_HANDLES || (FILE_HANDLES[ handle ].os_handle == -1 && !(stream -> _flag & _IOLOOSE)))
+//        {
+//            SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "ftell");
+//            UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(-1);
+//        }
+//
+//        /***  GFG_NOV06
+//               if( stream -> _flag & _IOARCHIVE )
+//                   count = FILE_HANDLES[ handle ].current_pos - stream -> _cnt;
+//               else
+//                   count += FILE_HANDLES[ handle ].current_pos;
+//        ***/
+//        count = FILE_HANDLES[ handle ].current_pos;;
+//
+//        UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(count);
+//    }
+//
+//
+//    /* ------------------- Loose file ------------------- */
+//
+//
+//    /* Init stream pointer and file descriptor */
+//
+//    fd = _fileno(stream);
+//
+//    if (stream->_cnt < 0)
+//        stream->_cnt = 0;
+//
+//    UNLOCK_STREAM(stream);
+//
+//    if ((filepos = _lseek(fd, 0L, SEEK_CUR)) < 0L)
+//    {
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(-1L);
+//    }
+//
+//    if (!bigbuf(stream))           /* _IONBF or no buffering designated */
+//    {
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(filepos - stream->_cnt);
+//    }
+//
+//    LOCK_STREAM(stream);
+//
+//    offset = stream->_ptr - stream->_base;
+//
+//    if (stream->_flag & (_IOWRT | _IOREAD))
+//    {
+//        if (stream -> _flag & _O_TEXT)
+//            for (p = stream->_base; p < stream->_ptr; p++)
+//                if (*p == '\n')  /* adjust for '\r' */
+//                    offset++;
+//    }
+//    else if (!(stream->_flag & _IORW))
+//    {
+//        errno = EINVAL;
+//        UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return(-1L);
+//    }
+//
+//    if (filepos == 0L)
+//    {
+//        UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//        return((long)offset);
+//    }
+//
+//    if (stream->_flag & _IOREAD)    /* go to preceding sector */
+//    {
+//
+//        if (stream->_cnt == 0)      /* filepos holds correct location */
+//        {
+//            UNLOCK_STREAM(stream);
+//            offset = 0;
+//        }
+//        else
+//        {
+//            /* Subtract out the number of unread bytes left in the
+//               buffer. [We can't simply use _iob[]._bufsiz because
+//               the last read may have hit EOF and, thus, the buffer
+//               was not completely filled.] */
+//
+//            rdcnt = stream->_cnt + (stream->_ptr - stream->_base);
+//
+//            /* If text mode, adjust for the cr/lf substitution. If
+//               binary mode, we're outta here. */
+//
+//            if (stream -> _flag & _O_TEXT)
+//            {
+//                /* (1) If we're not at eof, simply copy _bufsiz
+//                   onto rdcnt to get the # of untranslated
+//                   chars read. (2) If we're at eof, we must
+//                   look through the buffer expanding the '\n'
+//                   chars one at a time. */
+//
+//                /* [NOTE: Performance issue -- it is faster to
+//                   do the two _lseek() calls than to blindly go
+//                   through and expand the '\n' chars regardless
+//                   of whether we're at eof or not.] */
+//
+//                UNLOCK_STREAM(stream);
+//
+//                if (_lseek(fd, 0L, 2) == filepos)
+//                {
+//
+//                    LOCK_STREAM(stream);
+//
+//                    max = stream->_base + rdcnt;
+//
+//                    for (p = stream->_base; p < max; p++)
+//                        if (*p == '\n')                     /* adjust for '\r' */
+//                            rdcnt++;
+//
+//                    /* If last byte was ^Z, the lowio read
+//                       didn't tell us about it.  Check flag
+//                       and bump count, if necessary. */
+//
+//                    if (stream->_flag & _IOCTRLZ)
+//                        ++rdcnt;
+//
+//                    UNLOCK_STREAM(stream);
+//                }
+//                else
+//                {
+//
+//                    _lseek(fd, filepos, 0);
+//
+//                    /* We want to set rdcnt to the number
+//                       of bytes originally read into the
+//                       stream buffer (before crlf->lf
+//                       translation). In most cases, this
+//                       will just be _bufsiz. However, the
+//                       buffer size may have been changed,
+//                       due to fseek optimization, at the
+//                       END of the last _filbuf call. */
+//
+//                    LOCK_STREAM(stream);
+//
+//                    if ((rdcnt <= _SMALL_BUFSIZ) &&
+//                        (stream->_flag & _IOMYBUF) &&
+//                        !(stream->_flag & _IOSETVBUF))
+//                    {
+//                        /* The translated contents of
+//                           the buffer is small and we
+//                           are not at eof. The buffer
+//                           size must have been set to
+//                           _SMALL_BUFSIZ during the
+//                           last _filbuf call. */
+//
+//                        rdcnt = _SMALL_BUFSIZ;
+//                    }
+//                    else
+//                        rdcnt = stream->_bufsiz;
+//
+//
+//                    /* If first byte in untranslated buffer
+//                       was a '\n', assume it was preceeded
+//                       by a '\r' which was discarded by the
+//                       previous read operation and count
+//                       the '\n'. */
+//                    if (*stream->_base == '\n')
+//                        ++rdcnt;
+//
+//                    UNLOCK_STREAM(stream);
+//                }
+//
+//            } /* end if FTEXT */
+//            else
+//                UNLOCK_STREAM(stream);
+//
+//            filepos -= (long)rdcnt;
+//
+//        } /* end else stream->_cnt != 0 */
+//    }
+//    else
+//        UNLOCK_STREAM(stream);
+//
+//#if (RES_MULTITHREAD)
+//    RELEASE_LOCK(GLOCK);
+//#endif
+//    return(filepos + (long)offset);
+//}
 
 
 
@@ -5605,144 +5858,149 @@ long __cdecl RES_FTELL(FILE * stream)
    ================================================================================== */
 
 
+size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, RES_file_hndl file)
+{
+    return ResReadFile(file, buffer, size * num);
+}
+
 
 /* define the normal version */
-
-size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
-{
-    char *data;                     /* point to where should be read next */
-    unsigned total;                 /* total bytes to read */
-    unsigned count;                 /* num bytes left to read */
-    unsigned bufsize;               /* size of stream buffer */
-    unsigned nbytes;                /* how much to read now */
-    unsigned nread;                 /* how much we did read */
-    int c;                          /* a temp char */
-
-
-    /* initialize local vars */
-    data = buffer;
-
-
-    if ((count = total = size * num) == 0)
-        return 0;
-
-#if (RES_MULTITHREAD)
-    REQUEST_LOCK(GLOCK);
-#endif
-
-    LOCK_STREAM(stream);
-
-    if (anybuf(stream)) /* already has buffer, use its size */
-        bufsize = stream->_bufsiz;
-    else
-#if defined (_M_M68K) || defined (_M_MPPC)
-        bufsize = BUFSIZ;           /* assume will get BUFSIZ buffer */
-
-#else  /* defined (_M_M68K) || defined (_M_MPPC) */
-        bufsize = _INTERNAL_BUFSIZ; /* assume will get _INTERNAL_BUFSIZ buffer */
-#endif  /* defined (_M_M68K) || defined (_M_MPPC) */
-
-    /* here is the main loop -- we go through here until we're done */
-    while (count != 0)
-    {
-        /* if the buffer exists and has characters, copy them to user
-           buffer */
-        if (anybuf(stream) && stream->_cnt != 0)
-        {
-            /* how much do we want? */
-            nbytes = (count < (unsigned)stream->_cnt) ? count : stream->_cnt;
-            memcpy(data, stream->_ptr, nbytes);
-
-            /* update stream and amt of data read */
-            count -= nbytes;
-            stream->_cnt -= nbytes;
-            stream->_ptr += nbytes;
-            data += nbytes;
-
-            /* GFG_NOV06 */
-            if (stream -> _flag & _IOARCHIVE)
-                FILE_HANDLES[ stream -> _file ].current_pos += nbytes;
-
-
-
-
-        }              //          |<---------- MODIFIED ----------->|
-        else if ((count >= bufsize) && !(stream -> _flag & _IOARCHIVE))
-        {
-            //          |<---------- MODIFIED ----------->|
-            /* If we have more than bufsize chars to read, get data
-               by calling read with an integral number of bufsiz
-               blocks.  Note that if the stream is text mode, read
-               will return less chars than we ordered. */
-
-            /* calc chars to read -- (count/bufsize) * bufsize */
-            nbytes = (bufsize ? (count - count % bufsize) :
-                      count);
-
-            UNLOCK_STREAM(stream);
-            nread = _read(_fileno(stream), data, nbytes);
-            LOCK_STREAM(stream);
-
-            if (nread == 0)
-            {
-                /* end of file -- out of here */
-                stream->_flag |= _IOEOF;
-                UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return (total - count) / size;
-            }
-            else if (nread == (unsigned) - 1)
-            {
-                /* error -- out of here */
-                stream->_flag |= _IOERR;
-                UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return (total - count) / size;
-            }
-
-            /* update count and data to reflect read */
-            count -= nread;
-            data += nread;
-        }
-        else
-        {
-            /* less than bufsize chars to read, so call _filbuf to
-               fill buffer */
-            if ((c = _filbuf(stream)) == EOF)
-            {
-                /* error or eof, stream flags set by _filbuf */
-                UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-                RELEASE_LOCK(GLOCK);
-#endif
-                return (total - count) / size;
-            }
-
-            /* _filbuf returned a char -- store it */
-            *data++ = (char) c;
-            --count;
-
-            /* GFG_NOV06 */
-            if (stream -> _flag & _IOARCHIVE)
-                FILE_HANDLES[ stream -> _file ].current_pos++;
-
-            /* update buffer size */
-            bufsize = stream->_bufsiz;
-        }
-    }
-
-    UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-    RELEASE_LOCK(GLOCK);
-#endif
-
-    /* we finished successfully, so just return num */
-    return num;
-}
+//
+//size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
+//{
+//    char *data;                     /* point to where should be read next */
+//    unsigned total;                 /* total bytes to read */
+//    unsigned count;                 /* num bytes left to read */
+//    unsigned bufsize;               /* size of stream buffer */
+//    unsigned nbytes;                /* how much to read now */
+//    unsigned nread;                 /* how much we did read */
+//    int c;                          /* a temp char */
+//
+//
+//    /* initialize local vars */
+//    data = buffer;
+//
+//
+//    if ((count = total = size * num) == 0)
+//        return 0;
+//
+//#if (RES_MULTITHREAD)
+//    REQUEST_LOCK(GLOCK);
+//#endif
+//
+//    LOCK_STREAM(stream);
+//
+//    if (anybuf(stream)) /* already has buffer, use its size */
+//        bufsize = stream->_bufsiz;
+//    else
+//#if defined (_M_M68K) || defined (_M_MPPC)
+//        bufsize = BUFSIZ;           /* assume will get BUFSIZ buffer */
+//
+//#else  /* defined (_M_M68K) || defined (_M_MPPC) */
+//        bufsize = _INTERNAL_BUFSIZ; /* assume will get _INTERNAL_BUFSIZ buffer */
+//#endif  /* defined (_M_M68K) || defined (_M_MPPC) */
+//
+//    /* here is the main loop -- we go through here until we're done */
+//    while (count != 0)
+//    {
+//        /* if the buffer exists and has characters, copy them to user
+//           buffer */
+//        if (anybuf(stream) && stream->_cnt != 0)
+//        {
+//            /* how much do we want? */
+//            nbytes = (count < (unsigned)stream->_cnt) ? count : stream->_cnt;
+//            memcpy(data, stream->_ptr, nbytes);
+//
+//            /* update stream and amt of data read */
+//            count -= nbytes;
+//            stream->_cnt -= nbytes;
+//            stream->_ptr += nbytes;
+//            data += nbytes;
+//
+//            /* GFG_NOV06 */
+//            if (stream -> _flag & _IOARCHIVE)
+//                FILE_HANDLES[ stream -> _file ].current_pos += nbytes;
+//
+//
+//
+//
+//        }              //          |<---------- MODIFIED ----------->|
+//        else if ((count >= bufsize) && !(stream -> _flag & _IOARCHIVE))
+//        {
+//            //          |<---------- MODIFIED ----------->|
+//            /* If we have more than bufsize chars to read, get data
+//               by calling read with an integral number of bufsiz
+//               blocks.  Note that if the stream is text mode, read
+//               will return less chars than we ordered. */
+//
+//            /* calc chars to read -- (count/bufsize) * bufsize */
+//            nbytes = (bufsize ? (count - count % bufsize) :
+//                      count);
+//
+//            UNLOCK_STREAM(stream);
+//            nread = _read(_fileno(stream), data, nbytes);
+//            LOCK_STREAM(stream);
+//
+//            if (nread == 0)
+//            {
+//                /* end of file -- out of here */
+//                stream->_flag |= _IOEOF;
+//                UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return (total - count) / size;
+//            }
+//            else if (nread == (unsigned) - 1)
+//            {
+//                /* error -- out of here */
+//                stream->_flag |= _IOERR;
+//                UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return (total - count) / size;
+//            }
+//
+//            /* update count and data to reflect read */
+//            count -= nread;
+//            data += nread;
+//        }
+//        else
+//        {
+//            /* less than bufsize chars to read, so call _filbuf to
+//               fill buffer */
+//            if ((c = _filbuf(stream)) == EOF)
+//            {
+//                /* error or eof, stream flags set by _filbuf */
+//                UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//                RELEASE_LOCK(GLOCK);
+//#endif
+//                return (total - count) / size;
+//            }
+//
+//            /* _filbuf returned a char -- store it */
+//            *data++ = (char) c;
+//            --count;
+//
+//            /* GFG_NOV06 */
+//            if (stream -> _flag & _IOARCHIVE)
+//                FILE_HANDLES[ stream -> _file ].current_pos++;
+//
+//            /* update buffer size */
+//            bufsize = stream->_bufsiz;
+//        }
+//    }
+//
+//    UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//    RELEASE_LOCK(GLOCK);
+//#endif
+//
+//    /* we finished successfully, so just return num */
+//    return num;
+//}
 
 
 /* ==================================================================================
@@ -5769,157 +6027,163 @@ size_t __cdecl RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream)
 
    ======================================================= */
 
-int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
+int RES_FSEEK(RES_file_hndl file, long offset, int whence)
 {
-    unsigned int pos;
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!stream)
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "fseek");
-        return(-1);
-    }
-
-#endif /* RES_DEBUG_PARAMS */
-#if (RES_MULTITHREAD)
-    REQUEST_LOCK(GLOCK);
-#endif
-
-    LOCK_STREAM(stream);
-
-    if (stream -> _flag & _IOARCHIVE)
-    {
-        pos = FILE_HANDLES[ stream -> _file ].current_pos;
-
-        switch (whence)
-        {
-            case SEEK_SET: /* 0 */
-                pos = offset;
-                break;
-
-            case SEEK_CUR: /* 1 */
-                pos += offset;
-                break;
-
-            case SEEK_END: /* 2 */
-                pos = FILE_HANDLES[ stream -> _file ].size + offset;
-                break;
-        }
-
-        stream -> _cnt = 0; /* force next read to replenish buffers */
-        stream -> _ptr = stream -> _base;
-
-        UNLOCK_STREAM(stream);
-
-        if (pos > FILE_HANDLES[ stream -> _file ].size)
-        {
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(-1);
-        }
-
-        FILE_HANDLES[ stream -> _file ].current_pos = pos;
-
-
-#if (RES_MULTITHREAD)
-        RELEASE_LOCK(GLOCK);
-#endif
-
-        return(0);
-    }
-    else
-    {
-        if (!inuse(stream) ||
-            ((whence != SEEK_SET) &&
-             (whence != SEEK_CUR) &&
-             (whence != SEEK_END)))
-        {
-            errno = EINVAL;
-            UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(-1);
-        }
-
-        /* Clear EOF flag */
-
-        stream -> _flag &= ~_IOEOF;
-
-        /* If seeking relative to current location, then convert to
-           a seek relative to beginning of file.  This accounts for
-           buffering, etc. by letting fseek() tell us where we are. */
-
-        if (whence == SEEK_CUR)
-        {
-            offset += ftell(stream);
-            whence = SEEK_SET;
-        }
-
-        /* Flush buffer as necessary */
-
-        _flush(stream);
-
-        /* If file opened for read/write, clear flags since we don't know
-           what the user is going to do next. If the file was opened for
-           read access only, decrease _bufsiz so that the next _filbuf
-           won't cost quite so much */
-
-        if (stream->_flag & _IORW)
-            stream->_flag &= ~(_IOWRT | _IOREAD);
-        else
-        {
-            if ((stream->_flag & _IOREAD) &&
-                (stream->_flag & _IOMYBUF) &&
-                !(stream->_flag & _IOSETVBUF))
-            {
-                stream->_bufsiz = _SMALL_BUFSIZ;
-            }
-        }
-
-
-        /* Seek to the desired locale and return. */
-
-#ifdef _MT
-        pos = _lseek(stream -> _file, offset, whence);
-#else
-        pos = _lseek_lk(stream -> _file, offset, whence);
-#endif
-
-
-        stream -> _ptr = stream -> _base;
-
-        // There is no file handle assosciated with a streaming 'loose'
-        // file.  Therefore... the following fix was actually scribling
-        // memory.
-
-        // if( pos != -1 )
-        //     FILE_HANDLES[ stream -> _file ].current_pos = pos; [KBR SEPT 10 96]
-
-        if (pos == -1)
-        {
-#if (RES_MULTITHREAD)
-            RELEASE_LOCK(GLOCK);
-#endif
-            return(-1);
-        }
-
-
-        if ((stream -> _flag & _IOARCHIVE) && (pos != -1))
-            FILE_HANDLES[ stream -> _file ].current_pos = pos;
-    }
-
-    UNLOCK_STREAM(stream);
-#if (RES_MULTITHREAD)
-    RELEASE_LOCK(GLOCK);
-#endif
-
-    return(0);
+    return ResSeekFile(file, offset, whence);
 }
 
-#endif /* RES_STREAMING_IO */
+
+// 
+//int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
+//{
+//    unsigned int pos;
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!stream)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "fseek");
+//        return(-1);
+//    }
+//
+//#endif /* RES_DEBUG_PARAMS */
+//#if (RES_MULTITHREAD)
+//    REQUEST_LOCK(GLOCK);
+//#endif
+//
+//    LOCK_STREAM(stream);
+//
+//    if (stream -> _flag & _IOARCHIVE)
+//    {
+//        pos = FILE_HANDLES[ stream -> _file ].current_pos;
+//
+//        switch (whence)
+//        {
+//            case SEEK_SET: /* 0 */
+//                pos = offset;
+//                break;
+//
+//            case SEEK_CUR: /* 1 */
+//                pos += offset;
+//                break;
+//
+//            case SEEK_END: /* 2 */
+//                pos = FILE_HANDLES[ stream -> _file ].size + offset;
+//                break;
+//        }
+//
+//        stream -> _cnt = 0; /* force next read to replenish buffers */
+//        stream -> _ptr = stream -> _base;
+//
+//        UNLOCK_STREAM(stream);
+//
+//        if (pos > FILE_HANDLES[ stream -> _file ].size)
+//        {
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(-1);
+//        }
+//
+//        FILE_HANDLES[ stream -> _file ].current_pos = pos;
+//
+//
+//#if (RES_MULTITHREAD)
+//        RELEASE_LOCK(GLOCK);
+//#endif
+//
+//        return(0);
+//    }
+//    else
+//    {
+//        if (!inuse(stream) ||
+//            ((whence != SEEK_SET) &&
+//             (whence != SEEK_CUR) &&
+//             (whence != SEEK_END)))
+//        {
+//            errno = EINVAL;
+//            UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(-1);
+//        }
+//
+//        /* Clear EOF flag */
+//
+//        stream -> _flag &= ~_IOEOF;
+//
+//        /* If seeking relative to current location, then convert to
+//           a seek relative to beginning of file.  This accounts for
+//           buffering, etc. by letting fseek() tell us where we are. */
+//
+//        if (whence == SEEK_CUR)
+//        {
+//            offset += ftell(stream);
+//            whence = SEEK_SET;
+//        }
+//
+//        /* Flush buffer as necessary */
+//
+//        _flush(stream);
+//
+//        /* If file opened for read/write, clear flags since we don't know
+//           what the user is going to do next. If the file was opened for
+//           read access only, decrease _bufsiz so that the next _filbuf
+//           won't cost quite so much */
+//
+//        if (stream->_flag & _IORW)
+//            stream->_flag &= ~(_IOWRT | _IOREAD);
+//        else
+//        {
+//            if ((stream->_flag & _IOREAD) &&
+//                (stream->_flag & _IOMYBUF) &&
+//                !(stream->_flag & _IOSETVBUF))
+//            {
+//                stream->_bufsiz = _SMALL_BUFSIZ;
+//            }
+//        }
+//
+//
+//        /* Seek to the desired locale and return. */
+//
+//#ifdef _MT
+//        pos = _lseek(stream -> _file, offset, whence);
+//#else
+//        pos = _lseek_lk(stream -> _file, offset, whence);
+//#endif
+//
+//
+//        stream -> _ptr = stream -> _base;
+//
+//        // There is no file handle assosciated with a streaming 'loose'
+//        // file.  Therefore... the following fix was actually scribling
+//        // memory.
+//
+//        // if( pos != -1 )
+//        //     FILE_HANDLES[ stream -> _file ].current_pos = pos; [KBR SEPT 10 96]
+//
+//        if (pos == -1)
+//        {
+//#if (RES_MULTITHREAD)
+//            RELEASE_LOCK(GLOCK);
+//#endif
+//            return(-1);
+//        }
+//
+//
+//        if ((stream -> _flag & _IOARCHIVE) && (pos != -1))
+//            FILE_HANDLES[ stream -> _file ].current_pos = pos;
+//    }
+//
+//    UNLOCK_STREAM(stream);
+//#if (RES_MULTITHREAD)
+//    RELEASE_LOCK(GLOCK);
+//#endif
+//
+//    return(0);
+//}
+
 
 
 /* ==================================================================================
@@ -5953,181 +6217,181 @@ int __cdecl RES_FSEEK(FILE * stream, long offset, int whence)
                 unique (bastard) version of the two.
 
    ======================================================= */
-
-int __cdecl _filbuf(FILE * stream)
-{
-    int retval = FALSE;     /* used for the callback */
-    int handle = 0;
-
-    FILE_ENTRY * file = NULL;      /* my file descriptor */
-
-    int compressed_flag = TRUE;
-
-
-#if( RES_DEBUG_PARAMS )
-
-    if (!stream)
-    {
-        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "_filbuf");
-        return(EOF);
-    }
-
-    // if( !(stream -> _flag & ( _IOARCHIVE | _IOLOOSE )) ) {
-    //    /* You can actually remove this error trap if you want fopen
-    //       as well as ResFOpen */
-    //    SAY_ERROR( RES_ERR_UNKNOWN, "Stream not created with ResFOpen!" );
-    //    stream -> _flag |= _IOREAD;
-    //    return( EOF );
-    // }
-#endif
-
-    //LRKLUDGE
-    // If its a string return
-    if (!inuse(stream) ||
-        ((stream->_flag & _IOSTRG) &&
-         !(stream->_flag & (_IOLOOSE | _IOARCHIVE))))
-        return(EOF);
-
-    /* if stream is opened as WRITE ONLY, set error and return */
-    if (stream -> _flag & _IOWRT)
-    {
-        stream -> _flag |= _IOERR;
-        return(EOF);
-    }
-
-    /* force flag */
-
-    stream -> _flag |= _IOREAD;
-
-    /* Get a buffer, if necessary. (taken from _filbuf.c) */
-
-    if (!(stream -> _base))
-        _getbuf(stream);
-    else
-        stream -> _ptr = stream -> _base;
-
-    /* if the callback routine does the fill it should return TRUE,
-       designating that this routine can exit immediately */
-
-    SHOULD_I_CALL_WITH(CALLBACK_FILL_STREAM, stream, retval);
-
-    if (retval)
-        return(0xff & retval);
-
-    /* READ OR DECOMPRESS ? */
-
-    /* if a file is loose on the hard-drive, we will want to replenish
-       the buffer by simply reading the file directly.  If a file is
-       'stored' (not compressed) within an archive file, we replenish
-       the buffer by seeking within the archive, and then doing a
-       simple read.  Finally, if the file is compressed within an
-       archive, we assume we already have a decomressed buffer from
-       which to copy bytes. */
-
-    if (!(stream -> _flag & _IOARCHIVE))
-    {
-        compressed_flag = FALSE;
-        handle = stream -> _file;
-    }
-    else
-    {
-
-        file = &FILE_HANDLES[ stream -> _file ];
-
-        /*        if( file -> current_pos >= file -> size )  was GFG */
-        if (file -> current_filbuf_pos >= file -> size)
-        {
-            return(EOF);
-        }
-
-        if (file -> os_handle == -1)
-        {
-            SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "_filbuf internal error");
-            stream -> _flag |= _IOERR;
-            return(EOF);
-        }
-
-        if (!file -> zip)      /* file is just stored */
-        {
-            compressed_flag = FALSE;
-            handle = file -> os_handle;
-#ifdef _MT
-            /*_lseek_lk( handle, (file -> seek_start + file -> current_pos), SEEK_SET );*/
-#else
-            lseek(handle, (file -> seek_start + file -> current_pos), SEEK_SET);
-#endif
-        }
-        else      /* end of file check ? */
-        {
-
-            int count;
-
-            count = stream -> _bufsiz;
-
-            if (count > (int)(file -> size - file -> current_filbuf_pos))    /* was current_pos */
-            {
-                memset(stream -> _base, 0, stream -> _bufsiz);
-                count = file -> size - file -> current_filbuf_pos;    /* was current_pos */
-            }
-
-            memcpy(stream -> _base, file -> zip -> out_buffer + file -> current_filbuf_pos, count);  /* was current_pos */
-            file -> current_filbuf_pos += count;       /* GFG_NOV06 */
-            stream -> _cnt = count;
-        }
-    }
-
-    if (!compressed_flag)
-    {
-
-        stream -> _cnt = _read(handle, stream -> _base, stream -> _bufsiz);
-
-        if (file)    /* stored in an archive */
-        {
-
-            if (stream -> _cnt < 0)       /* error reading */
-            {
-                stream -> _flag |= _IOERR;
-
-                if (stream -> _flag & (_IOARCHIVE | _IOLOOSE))  /* make sure this is an fopen() file */
-                    ResCheckMedia(file -> device);              /* if not, has media changed?        */
-
-                return(EOF);
-            }
-
-            /****    GFG_NOV06
-                        else
-                            file -> current_pos += stream -> _cnt;
-            ***/
-        }
-
-        if ((stream -> _cnt == 0) || (stream -> _cnt == -1))
-        {
-            stream -> _flag |= stream -> _cnt ? _IOERR : _IOEOF;
-            stream -> _cnt = 0;
-            return(EOF);
-        }
-
-        //  Don't think I need this, but... _osfile_safe(i) expands to (_pioinfo_safe(i)->osfile)
-        //  if( !(stream -> _flag & ( _IOWRT | _IORW )) && ((_osfile_safe(_fileno(stream)) & (FTEXT|FEOFLAG)) == (FTEXT|FEOFLAG)))
-        //      stream -> _flag |= _IOCTRLZ;
-
-        /* Check for small _bufsiz (_SMALL_BUFSIZ). If it is small and
-           if it is our buffer, then this must be the first _filbuf after
-           an fseek on a read-access-only stream. Restore _bufsiz to its
-           larger value (_INTERNAL_BUFSIZ) so that the next _filbuf call,
-           if one is made, will fill the whole buffer. */
-
-        if ((stream -> _bufsiz == _SMALL_BUFSIZ) &&
-            (stream -> _flag & _IOMYBUF) &&
-            !(stream -> _flag & _IOSETVBUF))
-        {
-            stream -> _bufsiz = _INTERNAL_BUFSIZ;
-        }
-    }
-
-    stream -> _cnt--;
-    return(0xff & *stream -> _ptr++);
-}
+//
+//int __cdecl _filbuf(FILE * stream)
+//{
+//    int retval = FALSE;     /* used for the callback */
+//    int handle = 0;
+//
+//    FILE_ENTRY * file = NULL;      /* my file descriptor */
+//
+//    int compressed_flag = TRUE;
+//
+//
+//#if( RES_DEBUG_PARAMS )
+//
+//    if (!stream)
+//    {
+//        SAY_ERROR(RES_ERR_INCORRECT_PARAMETER, "_filbuf");
+//        return(EOF);
+//    }
+//
+//    // if( !(stream -> _flag & ( _IOARCHIVE | _IOLOOSE )) ) {
+//    //    /* You can actually remove this error trap if you want fopen
+//    //       as well as ResFOpen */
+//    //    SAY_ERROR( RES_ERR_UNKNOWN, "Stream not created with ResFOpen!" );
+//    //    stream -> _flag |= _IOREAD;
+//    //    return( EOF );
+//    // }
+//#endif
+//
+//    //LRKLUDGE
+//    // If its a string return
+//    if (!inuse(stream) ||
+//        ((stream->_flag & _IOSTRG) &&
+//         !(stream->_flag & (_IOLOOSE | _IOARCHIVE))))
+//        return(EOF);
+//
+//    /* if stream is opened as WRITE ONLY, set error and return */
+//    if (stream -> _flag & _IOWRT)
+//    {
+//        stream -> _flag |= _IOERR;
+//        return(EOF);
+//    }
+//
+//    /* force flag */
+//
+//    stream -> _flag |= _IOREAD;
+//
+//    /* Get a buffer, if necessary. (taken from _filbuf.c) */
+//
+//    if (!(stream -> _base))
+//        _getbuf(stream);
+//    else
+//        stream -> _ptr = stream -> _base;
+//
+//    /* if the callback routine does the fill it should return TRUE,
+//       designating that this routine can exit immediately */
+//
+//    SHOULD_I_CALL_WITH(CALLBACK_FILL_STREAM, stream, retval);
+//
+//    if (retval)
+//        return(0xff & retval);
+//
+//    /* READ OR DECOMPRESS ? */
+//
+//    /* if a file is loose on the hard-drive, we will want to replenish
+//       the buffer by simply reading the file directly.  If a file is
+//       'stored' (not compressed) within an archive file, we replenish
+//       the buffer by seeking within the archive, and then doing a
+//       simple read.  Finally, if the file is compressed within an
+//       archive, we assume we already have a decomressed buffer from
+//       which to copy bytes. */
+//
+//    if (!(stream -> _flag & _IOARCHIVE))
+//    {
+//        compressed_flag = FALSE;
+//        handle = stream -> _file;
+//    }
+//    else
+//    {
+//
+//        file = &FILE_HANDLES[ stream -> _file ];
+//
+//        /*        if( file -> current_pos >= file -> size )  was GFG */
+//        if (file -> current_filbuf_pos >= file -> size)
+//        {
+//            return(EOF);
+//        }
+//
+//        if (file -> os_handle == -1)
+//        {
+//            SAY_ERROR(RES_ERR_ILLEGAL_FILE_HANDLE, "_filbuf internal error");
+//            stream -> _flag |= _IOERR;
+//            return(EOF);
+//        }
+//
+//        if (!file -> zip)      /* file is just stored */
+//        {
+//            compressed_flag = FALSE;
+//            handle = file -> os_handle;
+//#ifdef _MT
+//            /*_lseek_lk( handle, (file -> seek_start + file -> current_pos), SEEK_SET );*/
+//#else
+//            lseek(handle, (file -> seek_start + file -> current_pos), SEEK_SET);
+//#endif
+//        }
+//        else      /* end of file check ? */
+//        {
+//
+//            int count;
+//
+//            count = stream -> _bufsiz;
+//
+//            if (count > (int)(file -> size - file -> current_filbuf_pos))    /* was current_pos */
+//            {
+//                memset(stream -> _base, 0, stream -> _bufsiz);
+//                count = file -> size - file -> current_filbuf_pos;    /* was current_pos */
+//            }
+//
+//            memcpy(stream -> _base, file -> zip -> out_buffer + file -> current_filbuf_pos, count);  /* was current_pos */
+//            file -> current_filbuf_pos += count;       /* GFG_NOV06 */
+//            stream -> _cnt = count;
+//        }
+//    }
+//
+//    if (!compressed_flag)
+//    {
+//
+//        stream -> _cnt = _read(handle, stream -> _base, stream -> _bufsiz);
+//
+//        if (file)    /* stored in an archive */
+//        {
+//
+//            if (stream -> _cnt < 0)       /* error reading */
+//            {
+//                stream -> _flag |= _IOERR;
+//
+//                if (stream -> _flag & (_IOARCHIVE | _IOLOOSE))  /* make sure this is an fopen() file */
+//                    ResCheckMedia(file -> device);              /* if not, has media changed?        */
+//
+//                return(EOF);
+//            }
+//
+//            /****    GFG_NOV06
+//                        else
+//                            file -> current_pos += stream -> _cnt;
+//            ***/
+//        }
+//
+//        if ((stream -> _cnt == 0) || (stream -> _cnt == -1))
+//        {
+//            stream -> _flag |= stream -> _cnt ? _IOERR : _IOEOF;
+//            stream -> _cnt = 0;
+//            return(EOF);
+//        }
+//
+//        //  Don't think I need this, but... _osfile_safe(i) expands to (_pioinfo_safe(i)->osfile)
+//        //  if( !(stream -> _flag & ( _IOWRT | _IORW )) && ((_osfile_safe(_fileno(stream)) & (FTEXT|FEOFLAG)) == (FTEXT|FEOFLAG)))
+//        //      stream -> _flag |= _IOCTRLZ;
+//
+//        /* Check for small _bufsiz (_SMALL_BUFSIZ). If it is small and
+//           if it is our buffer, then this must be the first _filbuf after
+//           an fseek on a read-access-only stream. Restore _bufsiz to its
+//           larger value (_INTERNAL_BUFSIZ) so that the next _filbuf call,
+//           if one is made, will fill the whole buffer. */
+//
+//        if ((stream -> _bufsiz == _SMALL_BUFSIZ) &&
+//            (stream -> _flag & _IOMYBUF) &&
+//            !(stream -> _flag & _IOSETVBUF))
+//        {
+//            stream -> _bufsiz = _INTERNAL_BUFSIZ;
+//        }
+//    }
+//
+//    stream -> _cnt--;
+//    return(0xff & *stream -> _ptr++);
+//}
 
 
 
@@ -6469,8 +6733,8 @@ void shut_down(void)
     if (FILE_HANDLES)    /* close any open file handles, clear for heck of it */
     {
         for (index = 0; index < MAX_FILE_HANDLES; index++)
-            if (FILE_HANDLES[ index ].os_handle != -1)
-                ResCloseFile(index);
+            if (FILE_HANDLES[ index ].file_ptr != NULL)
+                ResCloseFile(&FILE_HANDLES[index]);
 
 #ifdef USE_SH_POOLS
         MemFreePtr(FILE_HANDLES);
@@ -6507,11 +6771,11 @@ void shut_down(void)
 
     if (OPEN_DIR_LIST)
     {
-        RES_DIR * dir;
+        RES_dir * dir;
 
         for (list = OPEN_DIR_LIST; list; list = list -> next)
         {
-            dir = (RES_DIR *)list -> node;
+            dir = (RES_dir*)list -> node;
             ResCloseDirectory(dir);
             IF_LOG(LOG("directory leak prevented: %s\n", dir -> name));
         }
@@ -6682,8 +6946,7 @@ void res_detach_ex(ARCHIVE * archive)
             continue;
         }
 
-        if (((ARCHIVE*)entry -> archive) -> os_handle ==             archive -> os_handle)  /* make sure the entry wasn't overridden */
-
+        if (entry -> archive == archive)  /* make sure the entry wasn't overridden */
             hash_delete(entry, table);
     }
 
@@ -6699,13 +6962,13 @@ void res_detach_ex(ARCHIVE * archive)
             continue;
         }
 
-        if (((ARCHIVE *)entry -> archive) -> os_handle == archive -> os_handle)  /* make sure the entry wasn't overridden */
+        if (entry->archive == archive)  /* make sure the entry wasn't overridden */
             hash_delete(entry, GLOBAL_HASH_TABLE);
     }
 
 #endif /* !USE_FLAT_MODEL */
 
-    _close(archive -> os_handle);
+    fclose(archive->file_ptr);
 
     DESTROY_LOCK(archive -> lock);
 
@@ -7358,7 +7621,7 @@ int hash_delete(HASH_ENTRY * hash_entry, HASH_TABLE * hsh)
    ======================================================= */
 
 //void hash_purge( HASH_TABLE * hsh, char * archive, char * volume, char * directory, char * filename )
-void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, const int * directory, const char * filename)
+void hash_purge(HASH_TABLE * hsh, RES_archive_hndl* archive, const char * volume, const int * directory, const char * filename)
 {
     int index;
 
@@ -7368,7 +7631,7 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
 
     if (archive)
     {
-        IF_LOG(LOG("purging entries from archive %d\n", *archive));
+        IF_LOG(LOG("purging entries from archive %d\n", archive));
     }
 
     if (volume)
@@ -7401,7 +7664,7 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
             while (curr)
             {
                 if ((volume && (curr -> volume == *volume)) ||
-                    (archive && (curr -> archive == *archive)) ||
+                    (archive && (curr -> archive == archive)) ||
                     (directory && (curr -> directory == *directory)) ||
                     (filename && !strcmp(entry -> name, filename)))
                 {
@@ -7424,7 +7687,7 @@ void hash_purge(HASH_TABLE * hsh, const char * archive, const char * volume, con
         }
 
         if ((volume && (entry -> volume == *volume)) ||
-            (archive && (entry -> archive == *archive)) ||
+            (archive && (entry -> archive == archive)) ||
             (directory && (entry -> directory == *directory)) ||
             (filename && !strcmp(entry -> name, filename)))
         {
@@ -7732,11 +7995,11 @@ HASH_ENTRY * hash_find_table(const char * name, HASH_TABLE ** table)
 
     FUNCTION:    get_handle
 
-    PURPOSE:    Returns the next available file handle.
+    PURPOSE:    Returns the next available file index.
 
     PARAMS:        None.
 
-    RETURNS:    File handle or -1 on an error.
+    RETURNS:    File index or -1 on an error.
 
    ======================================================= */
 
@@ -7745,7 +8008,7 @@ int get_handle(void)
     int i;
 
     for (i = 0; i < MAX_FILE_HANDLES; i++)
-        if (FILE_HANDLES[i].os_handle == -1)
+        if (FILE_HANDLES[i].file_ptr == NULL)
             return(i);
 
     return(-1);

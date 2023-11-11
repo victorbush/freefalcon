@@ -36,7 +36,7 @@ extern "C"
 #include "codelib/resources/reslib/src/resmgr.h"
 }
 
-#define SI_HANDLE FILE
+#define SI_HANDLE RES_file_hndl
 #define SI_OPEN   RES_FOPEN
 #define SI_READ   RES_FREAD
 #define SI_CLOSE  RES_FCLOSE
@@ -53,7 +53,7 @@ int gTotalCursors;
 
 BOOL CreateSimCursors()
 {
-    SI_HANDLE* pCursorFile;
+    SI_HANDLE pCursorFile;
     char pFileName[MAX_PATH] = "";
     char pFilePath[MAX_PATH] = "";
     BOOL Result = TRUE;
@@ -67,7 +67,7 @@ BOOL CreateSimCursors()
         return (FALSE);
     }
 
-    if (fscanf(pCursorFile, "%d", &gTotalCursors) != 1)
+    if (RES_FSCANF(pCursorFile, "%d", &gTotalCursors) != 1)
     {
         return(FALSE);
     }
@@ -77,7 +77,7 @@ BOOL CreateSimCursors()
     for (i = 0; i < gTotalCursors; i++)
     {
         // Note, the %hu is to read in unsigned shorts instead of unsigned ints
-        if (fscanf(pCursorFile, "\t%hu %hu %hu %hu %s\n", &gpSimCursors[i].Width, &gpSimCursors[i].Height,
+        if (RES_FSCANF(pCursorFile, "\t%hu %hu %hu %hu %s\n", &gpSimCursors[i].Width, &gpSimCursors[i].Height,
                    &gpSimCursors[i].xHotspot, &gpSimCursors[i].yHotspot, pFileName) != NUM_FIELDS)
         {
             return(FALSE);

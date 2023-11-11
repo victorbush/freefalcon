@@ -17,6 +17,7 @@
 #define __unzip_h
 
 #include "resmgr.h"
+#include "resmgr_prv.h"
 
 /*****************************************/
 /*  Predefined, Machine-specific Macros  */

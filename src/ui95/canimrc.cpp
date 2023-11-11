@@ -21,7 +21,7 @@ extern "C"
 #include "codelib/resources/reslib/src/resmgr.h"
 }
 
-#define UI_HANDLE FILE *
+#define UI_HANDLE RES_file_hndl
 #define UI_OPEN   RES_FOPEN
 #define UI_READ   RES_FREAD
 #define UI_CLOSE  RES_FCLOSE
@@ -30,7 +30,7 @@ extern "C"
 
 #endif
 
-long UI_FILESIZE(UI_HANDLE fp);
+//long UI_FILESIZE(UI_HANDLE fp);
 
 #ifdef _UI95_PARSER_
 
@@ -101,7 +101,7 @@ ANIM_RES *C_Animation::LoadAnim(long ID, char *filename)
     if (ifp == NULL)
         return(NULL);
 
-    size = UI_FILESIZE(ifp);
+    size = ResSizeFile(ifp);
 
     if (!size)
     {

@@ -113,7 +113,7 @@ so insure MAX_DIRECTORIES is large enough in released versions.
 
 #define RES_PREDETERMINE_SIZE           NO          /* count all entries before performing alloc    */
 
-#define RES_STREAMING_IO                YES         /* allow the standard i/o streaming functions   */
+#define RES_STREAMING_IO                NO          /* allow the standard i/o streaming functions   */
 
 #define RES_REPLACE_STREAMING           NO          /* use ftell or ResFTell? (comment in RESMGR.C) */
 

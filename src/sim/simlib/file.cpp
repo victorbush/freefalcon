@@ -165,7 +165,7 @@ SimlibFileClass* SimlibFileClass::Open(char *fName, int flags)
 
     // Try the actual open
     fHandle = new SimlibFileClass;
-    fHandle->fptr = ResFOpen(fileName, access);
+    fHandle->fptr = RES_FOPEN(fileName, access);
 
     // Did it open ?
     if (fHandle->fptr == NULL)
@@ -228,7 +228,7 @@ int SimlibFileClass::ReadLine(char *buf, int max_len)
     char *cp;
 
     // Skip Comments
-    while ((cp = fgets(buf, max_len, fptr)) != NULL)
+    while ((cp = RES_FGETS(buf, max_len, fptr)) != NULL)
     {
         //RESMANAGER KLUDGE
         SwapCRLF(buf);
@@ -249,7 +249,7 @@ int SimlibFileClass::ReadLine(char *buf, int max_len)
         *(strchr(buf, '\r')) = 0;
 
     // Strip the trailing new-line
-    if (!feof(fptr))
+    if (!RES_FEOF(fptr))
     {
         if (buf[strlen(buf) - 1] == '\n')
             buf[strlen(buf) - 1] = 0;
@@ -290,7 +290,7 @@ int SimlibFileClass::WriteLine(char *buf)
     F4Assert(fptr);
     F4Assert(rights & SIMLIB_WRITE);
 
-    if (fprintf(fptr, "%s\n", buf) < 0)
+    if (RES_FPRINTF(fptr, "%s\n", buf) < 0)
         SimLibErrno = EOUTPUT;
     else
     {
@@ -328,7 +328,7 @@ int SimlibFileClass::Read(void* buffer, unsigned int max_len)
     F4Assert(fptr);
     F4Assert(rights & SIMLIB_READ);
 
-    if (fread(buffer, 1, max_len, fptr) < max_len)
+    if (RES_FREAD(buffer, 1, max_len, fptr) < max_len)
         SimLibErrno = EEOF;
     else
     {
@@ -366,7 +366,7 @@ int SimlibFileClass::Write(void* buffer, int max_len)
     F4Assert(fptr);
     F4Assert(rights & SIMLIB_WRITE);
 
-    if (fwrite(buffer, 1, max_len, fptr) < (unsigned int)max_len)
+    if (RES_FWRITE(buffer, 1, max_len, fptr) < (unsigned int)max_len)
         SimLibErrno = EOUTPUT;
     else
     {
@@ -407,12 +407,12 @@ char *SimlibFileClass::GetNext(void)
 
     do
     {
-        fscanf(fptr, "%s", aline);
+        RES_FSCANF(fptr, "%s", aline);
         SwapCRLF(aline);
 
         if (aline[0] == ';' || aline[0] == '#')
         {
-            if (fgets(aline, 160, fptr) == NULL)
+            if (RES_FGETS(aline, 160, fptr) == NULL)
             {
                 break;
             }
@@ -454,7 +454,7 @@ int SimlibFileClass::Close(void)
 
     F4Assert(fptr);
 
-    if (ResFClose(fptr) == 0)
+    if (RES_FCLOSE(fptr) == 0)
     {
 #ifdef _DEBUG
         fnumOpen --;
@@ -496,7 +496,7 @@ int SimlibFileClass::Position(int offset, int origin)
 
     F4Assert(fptr);
 
-    if (fseek(fptr, offset, origin) == 0)
+    if (RES_FSEEK(fptr, offset, origin) == 0)
         retval = SIMLIB_OK;
 
     return (retval);

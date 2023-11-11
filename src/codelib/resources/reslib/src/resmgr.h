@@ -88,9 +88,9 @@
 
 #include "omni.h"  /* The configuration options */
 
-#if !defined(__LISTS_H_INCLUDED)
-#   define LIST void
-#endif /* __LISTS_H_INCLUDED */
+//#if !defined(__LISTS_H_INCLUDED)
+//#   define LIST void
+//#endif /* __LISTS_H_INCLUDED */
 
 // Must comment this out if you're not on windows, but
 // the following header stuff really requires it.
@@ -106,20 +106,6 @@
         G E N E R A L   C O M P I L E R   D E F I N I T I O N S
 
    ---------------------------------------------------------------------- */
-
-#define MAX_DIR_DEPTH                   25      /* maximum depth of directory nesting           */
-#define MAX_DIRECTORY_DEPTH             25      /* chop one of em                               */
-#define MAX_FILENAME                    60      /* maximum length of a filename                 */
-//#define MAX_DIRECTORIES                 500     /* maximum number of directories in search path */
-/* moved to omni.h GFG 3.11.98 */
-#define MAX_CD                          2       /* maximum number of cd's allowed               */
-#define MAX_READ_SIZE                   32767   /* maximum buffer to read in a single ResRead   */
-#define MAX_FILE_HANDLES                256      /* maximum number of open files                 */
-#define MAX_DEVICES                     26      /* number of devices to keep track of (A-Z)     */
-
-#define FILENAME_LENGTH                 14      /* for 8.3 naming convention use 14             */
-
-#define STRING_SAFETY_SIZE              0.85    /* safety buffer ratio for string pools         */
 
 #ifdef _DLL_VERSION
 #   define RES_EXPORT  CFUNC __declspec (dllexport)
@@ -314,159 +300,31 @@ enum RES_PATHS                          /* enumerated slots for system paths    
 typedef unsigned char   UCH;
 typedef unsigned long   ULG;
 
-typedef struct RES_STAT
+typedef void* RES_archive_hndl;
+typedef void* RES_file_hndl;
+
+typedef struct RES_dir
+{
+    int     current;                    /* used to to index into name array                             */
+    int     num_entries;                /* number of filenames found in directory                       */
+    char** filenames;                  /* dynamically allocated array of filenames                     */
+    char* string_pool;                /* to glob allocations                                          */
+    char* string_ptr;                 /* current write ptr into string_pool                           */
+    char* name;                       /* directory name                                               */
+
+} RES_dir;
+
+typedef struct RES_stat
 {
     int      size;                       /* size of file (bytes)                                         */
     int      csize;                      /* compressed size of file (if in archive)                      */
     int      directory;                  /* location (directory)                                         */
     int      volume;                     /* location (volume)                                            */
-    int      archive;                    /* archive id                                                   */
+    RES_archive_hndl      archive;                    /* archive id                                                   */
     int      attributes;                 /* file attributes                                              */
     int      mode;                       /* open mode _O_RDWR, etc...                                    */
 
-} RES_STAT;
-
-
-typedef struct RES_DIR
-{
-    int     current;                    /* used to to index into name array                             */
-    int     num_entries;                /* number of filenames found in directory                       */
-    char ** filenames;                  /* dynamically allocated array of filenames                     */
-    char *  string_pool;                /* to glob allocations                                          */
-    char *  string_ptr;                 /* current write ptr into string_pool                           */
-    char *  name;                       /* directory name                                               */
-
-} RES_DIR;
-
-
-typedef struct HASH_ENTRY
-{
-    char  * name;                       /* filename    or pathname                                      */
-    size_t  offset;                     /* offset within an archive                                     */
-    size_t  size;                       /* size of file                                                 */
-    size_t  csize;                      /* compressed size of file                                      */
-    short   method;                     /* compress method (deflate or store)                           */
-    long    file_position;              /* = -1 for loose file                                          */
-    int     archive;                    /* handle if from an archive, or -1    if not                   */
-    int     attrib;                     /* file attributes                                              */
-
-    int    directory;                   /* GFG changed from char to int 3/10/98 */
-    char    volume;
-
-    void  * dir;                        /* if this entry is a directory                                 */
-
-    struct HASH_ENTRY * next;           /* for imperfect hashes    -or- a subdirectory                  */
-
-} HASH_ENTRY;
-
-
-typedef struct HASH_TABLE
-{
-    int     table_size;                 /* number of slots in hash table                                */
-    int     num_entries;                /* number of entries entered into hash table                    */
-    char  * name;                       /* name the table (usually the directory name)                  */
-    char  * ptr_in;                     /* ptr to insert strings                                        */
-    char  * ptr_end;                    /* end of string space for this allocation                      */
-    LIST  * str_list;                   /* list of string space allocations                             */
-
-
-    struct HASH_ENTRY * table;          /* array -table- of hash entries                                */
-
-} HASH_TABLE;
-
-
-typedef struct COMPRESSED_FILE
-{
-    UCH   * slide;                      /* sliding window                               was: slide      */
-    UCH   * in_buffer;                  /* input buffer                                 was: inbuf      */
-    UCH   * in_ptr;                     /* current write-to ptr within in_buffer        was: inptr      */
-    int     in_count;                   /*                                              was: incnt      */
-    int     in_size;                    /* size of input buffer                         was: inbufsiz   */
-    char  * out_buffer;                 /* output buffer                                was: outbuf     */
-    ULG     out_count;                  /* number of bytes written to output buffer     was: outcnt     */
-
-    unsigned        wp;                 /* Inflate state variable: current position in slide            */
-    unsigned long   bb;                 /* Inflate state variable: bit buffer                           */
-    unsigned        bk;                 /* Inflate state variable: bits in bit buffer                   */
-    long            csize;              /* Inflate state variable:                                      */
-
-    struct ARCHIVE * archive;           /* archive from which this file is extracted                    */
-
-} COMPRESSED_FILE;
-
-
-typedef struct ARCHIVE
-{
-    char    name[ _MAX_FNAME ];         /* filename of the compressed archive                           */
-    int     num_entries;                /* number of files within archive                               */
-    int     os_handle;                  /* handle returned by open()    was: zipfd                      */
-    int     length;                     /* was: ziplen                                                  */
-    int     start_buffer;               /* was: cur_zipfile_bufstart                                    */
-    char    volume;                     /* used to purge during ResDismount()                           */
-    char    directory;                  /* used to purge during ResDismount()                           */
-
-    HANDLE  lock;                       /* mutex lock                                                   */
-
-    /* ------------ used temporarily to parse zip hdr ------------- */
-    /* renamed to avoid accidentally misusing COMPRESSED_FILE mmbrs */
-    UCH *   tmp_hold;                   /* was: fold?                                                   */
-    UCH *   tmp_slide;                  /* sliding window                               was: slide      */
-    UCH *   tmp_in_buffer;              /* input buffer                                 was: inbuf      */
-    UCH *   tmp_in_ptr;                 /* current write-to ptr within in_buffer        was: inptr      */
-    int     tmp_in_count;               /*                                              was: incnt      */
-    int     tmp_in_size;                /* size of input buffer                         was: inbufsiz   */
-    UCH *   tmp_out_buffer;             /* output buffer                                was: outbuf     */
-    int     tmp_out_count;              /* number of bytes written to output buffer     was: outcnt     */
-    int     tmp_len;                    /* zip file length                              was: ziplen     */
-    int     tmp_bytes_to_read;          /* bytes to read...?                            was: csize      */
-    /* ------------ used temporarily to parse zip hdr ------------- */
-
-    LIST *  open_list;                  /* list of COMPRESSED_FILE structs pointing back here           */
-
-    struct HASH_TABLE * table;          /* hash table for this archive                                  */
-
-} ARCHIVE;
-
-
-typedef struct FILE_ENTRY               /* called "filedes" within AFU                                  */
-{
-    int     os_handle;                  /* handle returned by operating system                          */
-    int     seek_start;
-    size_t  current_pos;
-    size_t  size;                       /* uncompressed file size                                       */
-    size_t  csize;                      /* compressed file size                                         */
-    int     attrib;                     /* file attributes                                              */
-    int     mode;                       /* mode file was opened in                                      */
-    int     location;
-    char    device;
-    char  * data;
-    char  * filename;
-    size_t current_filbuf_pos;
-    struct COMPRESSED_FILE * zip;       /* struct for maintaining unzip state data                      */
-
-} FILE_ENTRY;
-
-
-typedef struct DEVICE_ENTRY
-{
-    char    letter;                     /* drive letter                                                 */
-    char    type;                       /* type of device                                               */
-    char    name[32];                   /* volume name of device                                        */
-    char    id;                         /* which cd number                                              */
-
-    unsigned long serial;               /* serial number of volume                                      */
-
-} DEVICE_ENTRY;
-
-typedef struct PATH_ENTRY
-{
-    char  * name;                       /* complete path name                                           */
-    char    device;                     /* index pointing to specific device                            */
-    char    state;                      /* open, mounted, error, etc.                                   */
-    char    open_count;                 /* number of open files within directory                        */
-
-} PATH_ENTRY;
-
+} RES_stat;
 
 /* ------------------------------------------------------------------------
 
@@ -477,76 +335,44 @@ typedef struct PATH_ENTRY
 RES_EXPORT int    ResInit(HWND hwnd);
 RES_EXPORT void   ResExit(void);
 
-RES_EXPORT int    ResMountCD(int cd_number, int device);
-RES_EXPORT int    ResDismountCD(void);
-RES_EXPORT int    ResCheckMedia(int device);
-RES_EXPORT int    ResDevice(int device, DEVICE_ENTRY * dev);
-RES_EXPORT void   ResPurge(const char * archive, const char * volume, const int * directory, const char * filename);
+RES_EXPORT void   ResPurge(RES_archive_hndl archive, const char * volume, const int * directory, const char * filename);
 
-RES_EXPORT int    ResAttach(const char * attach_point, const char * filename, int replace_flag);
-RES_EXPORT void   ResDetach(int handle);
+RES_EXPORT RES_archive_hndl  ResAttach(const char * attach_point, const char * filename, int replace_flag);
+RES_EXPORT void   ResDetach(RES_archive_hndl handle);
 
-RES_EXPORT int    ResOpenFile(const char * name, int mode);
-RES_EXPORT int    ResSizeFile(int file);
-RES_EXPORT int    ResReadFile(int handle, void * buffer, size_t count);
+RES_EXPORT RES_file_hndl  ResOpenFile(const char * name, int mode);
+RES_EXPORT int    ResSizeFile(RES_file_hndl handle);
+RES_EXPORT int    ResReadFile(RES_file_hndl handle, void * buffer, size_t count);
 RES_EXPORT char * ResLoadFile(const char * filename,  char * buffer, size_t * size);
 RES_EXPORT void   ResUnloadFile(char * buffer);
-RES_EXPORT int    ResCloseFile(int file);
-RES_EXPORT size_t ResWriteFile(int handle, const void * buffer, size_t count);
+RES_EXPORT int    ResCloseFile(RES_file_hndl handle);
+RES_EXPORT size_t ResWriteFile(RES_file_hndl handle, const void * buffer, size_t count);
 RES_EXPORT int    ResDeleteFile(const char * name);
 RES_EXPORT int    ResModifyFile(const char * name, int flags);
-RES_EXPORT long   ResTellFile(int handle);
-RES_EXPORT int    ResSeekFile(int handle, size_t offset, int origin);
-RES_EXPORT int    ResStatusFile(const char * filename, RES_STAT * stat_buffer);
+RES_EXPORT long   ResTellFile(RES_file_hndl handle);
+RES_EXPORT int    ResSeekFile(RES_file_hndl handle, size_t offset, int origin);
+RES_EXPORT int    ResStatusFile(const char * filename, RES_stat * stat_buffer);
 RES_EXPORT int    ResExtractFile(const char * dst, const char * src);
 
-#if( RES_STREAMING_IO )
+RES_EXPORT RES_file_hndl   RES_FOPEN(const char* name, const char* mode);
+RES_EXPORT int             RES_FCLOSE(RES_file_hndl file);
+RES_EXPORT long            RES_FTELL(RES_file_hndl file);
+RES_EXPORT size_t          RES_FREAD(void* buffer, size_t size, size_t num, RES_file_hndl file);
+RES_EXPORT size_t          RES_FWRITE(void* buffer, size_t size, size_t num, RES_file_hndl file);
+RES_EXPORT int             RES_FSEEK(RES_file_hndl file, long offset, int whence);
+RES_EXPORT int             RES_FPRINTF(RES_file_hndl file, const char* fmt, ...);
+RES_EXPORT int             RES_FSCANF(RES_file_hndl file, const char* fmt, ...);
+RES_EXPORT char*           RES_FGETS(char* buffer, int max_count, RES_file_hndl file);
+RES_EXPORT int             RES_FEOF(RES_file_hndl file);
 
-#   undef RES_FOPEN
-#   undef RES_FCLOSE
-#   undef RES_FTELL
-#   undef RES_FREAD
-#   undef RES_FSEEK
+//#  define fsetpos(f,o) fseek(f,o,SEEK_SET)
+//#  define rewind(f)    fseek(f,0L,SEEK_SET)
 
-#   define RES_FOPEN   ResFOpen
-#   define RES_FCLOSE  ResFClose
-#   define RES_FTELL   ResFTell
-#   define RES_FREAD   ResFRead
-#   define RES_FSEEK   ResFSeek
-
-#if( RES_REPLACE_STREAMING )
-
-/* msvc has a bug in the linker that makes it impossible to just
-   replace the stdio.h functions at link time. */
-
-#   define fopen       ResFOpen
-#   define fclose      ResFClose
-#   define ftell       ResFTell
-#   define fread       ResFRead
-#   define fseek       ResFSeek
-#endif
-
-FILE * __cdecl     RES_FOPEN(const char * name, const char * mode);
-int    __cdecl     RES_FCLOSE(FILE * file);
-long   __cdecl     RES_FTELL(FILE * stream);    /* default is to use ftell !!! */
-size_t __cdecl     RES_FREAD(void *buffer, size_t size, size_t num, FILE *stream);
-int    __cdecl     RES_FSEEK(FILE * stream, long offset, int whence);
-
-#  define fsetpos(f,o) fseek(f,o,SEEK_SET)
-#  define rewind(f)    fseek(f,0L,SEEK_SET)
-#else
-#   define RES_FOPEN   fopen
-#   define RES_FCLOSE  fclose
-#   define RES_FTELL   ftell
-#   define RES_FREAD   fread
-#   define RES_FSEEK   fseek
-#endif /* RES_STREAMING_IO */
-
-RES_EXPORT int    ResMakeDirectory(char * pathname);
-RES_EXPORT int    ResDeleteDirectory(char * pathname, int forced);
-RES_EXPORT RES_DIR * ResOpenDirectory(char * pathname);
-RES_EXPORT char * ResReadDirectory(RES_DIR * dir);
-RES_EXPORT void   ResCloseDirectory(RES_DIR * dir);
+//RES_EXPORT int    ResMakeDirectory(char * pathname);
+//RES_EXPORT int    ResDeleteDirectory(char * pathname, int forced);
+//RES_EXPORT RES_dir* ResOpenDirectory(char * pathname);
+//RES_EXPORT char * ResReadDirectory(RES_dir* dir);
+//RES_EXPORT void   ResCloseDirectory(RES_dir* dir);
 
 RES_EXPORT int    ResExistFile(char * name);
 RES_EXPORT int    ResExistDirectory(char * pathname);
@@ -567,10 +393,10 @@ RES_EXPORT int    ResBuildPathname(int index, char * path_in, char * path_out);
 RES_EXPORT int    ResGetPath(int idx, char * buffer);
 RES_EXPORT int    ResCreatePath(char * path, int recurse);
 RES_EXPORT int    ResAddPath(char * path, int recurse);
-RES_EXPORT int    ResGetArchive(int idx, char * buffer);
+RES_EXPORT int    ResGetArchive(RES_archive_hndl handle, char * buffer);
 
-RES_EXPORT int    ResAsynchRead(int file, void * buffer, PFV callback);
-RES_EXPORT int    ResAsynchWrite(int file, void * buffer, PFV callback);
+RES_EXPORT int    ResAsynchRead(RES_file_hndl handle, void * buffer, PFV callback);
+RES_EXPORT int    ResAsynchWrite(RES_file_hndl handle, void * buffer, PFV callback);
 
 #if( RES_DEBUG_VERSION )
 RES_EXPORT void   ResDbg(int on);
@@ -596,24 +422,24 @@ size_t ResWriteStream(int, int, size_t);
         C O N V E N I E N C E    D E F I N I T I O N S
 
    ------------------------------------------------------------------------------- */
-
-#ifndef SEEK_CUR
-#  define SEEK_SET 0
-#  define SEEK_CUR 1
-#  define SEEK_END 2
-#endif /* SEEK_CUR */
-
-enum
-{
-    RES_NOT_FORCED  = 0,
-    RES_FORCED
-};
-
-#define RES_HD                  0x00010000
-#define RES_CD                  0x00020000
-#define RES_NET                 0x00040000
-#define RES_ARCHIVE             0x00080000
-#define RES_FLOPPY              0x00100000
+//
+//#ifndef SEEK_CUR
+//#  define SEEK_SET 0
+//#  define SEEK_CUR 1
+//#  define SEEK_END 2
+//#endif /* SEEK_CUR */
+//
+//enum
+//{
+//    RES_NOT_FORCED  = 0,
+//    RES_FORCED
+//};
+//
+//#define RES_HD                  0x00010000
+//#define RES_CD                  0x00020000
+//#define RES_NET                 0x00040000
+//#define RES_ARCHIVE             0x00080000
+//#define RES_FLOPPY              0x00100000
 
 #ifndef _O_APPEND                           /* so you don't need <fcntl.h>                                  */
 #  define _O_RDONLY             0x0000      /* open for reading only                                        */
@@ -650,38 +476,38 @@ enum
 #define TEXT_MODE               _O_TEXT
 #define BINARY_MODE             _O_BINARY
 
-#define ASCII_BACKSLASH         0x5c
-#define ASCII_FORESLASH         0x2f
-#define ASCII_SPACE             0x20
-#define ASCII_DOT               0x2e
-#define ASCII_STAR              0x2a
-#define ASCII_OPEN_BRACKET      0x5b
-#define ASCII_CLOSE_BRACKET     0x5d
-#define ASCII_COLON             0x3a
-#define ASCII_QUOTE             0x22
-#define ASCII_ASTERISK          ASCII_STAR
-#define ASCII_PERIOD            ASCII_DOT
+//#define ASCII_BACKSLASH         0x5c
+//#define ASCII_FORESLASH         0x2f
+//#define ASCII_SPACE             0x20
+//#define ASCII_DOT               0x2e
+//#define ASCII_STAR              0x2a
+//#define ASCII_OPEN_BRACKET      0x5b
+//#define ASCII_CLOSE_BRACKET     0x5d
+//#define ASCII_COLON             0x3a
+//#define ASCII_QUOTE             0x22
+//#define ASCII_ASTERISK          ASCII_STAR
+//#define ASCII_PERIOD            ASCII_DOT
 
 
-/* VC++ mutex code is NOT very lightweight.  These macros are for our
-   simple semaphores for blocking hash table resizing while ptrs are
-   exposed */
-/* #if( RES_USE_MULTITHREAD ) */
-
-#if( RES_MULTITHREAD )
-#   define  RES_LOCK(a)         {(a)->lock = TRUE;}
-#   define  RES_UNLOCK(a)       {(a)->lock = FALSE;}
-#   define  RES_IS_LOCKED(a)    ((a)->lock == TRUE)
-#   define  RES_WHILE_LOCKED(a) {while((a)->lock);}
-#else
-#   define  RES_LOCK(a)
-#   define  RES_UNLOCK(a)
-#   define  RES_IS_LOCKED(a)    (TRUE == TRUE)
-#   define  RES_WHILE_LOCKED(a)
-#endif /* RES_USE_MULTITHREAD */
-
-#define UNZIP_SLIDE_SIZE        32768
-#define UNZIP_BUFFER_SIZE       2048
-#define INPUTBUFSIZE            20480
+///* VC++ mutex code is NOT very lightweight.  These macros are for our
+//   simple semaphores for blocking hash table resizing while ptrs are
+//   exposed */
+///* #if( RES_USE_MULTITHREAD ) */
+//
+//#if( RES_MULTITHREAD )
+//#   define  RES_LOCK(a)         {(a)->lock = TRUE;}
+//#   define  RES_UNLOCK(a)       {(a)->lock = FALSE;}
+//#   define  RES_IS_LOCKED(a)    ((a)->lock == TRUE)
+//#   define  RES_WHILE_LOCKED(a) {while((a)->lock);}
+//#else
+//#   define  RES_LOCK(a)
+//#   define  RES_UNLOCK(a)
+//#   define  RES_IS_LOCKED(a)    (TRUE == TRUE)
+//#   define  RES_WHILE_LOCKED(a)
+//#endif /* RES_USE_MULTITHREAD */
+//
+//#define UNZIP_SLIDE_SIZE        32768
+//#define UNZIP_BUFFER_SIZE       2048
+//#define INPUTBUFSIZE            20480
 
 #endif /* RESOURCE_MANAGER */

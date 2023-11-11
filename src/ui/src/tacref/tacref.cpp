@@ -22,7 +22,7 @@ extern "C"
 #include "codelib/resources/reslib/src/resmgr.h"
 }
 
-#define UI_HANDLE FILE *
+#define UI_HANDLE RES_file_hndl
 #define UI_OPEN   RES_FOPEN
 #define UI_READ   RES_FREAD
 #define UI_CLOSE  RES_FCLOSE

@@ -165,7 +165,7 @@ MenuManager::MenuManager(int width, int height)
 
 void MenuManager::ReadDataFile(char* pfileName)
 {
-    FILE* pFile;
+    RES_file_hndl pFile;
     BOOL quitFlag  = FALSE;
     char* presult = "";
     char* plinePtr;
@@ -180,7 +180,7 @@ void MenuManager::ReadDataFile(char* pfileName)
     pFile = CP_OPEN(pfileName, "r");
     F4Assert(pFile);
 
-    presult = fgets(plineBuffer, lineLen, pFile);
+    presult = RES_FGETS(plineBuffer, lineLen, pFile);
     quitFlag = (presult == NULL);
     plinePtr = plineBuffer;
 
@@ -218,7 +218,7 @@ void MenuManager::ReadDataFile(char* pfileName)
             }
         }
 
-        presult = fgets(plineBuffer, lineLen, pFile);
+        presult = RES_FGETS(plineBuffer, lineLen, pFile);
         plinePtr = plineBuffer;
         quitFlag = (presult == NULL);
     }

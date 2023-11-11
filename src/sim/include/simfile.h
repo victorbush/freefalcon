@@ -35,6 +35,11 @@
 #ifndef _SIMFILE_H
 #define _SIMFILE_H
 
+extern "C"
+{
+#include "codelib/resources/reslib/src/resmgr.h"
+}
+
 #define SIMLIB_MAX_FILE_NAME_LENGTH    _MAX_PATH
 #define SIMLIB_MAX_OPEN_FILES          20
 #define SIMLIB_UPDATE                  0x1
@@ -56,7 +61,7 @@ typedef char   SimlibFileName[SIMLIB_MAX_FILE_NAME_LENGTH];
 class SimlibFileClass
 {
 private:
-    FILE           *fptr;
+    RES_file_hndl  fptr;
     int            rights;
     int            lastOp;
     SimlibFileName fName;

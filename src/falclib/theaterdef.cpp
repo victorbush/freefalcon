@@ -35,7 +35,7 @@ extern char FalconPictureDirectory[];
 
 // RV - Biker - Theater switching stuff
 extern int numZips;
-extern int* resourceHandle;
+extern RES_archive_hndl* resourceHandle;
 extern int SimPathHandle;
 #define ZIPFILE_NAME    "ziplist.lst"
 
@@ -310,14 +310,7 @@ bool TheaterList::SetNewTheater(TheaterDef *td)
     {
         char tmpPath[256];
         sprintf(tmpPath, "%s\\sim", FalconDataDirectory); // JPO - so we can find raw sim files
-
-        if (SimPathHandle == -1)
-            SimPathHandle = ResAddPath(tmpPath, TRUE);
-    }
-    else if (SimPathHandle >= 0)
-    {
-        ResDetach(SimPathHandle);
-        SimPathHandle = -1;
+        ResAddPath(tmpPath, TRUE);
     }
 
     // Cobra - Setup theater's Zip folder files
@@ -338,7 +331,7 @@ bool TheaterList::SetNewTheater(TheaterDef *td)
     else
     {
         fscanf(zipFile, "%d", &numZips);
-        resourceHandle = new int[numZips];
+        resourceHandle = new RES_archive_hndl[numZips];
 
         for (int i = 0; i < numZips; i++)
         {

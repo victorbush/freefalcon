@@ -331,7 +331,7 @@ CockpitManager::CockpitManager(
 {
     //Wombat778 10-06-2003 Changes scale from int to float
 
-    CP_HANDLE* pcockpitDataFile;
+    RES_file_hndl pcockpitDataFile;
     const int lineLen = MAX_LINE_BUFFER - 1;
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* presult;
@@ -479,7 +479,7 @@ CockpitManager::CockpitManager(
 
     while (!quitFlag)
     {
-        presult = fgets(plineBuffer, lineLen, pcockpitDataFile);
+        presult = RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         quitFlag = (presult == NULL);
 
@@ -821,7 +821,7 @@ void CockpitManager::SetupControlTemplate(char* pfileName, int width, int height
 //====================================================//
 // CockpitManager::ParseManagerInfo
 //====================================================//
-void CockpitManager::ParseManagerInfo(FILE* pcockpitDataFile)
+void CockpitManager::ParseManagerInfo(RES_file_hndl pcockpitDataFile)
 {
 
     const int lineLen = MAX_LINE_BUFFER - 1;
@@ -842,7 +842,7 @@ void CockpitManager::ParseManagerInfo(FILE* pcockpitDataFile)
         mpViewBounds[i] = NULL;
     }
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -866,7 +866,7 @@ void CockpitManager::ParseManagerInfo(FILE* pcockpitDataFile)
             mVersion.major = 0;
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1141,7 +1141,7 @@ void CockpitManager::ParseManagerInfo(FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Manager", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1156,7 +1156,7 @@ void CockpitManager::ParseManagerInfo(FILE* pcockpitDataFile)
 //====================================================//
 // CockpitManager::CreateSound
 //====================================================//
-void CockpitManager::CreateSound(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateSound(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     int entry = 0;
@@ -1166,7 +1166,7 @@ void CockpitManager::CreateSound(int idNum, FILE* pcockpitDataFile)
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char pseparators[] = {0x20, 0x2c, 0x3d, 0x3b, 0x0d, 0x0a, 0x09, 0x00};
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1184,7 +1184,7 @@ void CockpitManager::CreateSound(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Sound", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1213,7 +1213,7 @@ string RemoveInvalidChars(const string &instr)
 //====================================================//
 // CockpitManager::LoadBuffer
 //====================================================//
-void CockpitManager::LoadBuffer(FILE* pcockpitDataFile)
+void CockpitManager::LoadBuffer(RES_file_hndl pcockpitDataFile)
 {
     char psurfaceFile[MAX_LINE_BUFFER];
     char pfileName[20] = "";
@@ -1224,7 +1224,7 @@ void CockpitManager::LoadBuffer(FILE* pcockpitDataFile)
     char pseparators[] = {0x20, 0x2c, 0x3d, 0x3b, 0x0d, 0x0a, 0x09, 0x00};
 
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1283,7 +1283,7 @@ void CockpitManager::LoadBuffer(FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Template", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1300,7 +1300,7 @@ void CockpitManager::LoadBuffer(FILE* pcockpitDataFile)
 //====================================================//
 // CockpitManager::CreateText
 //====================================================//
-void CockpitManager::CreateText(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateText(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* plinePtr;
@@ -1311,7 +1311,7 @@ void CockpitManager::CreateText(int idNum, FILE* pcockpitDataFile)
     int numStrings = 0;
 
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1347,7 +1347,7 @@ void CockpitManager::CreateText(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Text", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1372,7 +1372,7 @@ void CockpitManager::CreateText(int idNum, FILE* pcockpitDataFile)
 //====================================================//
 // CockpitManager::CreateChevron
 //====================================================//
-void CockpitManager::CreateChevron(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateChevron(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -1383,7 +1383,7 @@ void CockpitManager::CreateChevron(int idNum, FILE* pcockpitDataFile)
     ObjectInitStr objectInitStr;
     ChevronInitStr chevInitStr;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1406,7 +1406,7 @@ void CockpitManager::CreateChevron(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Chevron", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1438,7 +1438,7 @@ void CockpitManager::CreateChevron(int idNum, FILE* pcockpitDataFile)
 //====================================================//
 // CockpitManager::CreateLiftLine
 //====================================================//
-void CockpitManager::CreateLiftLine(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateLiftLine(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER];
@@ -1451,7 +1451,7 @@ void CockpitManager::CreateLiftLine(int idNum, FILE* pcockpitDataFile)
 
     liftInitStr.doLabel = FALSE;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1476,7 +1476,7 @@ void CockpitManager::CreateLiftLine(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Lift Line", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1509,7 +1509,7 @@ void CockpitManager::CreateLiftLine(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateDed
 //====================================================//
 
-void CockpitManager::CreateDed(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateDed(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -1528,7 +1528,7 @@ void CockpitManager::CreateDed(int idNum, FILE* pcockpitDataFile)
 
     dedInitStr.dedtype = DEDT_DED;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1579,7 +1579,7 @@ void CockpitManager::CreateDed(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "DED", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1605,7 +1605,7 @@ void CockpitManager::CreateDed(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateCursor
 //====================================================//
 
-void CockpitManager::CreateCursor(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateCursor(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* plinePtr;
@@ -1614,7 +1614,7 @@ void CockpitManager::CreateCursor(int idNum, FILE* pcockpitDataFile)
     const int lineLen = MAX_LINE_BUFFER - 1;
     CursorInitStr cursorInitStruct;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1641,7 +1641,7 @@ void CockpitManager::CreateCursor(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Cursor", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1660,7 +1660,7 @@ void CockpitManager::CreateCursor(int idNum, FILE* pcockpitDataFile)
     mCursorTally++;
 }
 
-void CockpitManager::CreateDigits(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateDigits(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -1690,7 +1690,7 @@ void CockpitManager::CreateDigits(int idNum, FILE* pcockpitDataFile)
     objectInitStr.bsurface = -1;
     digitsInitStr.numDestDigits   = 0;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1757,7 +1757,7 @@ void CockpitManager::CreateDigits(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Digit", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -1810,7 +1810,7 @@ void CockpitManager::CreateDigits(int idNum, FILE* pcockpitDataFile)
     mObjectTally++;
 }
 
-void CockpitManager::CreateIndicator(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateIndicator(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -1837,7 +1837,7 @@ void CockpitManager::CreateIndicator(int idNum, FILE* pcockpitDataFile)
     indicatorInitStr.maxPos          = NULL;
     indicatorInitStr.numTapes        = 0;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -1960,7 +1960,7 @@ void CockpitManager::CreateIndicator(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Indicator", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -2020,7 +2020,7 @@ void CockpitManager::CreateIndicator(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateDial
 //====================================================//
 
-void CockpitManager::CreateDial(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateDial(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -2033,7 +2033,7 @@ void CockpitManager::CreateDial(int idNum, FILE* pcockpitDataFile)
     int valuesIndex = 0;
     int pointsIndex = 0;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -2191,7 +2191,7 @@ void CockpitManager::CreateDial(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Dial", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -2234,7 +2234,7 @@ void CockpitManager::CreateDial(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateSurface
 //====================================================//
 
-void CockpitManager::CreateSurface(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateSurface(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* plinePtr;
@@ -2247,7 +2247,7 @@ void CockpitManager::CreateSurface(int idNum, FILE* pcockpitDataFile)
     RECT destRect;
 
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -2306,7 +2306,7 @@ void CockpitManager::CreateSurface(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Surface", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -2414,7 +2414,7 @@ void CockpitManager::SafeImageCopy(GLubyte* ploadBuffer,
 // CockpitManager::CreatePanel
 //====================================================//
 
-void CockpitManager::CreatePanel(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreatePanel(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* plinePtr;
@@ -2450,7 +2450,7 @@ void CockpitManager::CreatePanel(int idNum, FILE* pcockpitDataFile)
     ppanelInitStr->tilt = 0;
     ppanelInitStr->maskTop = 0;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -2761,7 +2761,7 @@ void CockpitManager::CreatePanel(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Panel", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3001,7 +3001,7 @@ void CockpitManager::ResolveReferences(void)
 //====================================================//
 // CockpitManager::CreateKneeView
 //====================================================//
-void CockpitManager::CreateKneeView(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateKneeView(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char* plinePtr;
@@ -3020,7 +3020,7 @@ void CockpitManager::CreateKneeView(int idNum, FILE* pcockpitDataFile)
     objectInitStr.bsurface = -1;
     objectInitStr.callbackSlot = -1;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3047,7 +3047,7 @@ void CockpitManager::CreateKneeView(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Kneeboard", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3072,7 +3072,7 @@ void CockpitManager::CreateKneeView(int idNum, FILE* pcockpitDataFile)
 //====================================================//
 // CockpitManager::CreateMirror
 //====================================================//
-void CockpitManager::CreateMirror(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateMirror(int idNum, RES_file_hndl pcockpitDataFile)
 {
     char plineBuffer[MAX_LINE_BUFFER] = "";
     char *plinePtr;
@@ -3086,7 +3086,7 @@ void CockpitManager::CreateMirror(int idNum, FILE* pcockpitDataFile)
     objectInitStr.bsurface = -1;
     objectInitStr.callbackSlot = -1;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     ++gDebugLineNum;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3135,7 +3135,7 @@ void CockpitManager::CreateMirror(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Mirror", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         ++gDebugLineNum;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3168,7 +3168,7 @@ void CockpitManager::CreateMirror(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateLight
 //====================================================//
 
-void CockpitManager::CreateLight(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateLight(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -3192,7 +3192,7 @@ void CockpitManager::CreateLight(int idNum, FILE* pcockpitDataFile)
     objectInitStr.bsurface = -1;
     lightButtonInitStr.psrcRect   = NULL;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3281,7 +3281,7 @@ void CockpitManager::CreateLight(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Light", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3336,7 +3336,7 @@ void CockpitManager::CreateLight(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateButtonView
 //====================================================//
 
-void CockpitManager::CreateButtonView(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateButtonView(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -3352,7 +3352,7 @@ void CockpitManager::CreateButtonView(int idNum, FILE* pcockpitDataFile)
     buttonViewInitStr.pSrcRect = NULL;
     buttonViewInitStr.states = 0;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3430,7 +3430,7 @@ void CockpitManager::CreateButtonView(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "ButtonView", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3487,7 +3487,7 @@ void CockpitManager::CreateButtonView(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateButton
 //====================================================//
 
-void CockpitManager::CreateButton(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateButton(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -3503,7 +3503,7 @@ void CockpitManager::CreateButton(int idNum, FILE* pcockpitDataFile)
     buttonObjectInitStr.sound1 = -1;
     buttonObjectInitStr.sound2 = -1;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3556,7 +3556,7 @@ void CockpitManager::CreateButton(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "Button", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3576,7 +3576,7 @@ void CockpitManager::CreateButton(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateAdi
 //====================================================//
 
-void CockpitManager::CreateAdi(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateAdi(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -3599,7 +3599,7 @@ void CockpitManager::CreateAdi(int idNum, FILE* pcockpitDataFile)
     adiInitStr.color3 = 0xFF6CF3F3;
     adiInitStr.color4 = 0xFF6CF3F3;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -3747,7 +3747,7 @@ void CockpitManager::CreateAdi(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "ADI", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -3821,7 +3821,7 @@ void CockpitManager::CreateAdi(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateHsiView
 //====================================================//
 
-void CockpitManager::CreateHsiView(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateHsiView(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -3867,7 +3867,7 @@ void CockpitManager::CreateHsiView(int idNum, FILE* pcockpitDataFile)
         hsiInitStr.colors[HSI_COLOR_ILSDEVWARN] = 0xff0000fd;
     }
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -4051,7 +4051,7 @@ void CockpitManager::CreateHsiView(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "HSI", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -4100,7 +4100,7 @@ void CockpitManager::CreateHsiView(int idNum, FILE* pcockpitDataFile)
 // CockpitManager::CreateMachAsi
 //====================================================//
 
-void CockpitManager::CreateMachAsi(int idNum, FILE* pcockpitDataFile)
+void CockpitManager::CreateMachAsi(int idNum, RES_file_hndl pcockpitDataFile)
 {
 
     char plineBuffer[MAX_LINE_BUFFER] = "";
@@ -4117,7 +4117,7 @@ void CockpitManager::CreateMachAsi(int idNum, FILE* pcockpitDataFile)
     machAsiInitStr.end_angle = 1.0F;
     machAsiInitStr.end_radius = 0.21F;
 
-    fgets(plineBuffer, lineLen, pcockpitDataFile);
+    RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
     gDebugLineNum ++;
     plinePtr = plineBuffer;
     ptoken = FindToken(&plinePtr, pseparators);
@@ -4245,7 +4245,7 @@ void CockpitManager::CreateMachAsi(int idNum, FILE* pcockpitDataFile)
             CockpitMessage(ptoken, "MachAsi", gDebugLineNum);
         }
 
-        fgets(plineBuffer, lineLen, pcockpitDataFile);
+        RES_FGETS(plineBuffer, lineLen, pcockpitDataFile);
         gDebugLineNum ++;
         plinePtr = plineBuffer;
         ptoken = FindToken(&plinePtr, pseparators);
@@ -5939,8 +5939,8 @@ int FileExists(char *file)
     if (g_bResizeUsesResMgr)
         return ResExistFile(file);
 
-#undef fopen
-#undef fclose
+//#undef fopen
+//#undef fclose
 
     fp = fopen(file, "r");
 
@@ -5950,8 +5950,8 @@ int FileExists(char *file)
         retval = true;
     }
 
-#define fopen       ResFOpen
-#define fclose      ResFClose
+//#define fopen       RES_FOPEN
+//#define fclose      RES_FCLOSE
 
     return retval;
 }

@@ -1122,7 +1122,7 @@ void Render2D::ChangeFontSet(FontSet* pFontSet_)
 
 #ifdef USE_TEXTURE_FONT
 
-extern FILE *ResFOpen(char *, char *);
+//extern FILE *ResFOpen(char *, char *);
 
 int FontSet::ReadFontMetrics(int index, char*fileName) // JPO return status
 {

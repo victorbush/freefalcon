@@ -12,6 +12,9 @@
 //#include "cpmanager.h" //sfr: dependencies: other files may include this
 #include "simbase.h"
 
+extern "C" {
+#include "codelib/resources/reslib/src/resmgr.h"
+};
 
 #ifdef USE_SH_POOLS
 #include "SmartHeap/Include/smrtheap.h"
@@ -970,7 +973,7 @@ private:
     void VCock_HeadCalc(void);
     void VCock_Exec(void);
     void VCock_Cleanup(void);
-    void VCock_ParseVDial(FILE *fp);
+    void VCock_ParseVDial(RES_file_hndl fp);
     bool VCock_Init(int eCPVisType, TCHAR* eCPName, TCHAR* eCPNameNCTR);
     bool VCock_SetCanvas(char **plinePtr, Canvas3D **canvaspp); // ASSO: old cancas
     bool VCock_SetRttCanvas(char** plinePtr, Render2D** canvaspp, int dev); // ASSO: new RTT canvas

@@ -178,10 +178,9 @@ int noUIcomms = FALSE;
 int NumHats = -1;
 int numZips = 0;
 int RepairObjective = FALSE;
-int SimPathHandle = -1;
 int wait_for_loaded = TRUE;
 int weatherCondition = SUNNY;
-int* resourceHandle;
+RES_archive_hndl* resourceHandle;
 RadioSubTitle* radioLabel = (RadioSubTitle*)0;
 RealWeather *realWeather = NULL;
 static HACCEL hAccel;
@@ -1180,11 +1179,11 @@ void SystemLevelInit()
         SetCursor(gCursors[CRSR_WAIT]);
         g_theaters.SetNewTheater(td);
 
-        if (((!_strnicmp(td->m_name, "Korea", 5)) || (!_strnicmp(td->m_name, "Eurowar", 7))) && (SimPathHandle == -1))
+        if ((!_strnicmp(td->m_name, "Korea", 5)) || (!_strnicmp(td->m_name, "Eurowar", 7)))
         {
             char tmpPath[256];
             sprintf(tmpPath, "%s\\sim", FalconDataDirectory); // JPO - so we can find raw sim files
-            SimPathHandle = ResAddPath(tmpPath, TRUE);
+            ResAddPath(tmpPath, TRUE);
         }
 
         g_theaters.DoSoundSetup();
@@ -1195,8 +1194,7 @@ void SystemLevelInit()
     {
         sprintf(tmpPath, "%s\\sim", FalconDataDirectory); // JPO - so we can find raw sim files
 
-        if (SimPathHandle == -1)
-            SimPathHandle = ResAddPath(tmpPath, TRUE);
+        ResAddPath(tmpPath, TRUE);
 
         ReadCampAIInputs("Falcon4");
 
